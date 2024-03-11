@@ -157,4 +157,4 @@ for i in range(10):
 sys.stdout.flush()
 
 for i in range(10):
-    print(population.evaluate(net,population.subs[i],net,tanh=tanh))
+    print(util.evaluate(population.subs[i],net,tanh=tanh))
