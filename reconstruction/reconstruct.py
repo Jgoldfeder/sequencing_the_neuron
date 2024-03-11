@@ -30,6 +30,16 @@ if dataset in ['cifar10','cifar100']:
     
 name = "seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
 
+import os
+if not os.path.exists("./results/"):
+    os.makedirs("./results/")
+
+models_path = "./models/"+name+"/"
+
+if not os.path.exists(models_path):
+    os.makedirs(models_path)
+
+
 sys.stdout = open("./results/"+name, "w")
 print ("Log file for:"+name)
 
@@ -112,6 +122,9 @@ net.to(device)
 util.train_blackbox(net,num_epochs,dataset,optim_)
 print(net)
 
+# save net
+torch.save(net.state_dict(), models_path+"black_box.pt")
+
 pop_size = 10
 subs = []
 for j in range(pop_size):
@@ -147,10 +160,10 @@ with torch.enable_grad():
         for i in range(10):
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
-
+        population.save(models_path +"/population_iteration_"+str(outer_iter)+".pt")
         if outer_iter in [15,30,54]:
             population.evaluate(net,tanh=tanh)
-
+        
 
 for i in range(10):
     print(population.subs[i].loss)

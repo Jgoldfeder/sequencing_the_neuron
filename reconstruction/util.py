@@ -12,6 +12,7 @@ sys.path.append('./alignment')
 sys.path.append('../alignment')
 
 import evaluate as evaluate_
+from recon_evals import e_mae,e_layers_mae,e_max_ae,e_mse
 import align_cnn 
 device = 0
 
@@ -58,6 +59,12 @@ class Population(nn.Module):
         self.outputs = []
         self.best = None
         self.pop_size = len(subs)
+
+    def save(self,PATH):
+        torch.save(self.state_dict(), PATH)
+
+    def load(self,PATH):
+        self.load_state_dict(torch.load(PATH))
         
     def add_data(self,inputs,outputs,window = None):
         self.inputs.append(inputs)
