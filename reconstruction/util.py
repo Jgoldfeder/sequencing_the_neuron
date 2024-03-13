@@ -441,7 +441,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
 def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):    
     if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100']:
         raise ValueError("Unknown Dataset")
-    if not optim_ in ["adam","rmsprop","sgd"]:
+    if not optim_ in ["adam","rmsprop","sgd","adagrad"]:
         raise ValueError("Unknown Optimizer")
     
     input_dim = 784
@@ -528,10 +528,12 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
     if optim_ == "adam":
         optimizer = optim.Adam(net.parameters(), lr=0.001)
     if optim_ == "sgd":
-        optimizer = optim.SGD(net.parameters(), lr=0.1)
-    if optim_ == "rmsprop":
+        optimizer = optim.SGD(net.parameters(), lr=0.01)
+    if optim_ == "adagrad":
         optimizer = optim.RMSprop(net.parameters(), lr=0.01)
-                
+    if optim_ == "rmsprop":
+        optimizer = optim.Adagrad(net.parameters(), lr=0.01)
+    
     # Train the neural network
     for epoch in range(num_epochs):
         running_loss = 0.0
