@@ -150,11 +150,13 @@ with torch.enable_grad():
         
         
         print("ITERATION: ",outer_iter, len(population.inputs))    
-        
-        new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=num_samples,epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
-
-        new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-        population.add_data(new_inputs, new_outputs,window=100)
+        samples_to_generate = num_samples
+        while samples_to_generate > 0:
+            
+            new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=min(samples_to_generate,100002),epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
+            samples_to_generate -= 100002
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
         
         
         for i in range(10):
