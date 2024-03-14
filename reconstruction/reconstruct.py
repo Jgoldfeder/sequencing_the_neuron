@@ -62,7 +62,7 @@ device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 torch.manual_seed(seed)
 
-if activation not in ["tanh","relu"]:
+if activation not in ["tanh","relu",'nonleakyrelu']:
     raise ValueError("unknown activation")
 
 if activation == "tanh":
@@ -70,7 +70,10 @@ if activation == "tanh":
     activation_f = nn.Tanh()
 else:
     tanh = False
-    activation_f = nn.LeakyReLU()
+    if activation == "nonleakyrelu":
+        activation_f = nn.ReLU()
+    else:
+        activation_f = nn.LeakyReLU()
     
 class Net(nn.Module):
     def __init__(self):
