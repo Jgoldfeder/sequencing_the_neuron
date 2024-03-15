@@ -75,7 +75,7 @@ else:
     if activation == "nonleakyrelu":
         activation_f = nn.ReLU()
     elif activation == "nonleakyreluapproximation":
-        nn.LeakyReLU(negative_slope=0.0001)
+        activation_f = nn.LeakyReLU(negative_slope=0.0001)
     elif activation =="relu":
         activation_f = nn.LeakyReLU()
     
