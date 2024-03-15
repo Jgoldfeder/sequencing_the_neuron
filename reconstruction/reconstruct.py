@@ -62,7 +62,7 @@ device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 torch.manual_seed(seed)
 
-if activation not in ["tanh","relu",'nonleakyrelu']:
+if activation not in ["tanh","relu",'nonleakyrelu','nonleakyreluapproximation']:
     raise ValueError("unknown activation")
 
 if activation == "tanh":
