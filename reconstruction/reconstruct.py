@@ -10,7 +10,7 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 import util
-
+import gc
 
 
 # Get seed, network 2nd layer dimension, outer iter, num_samples 
@@ -163,7 +163,7 @@ with torch.enable_grad():
             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
             population.add_data(new_inputs, new_outputs,window=500)
         
-        
+        gc.collect()
         for i in range(10):
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
