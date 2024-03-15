@@ -505,8 +505,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
             transforms.ToTensor(), # convert the images to a PyTorch tensor
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalize the images color channels
                     ])
-        image_dir = "./data"
-        image_dir = project_dir + "/places365"
+        image_dir = "./data/places365"
         trainset = torchvision.datasets.Places365(root=image_dir, split='train-standard', small=True, transform=big_transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
 
