@@ -72,7 +72,9 @@ else:
     tanh = False
     if activation == "nonleakyrelu":
         activation_f = nn.ReLU()
-    else:
+    else if activation == "nonleakyreluapproximation":
+        nn.LeakyReLU(negative_slope=0.0001)
+    else if activation =="relu:
         activation_f = nn.LeakyReLU()
     
 class Net(nn.Module):
