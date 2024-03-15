@@ -511,7 +511,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
 
         test_dataset = torchvision.datasets.Places365(root=image_dir, split='val', small=True, transform=big_transform,download=True)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
-        input_dim = 256*256
+        input_dim = 256*256*3
        
     
     def evaluate_accuracy(network):
