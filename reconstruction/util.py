@@ -439,7 +439,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
 
 
 def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):    
-    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100']:
+    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365']:
         raise ValueError("Unknown Dataset")
     if not optim_ in ["adam","rmsprop","sgd","adagrad"]:
         raise ValueError("Unknown Optimizer")
@@ -497,6 +497,22 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
         input_dim = 3072
 
+    if dataset=='places365':
+        
+        big_transform = transforms.Compose([
+            transforms.Resize(256),
+            #transforms.CenterCrop(224),
+            transforms.ToTensor(), # convert the images to a PyTorch tensor
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalize the images color channels
+                    ])
+        image_dir = "./data"
+        image_dir = project_dir + "/places365"
+        trainset = torchvision.datasets.Places365(root=image_dir, split='train-standard', small=True, transform=big_transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
+
+        test_dataset = torchvision.datasets.Places365(root=image_dir, split='val', small=True, transform=big_transform)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
+        input_dim = 256*256
        
     
     def evaluate_accuracy(network):
