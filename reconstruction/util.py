@@ -506,10 +506,14 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # normalize the images color channels
                     ])
         image_dir = "./data/places365"
-        trainset = torchvision.datasets.Places365(root=image_dir, split='train-standard', small=True, transform=big_transform,download=True)
+        download = True
+        from pathlib import Path
+        if Path(image_dir).is_dir():
+            download = False
+        trainset = torchvision.datasets.Places365(root=image_dir, split='train-standard', small=True, transform=big_transform,download=download)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
 
-        test_dataset = torchvision.datasets.Places365(root=image_dir, split='val', small=True, transform=big_transform,download=True)
+        test_dataset = torchvision.datasets.Places365(root=image_dir, split='val', small=True, transform=big_transform,download=download)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
         input_dim = 256*256*3
        
