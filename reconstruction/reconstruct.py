@@ -28,7 +28,7 @@ input_dim=784
 if dataset in ['cifar10','cifar100']:
     input_dim = 1024*3
 if dataset in ['places365']:
-    input_dim = 256*256
+    input_dim = 256*256*3
     
 name = "seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
 
