@@ -128,7 +128,8 @@ net.to(device)
 
 util.train_blackbox(net,num_epochs,dataset,optim_)
 print(net)
-
+for l in net.layers:
+    print(l.weight.abs().mean())
 # save net
 torch.save(net.state_dict(), models_path+"black_box.pt")
 
