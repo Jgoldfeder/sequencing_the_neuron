@@ -553,7 +553,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
     if optim_ == "rmsprop":
         optimizer = optim.Adagrad(net.parameters(), lr=0.01)
     if optim_ == "adadelta":
-        optimizer = optim.AdaDelta(net.parameters(), lr=0.01)
+        optimizer = optim.Adadelta(net.parameters(), lr=0.01)
         
     # Train the neural network
     for epoch in range(num_epochs):
