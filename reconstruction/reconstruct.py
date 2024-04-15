@@ -121,10 +121,56 @@ class CNN(nn.Module):
         # x = self.fc2(x)
         return x
 
+class CNN_5_5(nn.Module):
+    def __init__(self):
+        super(CNN_5_5, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=5, stride=1, padding=1)
+        self.fc1 = nn.Linear(3 * 13 * 13, 10) # using only one layer for now. 
+       # self.fc2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 1, 28, 28)
+
+        # Convolutional layers
+        x = self.conv1(x)
+        activation = nn.LeakyReLU()
+        x =  activation(x)
+        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        x = pool(x)
+        # Flatten the tensor before passing it through fully connected layers
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers
+        x = self.fc1(x)
+        # x = self.fc2(x)
+        return x
+
+
+
+class CNN_5_5_cifar100(nn.Module):
+    def __init__(self):
+        super(CNN_5_5_cifar100, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=3, kernel_size=5, stride=1, padding=1)
+        self.fc1 = nn.Linear(3 * 15 * 15, 100) # using only one layer for now. 
+
+    def forward(self, x):
+        x = x.view(-1, 3, 32, 32) 
+        # Convolutional layers
+        x = self.conv1(x)
+        activation = nn.LeakyReLU()
+        x =  activation(x)
+        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        x = pool(x)
+        # Flatten the tensor before passing it through fully connected layers
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers
+        x = self.fc1(x)
+        # x = self.fc2(x)
+        return x
 
 net = Net()
 net.to(device)
-
 
 util.train_blackbox(net,num_epochs,dataset,optim_)
 print(net)
