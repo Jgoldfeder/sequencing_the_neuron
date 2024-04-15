@@ -96,7 +96,8 @@ class Net(nn.Module):
         x = self.layers[-1](x)
         return x
 
-
+# use the formula on pytorch to get the kernel dimensions for CNN. 
+# for CNN the arguments need to be kernel size and dataset
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()

@@ -277,12 +277,12 @@ def bruteforce_cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.
 
     # now evaluate for all of them. 
     #mean_se, layers_mean_se = meanse_meanae.calculate_distance_mse_or_mae('mse', model, perm_model_w_lowest_max_error)
-    mean_ae, layers_mean_ae = meanse_meanae.calculate_distance_mse_or_mae('mae', model, perm_model_w_lowest_max_error)
+    layers_mean_ae, mean_ae = meanse_meanae.calculate_distance_mse_or_mae('mae', model, perm_model_w_lowest_max_error)
     max_overall_error =  max_ae.calculate_distance_mae(model,perm_model_w_lowest_max_error)
 
     print("get mae", get_mae(model, model_to_evaluate))
 
-    return (mean_ae, layers_mean_ae, max_overall_error)
+    return (layers_mean_ae, mean_ae, max_overall_error)
 
 
 def cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.Module, tanh: bool = None):
