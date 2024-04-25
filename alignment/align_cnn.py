@@ -8,24 +8,24 @@ import max_ae
 import math
 import meanse_meanae
 import torch.nn as nn
+from itertools import permutations
+
 
 print("generalized align")
 
-def get_all_permutations_for_kernel_indices(): #assumes only 3 kernels, ideally recursion for this to generalize. 
-   all_permuations_kernel_indices = [[0,1,2], [1,0,2], [2,0,1], [1,2,0], [0,2,1],[2,1,0]]
-
+def get_all_permutations_for_kernel_indices(num_kernels): #assumes only 3 kernels, ideally recursion for this to generalize. 
+   #all_permuations_kernel_indices = [[0,1,2], [1,0,2], [2,0,1], [1,2,0], [0,2,1],[2,1,0]]
+   all_permuations_kernel_indices = list(permutations(range(0, num_kernels)))
+   print("all_permuations_kernel_indices", all_permuations_kernel_indices)
    return all_permuations_kernel_indices
-
-def get_mean_abs_between_kernel(kernel_O, kernel_R):
-    pass
 
 def heuristic_ordering_kernels_cnn(original_cnn_layer, model_to_align_cnn_layer): 
     weights_original = original_cnn_layer.weight
     weights_align_net = model_to_align_cnn_layer.weight
 
     align_index = 0
-
-    min_err_ordering = [-1]*weights_original.shape[0] # for each kernel ->  min mean abs error ordering. The elements represent the new ordering. 
+    num_kernels = len(model_to_align_cnn_layer.weight)
+    min_err_ordering = [-1]*num_kernels # for each kernel ->  min mean abs error ordering. The elements represent the new ordering. 
     index_taken = set()
     for weight_align in weights_align_net:
         min_mean_abs_err = 1000
@@ -50,56 +50,60 @@ def heuristic_ordering_kernels_cnn(original_cnn_layer, model_to_align_cnn_layer)
     return min_err_ordering
 # order kernels according to this permutation. 
 
-def order_kernels_cnn(permutation, network2_layer): 
+def order_kernels_cnn(num_kernels, permutation, network2_layer): 
     if type(network2_layer).__name__ != 'Conv2d': 
         #print(type(network2_layer))
         return network2_layer
+    
+    network_2_weight_copies = []
+    network_2_bias_copies = []
 
-    weights_0 = network2_layer.weight[0].clone()
-    weights_1 = network2_layer.weight[1].clone()
-    weights_2 = network2_layer.weight[2].clone()
+    for i in range(0,num_kernels): 
+         weights = network2_layer.weight[i]
+         bias =  network2_layer.bias[i]
 
-    bias_0 =  network2_layer.bias[0].clone()
-    bias_1 = network2_layer.bias[1].clone()
-    bias_2 = network2_layer.bias[2].clone()
+         network_2_weight_copies.append(weights.clone())
+         network_2_bias_copies.append(bias.clone())
+
     with torch.no_grad():
-        network2_weight_copies = [weights_0, weights_1, weights_2]
-        network2_layer.weight[0] = network2_weight_copies[permutation[0]]
-        network2_layer.weight[1] = network2_weight_copies[permutation[1]]
-        network2_layer.weight[2] = network2_weight_copies[permutation[2]]
-
-        # bias 
-        network2_bias_copies = [bias_0, bias_1, bias_2]
-        network2_layer.bias[0] = network2_bias_copies[permutation[0]]
-        network2_layer.bias[1] = network2_bias_copies[permutation[1]]
-        network2_layer.bias[2] = network2_bias_copies[permutation[2]]
+        for i in range(0, num_kernels): 
+            network2_layer.weight[i] = network_2_weight_copies[permutation[i]]
+            network2_layer.bias[i] = network_2_bias_copies[permutation[i]]
     
     return network2_layer
-def order_fnn_weights(permutation, network2_layer):
+
+def order_fnn_weights(num_kernels, permutation, network2_layer):
     if type(network2_layer).__name__ != 'Linear': 
         #print(type(network2_layer))
         return network2_layer
 
     number_input_neurons = int(network2_layer.weight.shape[1])
    # print(number_input_neurons)
-    index_1 = int(number_input_neurons/3) # 3 because that's the number of kernels
-    index_2 = int(2*number_input_neurons/3)
-    weights_0 = network2_layer.weight[:, 0:index_1].clone()
-    weights_1 = network2_layer.weight[:, index_1:index_2].clone()
-    weights_2 = network2_layer.weight[:, index_2:number_input_neurons].clone()
 
+    fnn_start_idx = 0
+    fnn_end_idx = int(number_input_neurons/num_kernels) 
+
+    fnn_weights_copes = []
+    # only weights because you can't apply to this biases because those are specific to the outputs. 
+    for i in range(0, num_kernels): 
+        weights =  network2_layer.weight[:, fnn_start_idx:fnn_end_idx]
+        fnn_weights_copes.append(weights.clone())
+        fnn_start_idx+= int(number_input_neurons/num_kernels)
+        fnn_end_idx+= int(number_input_neurons/num_kernels)
+    
+    fnn_start_idx = 0
+    fnn_end_idx = int(number_input_neurons/num_kernels) 
     # match with inter-kernel alignment 
     with torch.no_grad():
         if permutation != None:
-            network2_weight_copies = [weights_0, weights_1, weights_2]
-        # print("weights 0 shape")
-        # print(weights_0.shape)
-            network2_layer.weight[:, 0:index_1]= network2_weight_copies[permutation[0]]
-            network2_layer.weight[:, index_1:index_2] =  network2_weight_copies[permutation[1]]
-            network2_layer.weight[:, index_2:number_input_neurons] = network2_weight_copies[permutation[2]]
+            for i in range(0, num_kernels): 
+                network2_layer.weight[:, fnn_start_idx:fnn_end_idx]= fnn_weights_copes[permutation[i]]
+                fnn_start_idx+= int(number_input_neurons/num_kernels)
+                fnn_end_idx+= int(number_input_neurons/num_kernels)
+    
     return network2_layer
 
-def cnn_align_to_perm(model_to_align: torch.nn.Module, perm): 
+def cnn_align_to_perm(num_kernels, model_to_align: torch.nn.Module, perm): 
 
     align_layers = standardize.get_layers(model_to_align)
     cnn_layer_model_to_align = align_layers[0]
@@ -109,7 +113,7 @@ def cnn_align_to_perm(model_to_align: torch.nn.Module, perm):
 
     # inter kernel alignment 
     #print('inter-kernel alignment')
-    cnn_layer = order_kernels_cnn(perm,cnn_layer_model_to_align)
+    cnn_layer = order_kernels_cnn(num_kernels, perm,cnn_layer_model_to_align)
 
     after_magnitude_cnn = torch.round(torch.mean(torch.abs(cnn_layer.weight)), decimals=4).item()
 
@@ -120,19 +124,13 @@ def cnn_align_to_perm(model_to_align: torch.nn.Module, perm):
     fnn_layer_model_to_align = align_layers[1]
     initial_magnitude_fnn =  torch.round(torch.mean(torch.abs(fnn_layer_model_to_align.weight)), decimals=4).item()
 
-    fnn_layer = order_fnn_weights(perm, fnn_layer_model_to_align)
+    fnn_layer = order_fnn_weights(num_kernels, perm, fnn_layer_model_to_align)
 
     after_magnitude_fnn = torch.round(torch.mean(torch.abs(fnn_layer.weight)), decimals=4).item()
 
     assert initial_magnitude_fnn == after_magnitude_fnn, f"initial mag: {initial_magnitude_fnn}, after mag: {after_magnitude_fnn}"
     # print("after ordering:", cnn_layer.weight)
     align_layers[1] = fnn_layer
-    # print("assign model ordering:", cnn_layer.weight)
-    
-
-    align_after_layers = standardize.get_layers(model_to_align)
-    #print("after alignment cnn layer", align_after_layers[0].weight)
-
 
     return model_to_align
 
@@ -147,82 +145,53 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
     number_fnn_input_neurons =  int(fnn_layer.weight.shape[1]) 
     num_fnn_output_neurons = int(fnn_layer.weight.shape[0])
 
-    # cnn layer normalize and then multiply 
-    # concat weights and biases
-    cnn_layer_weights_biases_1 = torch.cat((cnn_layer.weight[0].flatten(), cnn_layer.bias[0].view(1)))
-    cnn_layer_weights_biases_2 = torch.cat((cnn_layer.weight[1].flatten(), cnn_layer.bias[1].view(1)))
-    cnn_layer_weights_biases_3 = torch.cat((cnn_layer.weight[2].flatten(), cnn_layer.bias[2].view(1)))
-    each_kernel_num_els = cnn_layer_weights_biases_1.shape[0]
+    weights_biases = (fnn_layer.weight, fnn_layer.bias.reshape(-1, 1))
+    fnn_layer_weights_biases = torch.hstack(weights_biases)
 
+    fnn_end_idx = int(number_fnn_input_neurons/num_kernels)
+    fnn_start_idx = 0
+    # normalize each kernel (divide the cnn_weights_biases with the kernel_scales )
     with torch.no_grad(): 
         each_kernel_for_fnn = int(number_fnn_input_neurons/num_kernels)
-        cnn_layer_weights_biases_1 = cnn_layer_weights_biases_1.expand(each_kernel_for_fnn, each_kernel_num_els)
-        kernel_1_scales =   torch.norm(cnn_layer_weights_biases_1, dim=1, p=2)  
-        cnn_layer_weights_biases_2 = cnn_layer_weights_biases_2.expand(each_kernel_for_fnn, each_kernel_num_els)
-        kernel_2_scales =  torch.norm(cnn_layer_weights_biases_2, dim=1, p=2)  
-        cnn_layer_weights_biases_3 = cnn_layer_weights_biases_3.expand(each_kernel_for_fnn, each_kernel_num_els)
-        kernel_3_scales =  torch.norm(cnn_layer_weights_biases_3, dim=1, p=2)  
 
-        # divide the cnn_weights_biases with the kernel_scales 
-        cnn_layer_weights_biases_1 = cnn_layer_weights_biases_1/kernel_1_scales.reshape(-1,1)
-        cnn_layer_weights_biases_2 = cnn_layer_weights_biases_2/kernel_2_scales.reshape(-1,1)
-        cnn_layer_weights_biases_3 = cnn_layer_weights_biases_3/kernel_3_scales.reshape(-1,1)
+        for i in range(0, num_kernels): 
+            # reassign the kernels to normalized weights and biases. 
+            cnn_layer_weights_biases = torch.cat((cnn_layer.weight[i].flatten(), cnn_layer.bias[i].view(1)))
+            each_kernel_num_els = cnn_layer_weights_biases.shape[0] # num of elements in one individual kernel  
+            num_weights_in_kernel = each_kernel_num_els - 1
+            each_kernel_for_fnn = int(number_fnn_input_neurons/num_kernels)
 
-        # reassign the kernels to normalized weights and biases. 
-        num_weights_in_kernel = each_kernel_num_els - 1
-        num_weights_in_kernel_per_input_channel = num_weights_in_kernel/num_input_channels
-        squared_dim_kernel = int(math.sqrt(num_weights_in_kernel_per_input_channel))
-        cnn_layer.weight[0] = cnn_layer_weights_biases_1[0, 0:num_weights_in_kernel].reshape(num_input_channels, squared_dim_kernel,squared_dim_kernel)  # all rows are the same so take any one except bias
+            # normalize cnn kernels 
+            cnn_layer_weights_biases = cnn_layer_weights_biases.clone().expand(each_kernel_for_fnn, each_kernel_num_els) # want to make sure that the reference isn't modified later. 
+            kernel_scales =  torch.norm(cnn_layer_weights_biases, dim=1, p=2)
+            cnn_layer_weights_biases = cnn_layer_weights_biases/kernel_scales.reshape(-1,1)
 
-        cnn_layer.weight[1] =  cnn_layer_weights_biases_2[0, 0:num_weights_in_kernel].reshape(num_input_channels, squared_dim_kernel,squared_dim_kernel) # want to only use the weights and not the biases
-        cnn_layer.weight[2] =  cnn_layer_weights_biases_3[0, 0:num_weights_in_kernel].reshape(num_input_channels, squared_dim_kernel,squared_dim_kernel) #  want to only use the weights and not the biases
+            num_weights_in_kernel_per_input_channel = num_weights_in_kernel/num_input_channels
+            squared_dim_kernel = int(math.sqrt(num_weights_in_kernel_per_input_channel))
+            cnn_layer.weight[i] = cnn_layer_weights_biases[0, 0:num_weights_in_kernel].reshape(num_input_channels, squared_dim_kernel,squared_dim_kernel)  # all rows are the same so take any one except bias
+            cnn_layer.bias[i] = cnn_layer_weights_biases[0,num_weights_in_kernel] # # all rows are the same val here. you're making it look like fnn by expanding it like that. use only the bias
 
-        cnn_layer.bias[0] = cnn_layer_weights_biases_1[0,num_weights_in_kernel] # # all rows are the same val here. you're making it look like fnn by expanding it like that. use only the bias
-        cnn_layer.bias[1] = cnn_layer_weights_biases_2[0,num_weights_in_kernel]
-        cnn_layer.bias[2] = cnn_layer_weights_biases_3[0,num_weights_in_kernel] 
+            # only need to apply kernel scales to weights because those are ones affected from kernel. 
+            #print("fnn_start_idx", fnn_start_idx)
+            #print("fnn_end_idx", fnn_end_idx)
+            fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx] = fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx] * kernel_scales
 
-        weights_biases = (fnn_layer.weight, fnn_layer.bias.reshape(-1, 1))
-        fnn_layer_weights_biases = torch.hstack(weights_biases)
+            # normalize 
+            appended_fnn_weights_biases = torch.cat((fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)# want to be careful with reference so that later kernel associated fnn layer don't modify prev.
+            fnn_layer_norm = torch.norm(appended_fnn_weights_biases.clone() ,dim=1, p=2)
+            
+            #compute the avg scale to spread across
+            avg_out_scale_mul = (sum(fnn_layer_norm)/len(fnn_layer_norm))**0.5
 
-        # only need to apply kernel scales to weights because those are ones affected from kernel. 
-        index_1 = int(number_fnn_input_neurons/3) # 3 because that's the number of kernels
-        index_2 = int(2*number_fnn_input_neurons/3)
-        
-        fnn_layer_weights_biases[:, 0:index_1] = fnn_layer_weights_biases[:, 0:index_1] * kernel_1_scales
-        fnn_layer_weights_biases[:, index_1:index_2] = fnn_layer_weights_biases[:, index_1:index_2] * kernel_2_scales
-        fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons] = fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons] * kernel_3_scales
+            # multiply these avg out scales across the CNN 
+            cnn_layer.weight[i] =   cnn_layer.weight[i]*avg_out_scale_mul # all 196 rows are the same so take any one except bias
+            cnn_layer.bias[i] =   cnn_layer.bias[i]*avg_out_scale_mul
+    
+             # divide this for FNN 
+            fnn_layer.weight[:, fnn_start_idx:fnn_end_idx] =  fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx]/avg_out_scale_mul
 
-        # norms of fnn weights and biases 
-
-        appended_fnn_weights_biases_1 = torch.cat((fnn_layer_weights_biases[:, 0:index_1],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-        fnn_layer_norm_1 = torch.norm(appended_fnn_weights_biases_1 ,dim=1, p=2)
-        appended_fnn_weights_biases_2 = torch.cat((fnn_layer_weights_biases[:, index_1:index_2],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-        fnn_layer_norm_2 = torch.norm(appended_fnn_weights_biases_2, dim=1, p=2)
-        appended_fnn_weights_biases_3 = torch.cat((fnn_layer_weights_biases[:,  index_2:number_fnn_input_neurons],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-        fnn_layer_norm_3 = torch.norm(appended_fnn_weights_biases_3, dim=1, p=2)
-        
-        
-        #compute the avg scale to spread across
-        
-        avg_out_scale_mul_1 = (sum(fnn_layer_norm_1)/len(fnn_layer_norm_1))**0.5
-        avg_out_scale_mul_2 = (sum(fnn_layer_norm_2)/len(fnn_layer_norm_2)) **0.5
-        avg_out_scale_mul_3 = (sum(fnn_layer_norm_3)/len(fnn_layer_norm_3)) ** 0.5
-
-
-        # multiply these avg out scales across the CNN 
-        cnn_layer.weight[0] =   cnn_layer.weight[0]*avg_out_scale_mul_1 # all 196 rows are the same so take any one except bias
-        cnn_layer.bias[0] =   cnn_layer.bias[0]*avg_out_scale_mul_1
-        
-        cnn_layer.weight[1] =   cnn_layer.weight[1]*avg_out_scale_mul_2 # want to only use the weights and not the biases
-        cnn_layer.bias[1] =   cnn_layer.bias[1]*avg_out_scale_mul_2
-
-        cnn_layer.weight[2] =  cnn_layer.weight[2]*avg_out_scale_mul_3 #  want to only use the weights and not the biases
-        cnn_layer.bias[2] =   cnn_layer.bias[2]*avg_out_scale_mul_3
-
-        # divide this for FNN 
-        fnn_layer.weight[:, 0:index_1] =  fnn_layer_weights_biases[:, 0:index_1]/avg_out_scale_mul_1
-        fnn_layer.weight[:, index_1:index_2] =  fnn_layer_weights_biases[:, index_1:index_2]/avg_out_scale_mul_2
-        fnn_layer.weight[:, index_2:number_fnn_input_neurons] = fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons]/avg_out_scale_mul_3
+            fnn_start_idx+= int(number_fnn_input_neurons/num_kernels)
+            fnn_end_idx+= int(number_fnn_input_neurons/num_kernels)
 
 def get_mae(original, reconstructed): 
     original_layers = standardize.get_layers(original)
@@ -250,15 +219,18 @@ def bruteforce_cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.
     print("bruteforce cnn eval")
     standardize_scale_cnn(model, tanh=None)
     standardize_scale_cnn(model_to_evaluate, tanh=None)
+    layers = standardize.get_layers(model)
+    cnn_layer = layers[0]
+    num_kernels = len(cnn_layer.weight)
 
-    perms = get_all_permutations_for_kernel_indices()
+    perms = get_all_permutations_for_kernel_indices(num_kernels)
     min_max_abs_error = math.inf
     perm_model_w_lowest_max_error = None
     for perm in perms:
         #print("perm", perm)
         #print("current min_max_abs_error", min_max_abs_error)
         model_copy = copy.deepcopy(model_to_evaluate)
-        aligned_model_copy = cnn_align_to_perm(model_copy, perm)
+        aligned_model_copy = cnn_align_to_perm(num_kernels, model_copy, perm)
         # get max error of all the permuted models. use the one with lowest max error for all evaluation. 
         mae = max_ae.calculate_distance_mae(model,aligned_model_copy)
         if mae < min_max_abs_error: 
@@ -293,9 +265,10 @@ def cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.Module, tan
     cnn_layer_original = standardize.get_layers(model)[0]
     cnn_layer_align = standardize.get_layers(model_to_evaluate)[0]
 
+    num_kernels = len(cnn_layer_align.weight)
     kernel_ordering = heuristic_ordering_kernels_cnn(cnn_layer_original, cnn_layer_align)
     print(f"best heuristic ordering: {kernel_ordering}")
-    aligned_model_copy = cnn_align_to_perm(model_to_evaluate, kernel_ordering)
+    aligned_model_copy = cnn_align_to_perm(num_kernels, model_to_evaluate, kernel_ordering)
 
     #mean_se, layers_mean_se = meanse_meanae.calculate_distance_mse_or_mae('mse', model, aligned_model_copy)
     mean_ae, layers_mean_ae = meanse_meanae.calculate_distance_mse_or_mae('mae', model, aligned_model_copy)
