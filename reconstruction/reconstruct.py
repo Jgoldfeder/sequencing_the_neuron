@@ -16,13 +16,14 @@ import gc
 # Get seed, network 2nd layer dimension, outer iter, num_samples 
 
 seed = int(sys.argv[1])
-layer_dim =  str(sys.argv[2])
-outer_iterations = int(sys.argv[3])
-num_samples = int(sys.argv[4])
-num_epochs  = int(sys.argv[5])
-dataset  = str(sys.argv[6])
-optim_ = str(sys.argv[7]) # optimizer for black box network
-activation  = str(sys.argv[8])
+model_type = str(sys.argv[2])
+layer_dim =  str(sys.argv[3]) # for cnn this is kernel dim. 
+outer_iterations = int(sys.argv[4])
+num_samples = int(sys.argv[5])
+num_epochs  = int(sys.argv[6])
+dataset  = str(sys.argv[7])
+optim_ = str(sys.argv[8]) # optimizer for black box network
+activation  = str(sys.argv[9])
 
 input_dim=784
 if dataset in ['cifar10','cifar100']:
@@ -30,7 +31,7 @@ if dataset in ['cifar10','cifar100']:
 if dataset in ['places365']:
     input_dim = 256*256*3
     
-name = "seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
+name = "seed_"+str(seed)+"_"+model_type + "_" + layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
 
 import os
 if not os.path.exists("./results/"):
@@ -50,7 +51,10 @@ layer_dim = [int(x) for x in layer_dim]
 
 
 print(f"seed: {seed}")
-print(f"layer_dim: {layer_dim}")
+if model_type == 'fnn': 
+    print(f"layer_dim: {layer_dim}")
+if model_type == 'cnn': 
+    print(f"kernel dim: {layer_dim}")
 print(f"outer_iterations: {outer_iterations}")
 print(f"given_num_samples: {num_samples}")
 print(f"num_epochs: {num_epochs}")
@@ -96,47 +100,64 @@ class Net(nn.Module):
         x = self.layers[-1](x)
         return x
 
-# use the formula on pytorch to get the kernel dimensions for CNN. 
-# for CNN the arguments need to be kernel size and dataset
-class CNN(nn.Module):
-    def __init__(self):
+# TODO: use the formula on pytorch to get the dimension of fnn layer (depends only on cnn layer) instead of hardcoding. 
+kernel_dim= layer_dim # to make it clear what layer_dim means to CNNs. 
+
+def get_fnn_dimensions_from_kernel(conv_stride, conv_padding, pool_stride, pool_padding): 
+    stride = conv_stride
+    padding = conv_padding
+    dilation = 1 
+    kernel_size = kernel_dim[0]
+    h_in = None 
+    w_in = None 
+    if dataset == 'mnist': 
+        h_in = 28
+        w_in = 28
+    if dataset == 'cifar100': 
+        h_in = 32
+        w_in = 32
+
+    # using formula from here: https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html (assuming squared kernels.)
+    conv_h_out =  int((h_in + 2*padding - dilation * (kernel_size - 1) - 1)/stride) + 1
+    conv_w_out =  int((w_in + 2*padding - dilation * (kernel_size - 1) - 1)/stride) + 1
+    # using formula from here: 
+    stride = pool_stride
+    padding = pool_padding
+    dilation = 1
+    kernel_size = 2 
+    h_in = conv_h_out 
+    w_in = conv_w_out
+
+    pool_h_out = int((h_in + 2*padding - kernel_size)/stride) + 1 
+    pool_w_out = int((w_in + 2*padding - kernel_size)/stride) + 1 
+
+    return pool_h_out, pool_w_out
+class CNN(nn.Module): 
+    def __init__(self): 
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=2, stride=1, padding=1)
-        self.fc1 = nn.Linear(3 * 14 * 14, 10) # using only one layer for now. 
-       # self.fc2 = nn.Linear(100, 10)
+        out_channels = kernel_dim[3]
+        self.conv_stride = 1
+        self.conv_padding = 1
+        self.pool_stride = 2
+        self.pool_padding = 0
+        self.conv1 = nn.Conv2d(in_channels=kernel_dim[2],out_channels=out_channels,kernel_size=kernel_dim[0],stride=1, padding=1) # square kernels 
+        pool_w_out, pool_h_out = get_fnn_dimensions_from_kernel(self.conv_stride, self.conv_padding, self.pool_stride, self.pool_padding)
+        number_outputs = 10 
+        if dataset == 'cifar100': 
+            number_outputs = 100
+        self.fc1 = nn.Linear(out_channels * pool_w_out * pool_h_out, number_outputs)
+    
 
     def forward(self, x):
-        x = x.view(-1, 1, 28, 28)
-
+        if dataset == 'mnist': 
+            x = x.view(-1, 1, 28, 28)
+        if dataset == 'cifar100': 
+            x = x.view(-1, 3, 32, 32) 
         # Convolutional layers
         x = self.conv1(x)
         activation = nn.LeakyReLU()
         x =  activation(x)
-        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
-        x = pool(x)
-        # Flatten the tensor before passing it through fully connected layers
-        x = x.view(x.size(0), -1)
-
-        # Fully connected layers
-        x = self.fc1(x)
-        # x = self.fc2(x)
-        return x
-
-class CNN_5_5(nn.Module):
-    def __init__(self):
-        super(CNN_5_5, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=5, stride=1, padding=1)
-        self.fc1 = nn.Linear(3 * 13 * 13, 10) # using only one layer for now. 
-       # self.fc2 = nn.Linear(100, 10)
-
-    def forward(self, x):
-        x = x.view(-1, 1, 28, 28)
-
-        # Convolutional layers
-        x = self.conv1(x)
-        activation = nn.LeakyReLU()
-        x =  activation(x)
-        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        pool = nn.AvgPool2d(kernel_size=2, stride=self.pool_stride, padding=self.pool_padding)
         x = pool(x)
         # Flatten the tensor before passing it through fully connected layers
         x = x.view(x.size(0), -1)
@@ -147,30 +168,17 @@ class CNN_5_5(nn.Module):
         return x
 
 
+def get_network(): 
+    if model_type == 'cnn': 
+        print('cnn')
+        return CNN()
 
-class CNN_5_5_cifar100(nn.Module):
-    def __init__(self):
-        super(CNN_5_5_cifar100, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=3, kernel_size=5, stride=1, padding=1)
-        self.fc1 = nn.Linear(3 * 15 * 15, 100) # using only one layer for now. 
+    if model_type == 'fnn': 
+        return Net()
+    
+    return None
 
-    def forward(self, x):
-        x = x.view(-1, 3, 32, 32) 
-        # Convolutional layers
-        x = self.conv1(x)
-        activation = nn.LeakyReLU()
-        x =  activation(x)
-        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
-        x = pool(x)
-        # Flatten the tensor before passing it through fully connected layers
-        x = x.view(x.size(0), -1)
-
-        # Fully connected layers
-        x = self.fc1(x)
-        # x = self.fc2(x)
-        return x
-
-net = Net()
+net = get_network()
 net.to(device)
 
 util.train_blackbox(net,num_epochs,dataset,optim_)
@@ -183,7 +191,7 @@ torch.save(net.state_dict(), models_path+"black_box.pt")
 pop_size = 10
 subs = []
 for j in range(pop_size):
-  subs.append(Net())
+  subs.append(get_network())
 population = util.Population(subs)
 population.cuda(device)
 net = net.cuda(device)

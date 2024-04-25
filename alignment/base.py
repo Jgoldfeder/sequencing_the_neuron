@@ -7,7 +7,7 @@ from network import Network
 @dataclass
 class Evaluator:
     reconstruction: torch.nn.Module
-    network: Network | None
+    network: Network 
 
     def __post_init__(self):
         if self.network is not None:

@@ -1,0 +1,94 @@
+Log file for:seed_30_cnn_2x2x1x3_outer_iterations_55_num_samples_15000_num_epochs_25_dataset_mnist_optim_adam_activation_relu
+seed: 30
+kernel dim: [2, 2, 1, 3]
+outer_iterations: 55
+given_num_samples: 15000
+num_epochs: 25
+dataset: mnist
+optim: adam
+activation: relu
+device cuda:0
+cnn
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 503: Service Unavailable
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to ./data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/train-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz to ./data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/train-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
+Failed to download (trying next):
+HTTP Error 503: Service Unavailable
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw/t10k-images-idx3-ubyte.gz
+Extracting ./data/MNIST/raw/t10k-images-idx3-ubyte.gz to ./data/MNIST/raw
+
+Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+Failed to download (trying next):
+HTTP Error 503: Service Unavailable
+
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+Extracting ./data/MNIST/raw/t10k-labels-idx1-ubyte.gz to ./data/MNIST/raw
+
+Epoch 1, Loss: 0.46855192423065506
+Accuracy on MNIST: 0.9104
+Epoch 2, Loss: 0.306007536504666
+Accuracy on MNIST: 0.9220
+Epoch 3, Loss: 0.27374754179120064
+Accuracy on MNIST: 0.9274
+Epoch 4, Loss: 0.25220298799773055
+Accuracy on MNIST: 0.9345
+Epoch 5, Loss: 0.23100273603598276
+Accuracy on MNIST: 0.9422
+Epoch 6, Loss: 0.2103882116218408
+Accuracy on MNIST: 0.9458
+Epoch 7, Loss: 0.19048325937887034
+Accuracy on MNIST: 0.9484
+Epoch 8, Loss: 0.17423051714450122
+Accuracy on MNIST: 0.9546
+Epoch 9, Loss: 0.16059728708813586
+Accuracy on MNIST: 0.9549
+Epoch 10, Loss: 0.14939456470807394
+Accuracy on MNIST: 0.9560
+Epoch 11, Loss: 0.13962215835948785
+Accuracy on MNIST: 0.9588
+Epoch 12, Loss: 0.1326686644303302
+Accuracy on MNIST: 0.9617
+Epoch 13, Loss: 0.12589347201436757
+Accuracy on MNIST: 0.9613
+Epoch 14, Loss: 0.12077885151281953
+Accuracy on MNIST: 0.9587
+Epoch 15, Loss: 0.11638343001032869
+Accuracy on MNIST: 0.9622
+Epoch 16, Loss: 0.11244876435101032
+Accuracy on MNIST: 0.9620
+Epoch 17, Loss: 0.10832996357381344
+Accuracy on MNIST: 0.9639
+Epoch 18, Loss: 0.10555673238659899
+Accuracy on MNIST: 0.9626
+Epoch 19, Loss: 0.1029150675944984
+Accuracy on MNIST: 0.9646
+Epoch 20, Loss: 0.0996294513007005
+Accuracy on MNIST: 0.9646
+Epoch 21, Loss: 0.09743336910568177
+Accuracy on MNIST: 0.9654
+Epoch 22, Loss: 0.09519136420699457
+Accuracy on MNIST: 0.9645
+Epoch 23, Loss: 0.09324532933818798
+Accuracy on MNIST: 0.9661
+Epoch 24, Loss: 0.09115147935338318
+Accuracy on MNIST: 0.9656
+Epoch 25, Loss: 0.08991238179132342
+Accuracy on MNIST: 0.9680
+CNN(
+  (conv1): Conv2d(1, 3, kernel_size=(2, 2), stride=(1, 1), padding=(1, 1))
+  (fc1): Linear(in_features=588, out_features=10, bias=True)
+)

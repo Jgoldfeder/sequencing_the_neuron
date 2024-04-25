@@ -11,12 +11,9 @@ import sys
 sys.path.append('./alignment')
 sys.path.append('../alignment')
 
-import evaluate as evaluate_
-from recon_evals import e_mae,e_layers_mae,e_max_ae,e_mse
+import evaluate as evalsuate_
 import align_cnn 
 device = 0
-
-
 
 # note: pytorch currently has a bug where this won't work
 # https://discuss.pytorch.org/t/tensors-of-the-same-index-must-be-on-the-same-device-and-the-same-dtype-except-step-tensors-that-can-be-cpu-and-float32-notwithstanding/190335
@@ -27,7 +24,6 @@ def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False
         return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
     else:
         return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh)
-
 
 
 import torch
@@ -46,10 +42,6 @@ def get_mean_weight_delta(net1,net2):
         mae.append(torch.nn.L1Loss()(w1,w2))
         max.append(torch.nn.L1Loss(reduction='none')(w1,w2).flatten().max())
     return mae,max
-
-
-
-
 
 class Population(nn.Module):
     def __init__(self,subs):
