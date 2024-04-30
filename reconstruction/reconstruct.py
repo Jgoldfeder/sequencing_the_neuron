@@ -228,7 +228,7 @@ with torch.enable_grad():
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
         population.save(models_path +"/population_iteration_"+str(outer_iter)+".pt")
-        if outer_iter in [15,30,54]:
+        if outer_iter in [0, 15,30,54]: # 0 just to make sure it goes through eval once ok. 
             population.evaluate(net,tanh=tanh)
         
 
