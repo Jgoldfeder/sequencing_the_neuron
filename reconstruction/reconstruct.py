@@ -11,7 +11,7 @@ import torchvision.transforms as transforms
 import numpy as np
 import util
 import gc
-
+import standardize
 
 # Get seed, network 2nd layer dimension, outer iter, num_samples 
 
@@ -170,7 +170,6 @@ class CNN(nn.Module):
 
 def get_network(): 
     if model_type == 'cnn': 
-        print('cnn')
         return CNN()
 
     if model_type == 'fnn': 
@@ -183,7 +182,10 @@ net.to(device)
 
 util.train_blackbox(net,num_epochs,dataset,optim_)
 print(net)
-for l in net.layers:
+
+net_layers = standardize.get_layers(net) 
+
+for l in net_layers:
     print(l.weight.abs().mean())
 # save net
 torch.save(net.state_dict(), models_path+"black_box.pt")
