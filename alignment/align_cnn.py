@@ -11,12 +11,12 @@ import torch.nn as nn
 from itertools import permutations
 
 
-print("generalized align")
+#print("generalized align")
 
 def get_all_permutations_for_kernel_indices(num_kernels): #assumes only 3 kernels, ideally recursion for this to generalize. 
    #all_permuations_kernel_indices = [[0,1,2], [1,0,2], [2,0,1], [1,2,0], [0,2,1],[2,1,0]]
    all_permuations_kernel_indices = list(permutations(range(0, num_kernels)))
-   print("all_permuations_kernel_indices", all_permuations_kernel_indices)
+   #print("all_permuations_kernel_indices", all_permuations_kernel_indices)
    return all_permuations_kernel_indices
 
 def heuristic_ordering_kernels_cnn(original_cnn_layer, model_to_align_cnn_layer): 
@@ -136,7 +136,7 @@ def cnn_align_to_perm(num_kernels, model_to_align: torch.nn.Module, perm):
 
 
 def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None): 
-    print("original scaling")
+    #print("original scaling")
     layers = standardize.get_layers(model)
     cnn_layer = layers[0]
     fnn_layer = layers[1]
@@ -193,6 +193,16 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
             fnn_start_idx+= int(number_fnn_input_neurons/num_kernels)
             fnn_end_idx+= int(number_fnn_input_neurons/num_kernels)
 
+def other_version_standardize_scale(model): 
+    layers = standardize.get_layers(model)
+    cnn_layer = layers[0]
+    fnn_layer = layers[1]
+
+    kernel_norm = torch.norm(cnn_layer.weight)
+    with torch.no_grad(): 
+        cnn_layer.weight = cnn_layer.weight/kernel_norm
+
+
 def get_mae(original, reconstructed): 
     original_layers = standardize.get_layers(original)
     reconstruced_layers = standardize.get_layers(reconstructed)
@@ -216,7 +226,7 @@ def get_mae(original, reconstructed):
     sum_fnn_bias/torch.numel(original_layers[1].bias.flatten())], overall_error)
 
 def bruteforce_cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.Module, tanh: bool = None):   
-    print("bruteforce cnn eval")
+    #print("bruteforce cnn eval")
     standardize_scale_cnn(model, tanh=None)
     standardize_scale_cnn(model_to_evaluate, tanh=None)
     layers = standardize.get_layers(model)
@@ -242,17 +252,17 @@ def bruteforce_cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.
     #print('cnn of lowest max error, ',low_max_error_model_layers[0].weight)
     #print('fnn of lowest max error, ',low_max_error_model_layers[1].weight)
 
-    print("avg abs magnitude cnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[0].weight.flatten())))
-    print("avg abs magnitude cnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[0].bias.flatten())))
-    print("avg abs magnitute fnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[1].weight.flatten())))
-    print("avg abs magnitudefnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[1].bias.flatten())))
+    #print("avg abs magnitude cnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[0].weight.flatten())))
+    #print("avg abs magnitude cnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[0].bias.flatten())))
+   # print("avg abs magnitute fnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[1].weight.flatten())))
+   # print("avg abs magnitudefnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[1].bias.flatten())))
 
     # now evaluate for all of them. 
     #mean_se, layers_mean_se = meanse_meanae.calculate_distance_mse_or_mae('mse', model, perm_model_w_lowest_max_error)
     layers_mean_ae, mean_ae = meanse_meanae.calculate_distance_mse_or_mae('mae', model, perm_model_w_lowest_max_error)
     max_overall_error =  max_ae.calculate_distance_mae(model,perm_model_w_lowest_max_error)
 
-    print("get mae", get_mae(model, model_to_evaluate))
+    #print("get mae", get_mae(model, model_to_evaluate))
 
     return (layers_mean_ae, mean_ae, max_overall_error)
 

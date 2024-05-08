@@ -20,4 +20,5 @@ CUDA_VISIBLE_DEVICES=$1 python reconstruct.py $2 cnn 5x5x1x3 55 15000 25 mnist a
 
 CUDA_VISIBLE_DEVICES=$1 python reconstruct.py $2 cnn  5x5x3x3 55 15000 25 cifar100 adam relu
 
+CUDA_VISIBLE_DEVICES=$1 python reconstruct.py $2 cnn  5x5x3x3 55 15000 25 imagenet adam relu
 

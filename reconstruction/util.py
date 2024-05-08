@@ -11,7 +11,7 @@ import sys
 sys.path.append('./alignment')
 sys.path.append('../alignment')
 
-import evaluate as evalsuate_
+import evaluate as evaluate_
 import align_cnn 
 device = 0
 
@@ -22,7 +22,7 @@ device = 0
 def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False):
     if cnn:
         return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
-    else:
+    else: # TODO: fix this for FNN why is it not working?
         return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh)
 
 
@@ -112,8 +112,8 @@ class Population(nn.Module):
             self.subs = original
         #print(torch.tensor(ratios).mean())
     
-    def evaluate(self,net,tanh=False):
-        print(evaluate(net,self.subs[self.best],tanh=tanh))
+    def evaluate(self,net,tanh=False, cnn=False):
+        print(evaluate(net,self.subs[self.best],tanh=tanh, cnn=cnn))
         
     def forward(self, x):
         outs = []
@@ -431,7 +431,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
 
 
 def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):    
-    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365']:
+    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'imagenet']:
         raise ValueError("Unknown Dataset")
     if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:
         raise ValueError("Unknown Optimizer")
@@ -488,6 +488,23 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
         test_dataset = torchvision.datasets.CIFAR100(root='./data', train=False, transform=transform, download=True)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
         input_dim = 3072
+    
+    if dataset == "imagenet": 
+        transform = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+        trainset = torchvision.datasets.ImageNet(root='./data', train=True, download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
+
+        transform = transforms.Compose([
+            transforms.Scale(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+        test_dataset = torchvision.datasets.ImageNet(root='./data', train=False, download=True, transform=transform)
+        test_loader = torch.utils.data.Dataloader(test_dataset, batch_size=64, shuffle=False)
 
     if dataset=='places365':
         

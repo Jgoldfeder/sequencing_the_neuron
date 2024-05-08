@@ -27,9 +27,12 @@ activation  = str(sys.argv[9])
 
 input_dim=784
 if dataset in ['cifar10','cifar100']:
-    input_dim = 1024*3
+    input_dim = 32*32*3 # 32*32*2
 if dataset in ['places365']:
     input_dim = 256*256*3
+
+if dataset == 'imagenet':
+    input_dim = 224*224*3
     
 name = "seed_"+str(seed)+"_"+model_type + "_" + layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
 
@@ -43,7 +46,7 @@ if not os.path.exists(models_path):
     os.makedirs(models_path)
 
 
-sys.stdout = open("./results/"+name, "w")
+sys.stdout = open("./results/"+name+".out", "w")
 print ("Log file for:"+name)
 
 layer_dim = layer_dim.split("x")
@@ -62,11 +65,13 @@ print(f"dataset: {dataset}")
 print(f"optim: {optim_}")
 print(f"activation: {activation}")
 
-
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 
 print("device",device)
 torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.backends.cudnn.deterministic = True
 
 if activation not in ["tanh","relu",'nonleakyrelu','nonleakyreluapproximation']:
     raise ValueError("unknown activation")
@@ -103,20 +108,30 @@ class Net(nn.Module):
 # TODO: use the formula on pytorch to get the dimension of fnn layer (depends only on cnn layer) instead of hardcoding. 
 kernel_dim= layer_dim # to make it clear what layer_dim means to CNNs. 
 
+def get_img_height_width_num_channels_for_dataset(): 
+    if dataset == 'mnist': 
+        h_in = 28
+        w_in = 28
+        num_channels = 1
+    if dataset == 'cifar100': 
+        h_in = 32
+        w_in = 32
+        num_channels = 3
+    
+    if dataset == 'imagenet': 
+        h_in = 224 
+        w_in = 224
+        num_channels = 3
+    
+    return num_channels, h_in, w_in
+
 def get_fnn_dimensions_from_kernel(conv_stride, conv_padding, pool_stride, pool_padding): 
     stride = conv_stride
     padding = conv_padding
     dilation = 1 
     kernel_size = kernel_dim[0]
-    h_in = None 
-    w_in = None 
-    if dataset == 'mnist': 
-        h_in = 28
-        w_in = 28
-    if dataset == 'cifar100': 
-        h_in = 32
-        w_in = 32
-
+    _, h_in, w_in = get_img_height_width_num_channels_for_dataset()
+    
     # using formula from here: https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html (assuming squared kernels.)
     conv_h_out =  int((h_in + 2*padding - dilation * (kernel_size - 1) - 1)/stride) + 1
     conv_w_out =  int((w_in + 2*padding - dilation * (kernel_size - 1) - 1)/stride) + 1
@@ -132,6 +147,15 @@ def get_fnn_dimensions_from_kernel(conv_stride, conv_padding, pool_stride, pool_
     pool_w_out = int((w_in + 2*padding - kernel_size)/stride) + 1 
 
     return pool_h_out, pool_w_out
+
+def get_num_outputs_for_dataset(): 
+    number_outputs = 10 
+    if dataset == 'cifar100': 
+        number_outputs = 100
+    if dataset == 'imagenet': 
+        number_outputs = 1000
+
+    return number_outputs
 class CNN(nn.Module): 
     def __init__(self): 
         super(CNN, self).__init__()
@@ -142,17 +166,19 @@ class CNN(nn.Module):
         self.pool_padding = 0
         self.conv1 = nn.Conv2d(in_channels=kernel_dim[2],out_channels=out_channels,kernel_size=kernel_dim[0],stride=1, padding=1) # square kernels 
         pool_w_out, pool_h_out = get_fnn_dimensions_from_kernel(self.conv_stride, self.conv_padding, self.pool_stride, self.pool_padding)
-        number_outputs = 10 
-        if dataset == 'cifar100': 
-            number_outputs = 100
+        number_outputs = get_num_outputs_for_dataset()
         self.fc1 = nn.Linear(out_channels * pool_w_out * pool_h_out, number_outputs)
     
 
     def forward(self, x):
+        num_channels, h_in, w_in = get_img_height_width_num_channels_for_dataset()
         if dataset == 'mnist': 
-            x = x.view(-1, 1, 28, 28)
+            x = x.view(-1, num_channels, h_in, w_in)
         if dataset == 'cifar100': 
-            x = x.view(-1, 3, 32, 32) 
+            x = x.view(-1, num_channels, h_in, w_in) 
+        if dataset =='imagenet':
+             x = x.view(-1, num_channels, h_in, w_in) 
+
         # Convolutional layers
         x = self.conv1(x)
         activation = nn.LeakyReLU()
@@ -167,6 +193,10 @@ class CNN(nn.Module):
         # x = self.fc2(x)
         return x
 
+
+is_cnn = False 
+if model_type=='cnn': 
+    is_cnn=True
 
 def get_network(): 
     if model_type == 'cnn': 
@@ -218,8 +248,8 @@ with torch.enable_grad():
         samples_to_generate = num_samples
         while samples_to_generate > 0:
             
-            new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=min(samples_to_generate,100002),epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
-            samples_to_generate -= 100002
+            new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=min(samples_to_generate,5000),epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
+            samples_to_generate -= 5000
             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
             population.add_data(new_inputs, new_outputs,window=500)
         
@@ -229,12 +259,15 @@ with torch.enable_grad():
            sys.stdout.flush()
         population.save(models_path +"/population_iteration_"+str(outer_iter)+".pt")
         if outer_iter in [0, 15,30,54]: # 0 just to make sure it goes through eval once ok. 
-            population.evaluate(net,tanh=tanh)
+            print(f"Best network (i={population.best}) eval: ")
+            population.evaluate(net,tanh=tanh,cnn=is_cnn)
+            sys.stdout.flush()
         
-
+print("Loss of all networks in population: \n")
 for i in range(10):
     print(population.subs[i].loss)
 sys.stdout.flush()
 
 for i in range(10):
-    print(util.evaluate(population.subs[i],net,tanh=tanh))
+    print(f"Network {i}: ")
+    print(util.evaluate(population.subs[i],net,tanh=tanh, cnn=is_cnn))
