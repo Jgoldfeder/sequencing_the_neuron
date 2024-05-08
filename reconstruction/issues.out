@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/niki/sequencing_the_neuron/reconstruction/reconstruct.py", line 263, in <module>
+    population.evaluate(net,tanh=tanh,cnn=is_cnn)
+  File "/home/niki/sequencing_the_neuron/reconstruction/util.py", line 116, in evaluate
+    print(evaluate(net,self.subs[self.best],tanh=tanh, cnn=cnn))
+  File "/home/niki/sequencing_the_neuron/reconstruction/util.py", line 24, in evaluate
+    return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
+  File "/home/niki/sequencing_the_neuron/reconstruction/../alignment/align_cnn.py", line 240, in bruteforce_cnn_evaluate
+    cnn_layer_weights_biases = cnn_layer_weights_biases.clone().expand(each_kernel_for_fnn, each_kernel_num_els) # want to make sure that the reference isn't modified later. 
+  File "/home/niki/sequencing_the_neuron/reconstruction/../alignment/align_cnn.py", line 206, in other_version_standardize_scale
+    cnn_layer.bias = torch.nn.Parameter(cnn_layer.weight/(kernel_norm*bias_norm))
+  File "/data/niki_data/conda_envs/niki_cml_research/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1708, in __setattr__
+    raise TypeError(f"cannot assign '{torch.typename(value)}' as parameter '{name}' "
+TypeError: cannot assign 'torch.cuda.FloatTensor' as parameter 'weight' (torch.nn.Parameter or None expected)

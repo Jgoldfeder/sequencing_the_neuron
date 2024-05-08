@@ -1,4 +1,3 @@
-from solver import CNN
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,7 +6,6 @@ import torchvision.transforms as transforms
 import numpy as np
 import copy
 import standardize
-from solver import CNN_5_5
 from align_cnn import get_all_permutations_for_kernel_indices
 from align_cnn import order_kernels_cnn
 from align_cnn import cnn_evaluate
@@ -99,6 +97,85 @@ def are_two_models_equal(model1, model2):
      if p1.data.ne(p2.data).sum() > 0:
         return False
 
+
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=2, stride=1, padding=1)
+        self.fc1 = nn.Linear(3 * 14 * 14, 10) # using only one layer for now. 
+       # self.fc2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 1, 28, 28)
+
+        # Convolutional layers
+        x = self.conv1(x)
+        activation = nn.LeakyReLU()
+        x =  activation(x)
+        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        x = pool(x)
+        # Flatten the tensor before passing it through fully connected layers
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers
+        x = self.fc1(x)
+        # x = self.fc2(x)
+        return x
+
+
+class CNN_5_5(nn.Module):
+    def __init__(self):
+        super(CNN_5_5, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=5, stride=1, padding=1)
+        self.fc1 = nn.Linear(3 * 13 * 13, 10) # using only one layer for now. 
+       # self.fc2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 1, 28, 28)
+
+        # Convolutional layers
+        x = self.conv1(x)
+        activation = nn.LeakyReLU()
+        x =  activation(x)
+        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        x = pool(x)
+        # Flatten the tensor before passing it through fully connected layers
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers
+        x = self.fc1(x)
+        # x = self.fc2(x)
+        return x
+
+
+class CNN_5_5_2_conv(nn.Module):
+    def __init__(self):
+        super(CNN_5_5, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=5, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=1, out_channels=3, kernel_size=5, stride=1, padding=1)
+        self.fc1 = nn.Linear(3 * 13 * 13, 10) # using only one layer for now. 
+       # self.fc2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 1, 28, 28)
+
+        # Convolutional layers
+        x = self.conv1(x)
+        x = self.conv2(x)
+        activation = nn.LeakyReLU()
+        x =  activation(x)
+        pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
+        x = pool(x)
+        # Flatten the tensor before passing it through fully connected layers
+        x = x.view(x.size(0), -1)
+
+        # Fully connected layers
+        x = self.fc1(x)
+        # x = self.fc2(x)
+        return x
+
+
+
 network_name = "CNN" # right now only generalizing for kernel sizes. # CNN_5_5
 def get_network(): 
     if network_name == "CNN": 
@@ -107,6 +184,10 @@ def get_network():
     
     if network_name == "CNN_5_5": 
         print("In align test CNN_5_5")
+        return CNN_5_5()
+    
+    if network_name == "CNN_5_5_2_conv":
+        print("in align test CNN_5_5_2_conv")
         return CNN_5_5()
 # scaling test
 def scaling_test(): 
@@ -187,7 +268,7 @@ def easy_test(): # test cnn_evaluate
     model.to(device)
     train_network(model)
     model_copy = copy.deepcopy(model)
-    errors = cnn_evaluate(model, model_copy)
+    errors = bruteforce_cnn_evaluate(model, model_copy)
 
     print(are_two_models_equal(model, model_copy))
     print(errors) # should be zero error 
@@ -206,11 +287,11 @@ def easy_2_test():
     train_network(original_network_2)
 
     align_network2_to_1 =  copy.deepcopy(original_network_2)
-    print(cnn_evaluate(network_1, align_network2_to_1))
+    print(bruteforce_cnn_evaluate(network_1, align_network2_to_1))
     # make sure that network2_aligned_to_network_1 is actually shuffled. 
     # it should have high max error per layer when you compare network2 and network2_aligned_to_network_1
     align_network2_to_1_back_to_2 = copy.deepcopy(align_network2_to_1)
-    print(cnn_evaluate(original_network_2, align_network2_to_1_back_to_2)) # => this should give 0 error - considering numerical instability there might be a slight error. 
+    print(bruteforce_cnn_evaluate(original_network_2, align_network2_to_1_back_to_2)) # => this should give 0 error - considering numerical instability there might be a slight error. 
 
 
 # Judag reccomended: 
@@ -240,7 +321,7 @@ def easy_3_test():
         
 
     model_2 = copy.deepcopy(model)
-    print(cnn_evaluate(model, model_2)) # should give low error. 
+    print(bruteforce_cnn_evaluate(model, model_2)) # should give low error. 
 
     acc_2, saved_preds_net_2 = evaluate_accuracy(model_2, save_outputs=True) # same accuracy after evaluate
 
@@ -280,7 +361,7 @@ def random_noise_test():
     network_2 =  copy.deepcopy(network_1)
     add_uniform_noise(network_2)
 
-    print(cnn_evaluate(network_1, network_2))
+    print(bruteforce_cnn_evaluate(network_1, network_2))
 
 
 def all_intg_tests(): 
@@ -311,8 +392,8 @@ def all_intg_tests():
 #print('easy test')
 #easy_test()
 
-print('easy 2 test')
-easy_2_test()
+#print('easy 2 test')
+#easy_2_test()
 
 
 #heuristic_inter_kernels_test()
@@ -324,6 +405,6 @@ easy_2_test()
 
 #print("random_noise - uniform test")
 #random_noise_test()
-
-#print("all tests")
-#all_intg_tests()
+ 
+print("all tests")
+all_intg_tests()

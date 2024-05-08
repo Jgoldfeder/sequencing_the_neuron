@@ -46,7 +46,7 @@ if not os.path.exists(models_path):
     os.makedirs(models_path)
 
 
-sys.stdout = open("./results/"+name+".out", "w")
+sys.stdout = open("./results/"+name+".txt", "w")
 print ("Log file for:"+name)
 
 layer_dim = layer_dim.split("x")

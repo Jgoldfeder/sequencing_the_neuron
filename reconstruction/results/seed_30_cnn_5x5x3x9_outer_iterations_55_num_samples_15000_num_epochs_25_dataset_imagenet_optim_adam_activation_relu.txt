@@ -1,0 +1,10 @@
+Log file for:seed_30_cnn_5x5x3x9_outer_iterations_55_num_samples_15000_num_epochs_25_dataset_imagenet_optim_adam_activation_relu
+seed: 30
+kernel dim: [5, 5, 3, 9]
+outer_iterations: 55
+given_num_samples: 15000
+num_epochs: 25
+dataset: imagenet
+optim: adam
+activation: relu
+device cuda:0

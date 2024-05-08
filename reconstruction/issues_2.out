@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/niki/sequencing_the_neuron/reconstruction/reconstruct.py", line 211, in <module>
+    util.train_blackbox(net,num_epochs,dataset,optim_)
+  File "/home/niki/sequencing_the_neuron/reconstruction/util.py", line 498, in train_blackbox
+    trainset = torchvision.datasets.ImageNet(root='./data', train=True, download=True, transform=transform)
+  File "/data/niki_data/conda_envs/niki_cml_research/lib/python3.9/site-packages/torchvision/datasets/imagenet.py", line 52, in __init__
+    self.parse_archives()
+  File "/data/niki_data/conda_envs/niki_cml_research/lib/python3.9/site-packages/torchvision/datasets/imagenet.py", line 69, in parse_archives
+    parse_train_archive(self.root)
+  File "/data/niki_data/conda_envs/niki_cml_research/lib/python3.9/site-packages/torchvision/datasets/imagenet.py", line 175, in parse_train_archive
+    _verify_archive(root, file, md5)
+  File "/data/niki_data/conda_envs/niki_cml_research/lib/python3.9/site-packages/torchvision/datasets/imagenet.py", line 102, in _verify_archive
+    raise RuntimeError(msg.format(file, root))
+RuntimeError: The archive ILSVRC2012_img_train.tar is not present in the root directory or is corrupted. You need to download it externally and place it in ./data.

@@ -193,14 +193,115 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
             fnn_start_idx+= int(number_fnn_input_neurons/num_kernels)
             fnn_end_idx+= int(number_fnn_input_neurons/num_kernels)
 
-def other_version_standardize_scale(model): 
+# TODO: check if this passes all tests in align_cnn_test.py
+def simpler_but_maybe_wrong_version_standardize_scale(model): 
     layers = standardize.get_layers(model)
     cnn_layer = layers[0]
     fnn_layer = layers[1]
 
     kernel_norm = torch.norm(cnn_layer.weight)
+    bias_norm = torch.norm(cnn_layer.bias)
     with torch.no_grad(): 
-        cnn_layer.weight = cnn_layer.weight/kernel_norm
+        cnn_layer.weight = torch.nn.Parameter(cnn_layer.weight/(kernel_norm*bias_norm))
+        cnn_layer.bias = torch.nn.Parameter(cnn_layer.weight/(kernel_norm*bias_norm))
+        fnn_layer.weight = fnn_layer.weight*kernel_norm*bias_norm
+        fnn_layer_norm = torch.norm(fnn_layer.weight)
+        avg_out_scale_mul = (fnn_layer_norm)**0.5
+        cnn_layer.weight = torch.nn.Parameter(cnn_layer.weight*avg_out_scale_mul)
+        cnn_layer.bias =  torch.nn.Parameter(cnn_layer.bias*avg_out_scale_mul)
+        fnn_layer.weight =  torch.nn.Parameter(fnn_layer.weight/avg_out_scale_mul)
+
+
+## more conv layers 
+def last_cnn_fnn_layer_standardize_scale(cnn_layer, fnn_layer, num_layers): 
+    #print("original scaling")
+    num_kernels = len(cnn_layer.weight)
+    num_input_channels = cnn_layer.weight[0].size()[0] # the 1st dimension of any kernal will give this. 
+    number_fnn_input_neurons =  int(fnn_layer.weight.shape[1]) 
+    num_fnn_output_neurons = int(fnn_layer.weight.shape[0])
+
+    weights_biases = (fnn_layer.weight, fnn_layer.bias.reshape(-1, 1))
+    fnn_layer_weights_biases = torch.hstack(weights_biases)
+
+    fnn_end_idx = int(number_fnn_input_neurons/num_kernels)
+    fnn_start_idx = 0
+    # normalize each kernel (divide the cnn_weights_biases with the kernel_scales )
+    with torch.no_grad(): 
+        each_kernel_for_fnn = int(number_fnn_input_neurons/num_kernels)
+
+        for i in range(0, num_kernels): 
+            # reassign the kernels to normalized weights and biases. 
+            cnn_layer_weights_biases = torch.cat((cnn_layer.weight[i].flatten(), cnn_layer.bias[i].view(1)))
+            each_kernel_num_els = cnn_layer_weights_biases.shape[0] # num of elements in one individual kernel  
+            num_weights_in_kernel = each_kernel_num_els - 1
+            each_kernel_for_fnn = int(number_fnn_input_neurons/num_kernels)
+
+            # normalize cnn kernels 
+            cnn_layer_weights_biases = cnn_layer_weights_biases.clone().expand(each_kernel_for_fnn, each_kernel_num_els) # want to make sure that the reference isn't modified later. 
+            kernel_scales =  torch.norm(cnn_layer_weights_biases, dim=1, p=2)
+            cnn_layer_weights_biases = cnn_layer_weights_biases/kernel_scales.reshape(-1,1)
+
+            num_weights_in_kernel_per_input_channel = num_weights_in_kernel/num_input_channels
+            squared_dim_kernel = int(math.sqrt(num_weights_in_kernel_per_input_channel))
+            cnn_layer.weight[i] = cnn_layer_weights_biases[0, 0:num_weights_in_kernel].reshape(num_input_channels, squared_dim_kernel,squared_dim_kernel)  # all rows are the same so take any one except bias
+            cnn_layer.bias[i] = cnn_layer_weights_biases[0,num_weights_in_kernel] # # all rows are the same val here. you're making it look like fnn by expanding it like that. use only the bias
+
+            # only need to apply kernel scales to weights because those are ones affected from kernel. 
+            #print("fnn_start_idx", fnn_start_idx)
+            #print("fnn_end_idx", fnn_end_idx)
+            fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx] = fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx] * kernel_scales
+
+            # normalize 
+            appended_fnn_weights_biases = torch.cat((fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)# want to be careful with reference so that later kernel associated fnn layer don't modify prev.
+            fnn_layer_norm = torch.norm(appended_fnn_weights_biases.clone() ,dim=1, p=2)
+            
+            #compute the avg scale to spread across
+            avg_out_scale_mul = (sum(fnn_layer_norm)/len(fnn_layer_norm))**num_layers
+
+            # multiply these avg out scales across the CNN 
+            cnn_layer.weight[i] =   cnn_layer.weight[i]*avg_out_scale_mul # all 196 rows are the same so take any one except bias
+            cnn_layer.bias[i] =   cnn_layer.bias[i]*avg_out_scale_mul
+    
+             # divide this for FNN 
+            fnn_layer.weight[:, fnn_start_idx:fnn_end_idx] =  fnn_layer_weights_biases[:, fnn_start_idx:fnn_end_idx]/avg_out_scale_mul
+
+            fnn_start_idx+= int(number_fnn_input_neurons/num_kernels)
+            fnn_end_idx+= int(number_fnn_input_neurons/num_kernels)
+
+            return avg_out_scale_mul
+
+
+def more_conv_layers_scaling(model): 
+    layers = standardize.get_layers(model)
+
+    with torch.no_grad(): 
+        if len(layers) > 2: # if more than 2 layers
+            print("more than one conv layer")
+            prev_kernels_scale = 1  # 
+            for i in range(0, len(layers) - 1): # all cnn layers
+                cnn_layer = layers[i]
+                cnn_layer.weight = torch.nn.Parameter(cnn_layer.weight*prev_kernels_scale)
+                cnn_layer.bias = torch.nn.Parameter(cnn_layer.bias*prev_kernels_scale)
+                #cnn_layer.bias = torch.nn.Parameter()
+                cnn_weight_bias =  torch.cat((cnn_layer.weight.flatten(), cnn_layer.bias.flatten()))
+                all_kernels_scale = torch.norm(cnn_weight_bias, p=2)
+                cnn_layer.weight = torch.nn.Parameter(cnn_layer.weight/all_kernels_scale)
+                cnn_layer.bias = torch.nn.Parameter(cnn_layer.bias/all_kernels_scale)
+                prev_kernels_scale = all_kernels_scale 
+            
+            # scale the last cnn layer and fnn layer 
+            avg_out_scale_mul = last_cnn_fnn_layer_standardize_scale(layers[-2],layers[-1],len(layers)) #  last cnn layer and fnn layer 
+
+            # multipy the avg_out_scale into the prev layers apart from last cnn and fnn. 
+
+            for i in range(0, len(layers) - 2): # all cnn except for last cnn layer
+                cnn_layer = layers[i]
+                cnn_layer.weight = torch.nn.Parameter(cnn_layer.weight*avg_out_scale_mul)
+                cnn_layer.bias = torch.nn.Parameter(cnn_layer.bias*avg_out_scale_mul)
+        
+        else: 
+            print("one conv layer")
+            last_cnn_fnn_layer_standardize_scale(layers[-2],layers[-1],len(layers))
 
 
 def get_mae(original, reconstructed): 

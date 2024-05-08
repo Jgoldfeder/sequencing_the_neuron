@@ -1,5 +1,4 @@
 */__pycache__/*
-*.out
 reconstruction/data
 alignment/*.ipynb
 reconstruction/models

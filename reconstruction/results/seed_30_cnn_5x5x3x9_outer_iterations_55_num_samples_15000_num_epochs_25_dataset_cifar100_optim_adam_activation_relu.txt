@@ -1,0 +1,92 @@
+Log file for:seed_30_cnn_5x5x3x9_outer_iterations_55_num_samples_15000_num_epochs_25_dataset_cifar100_optim_adam_activation_relu
+seed: 30
+kernel dim: [5, 5, 3, 9]
+outer_iterations: 55
+given_num_samples: 15000
+num_epochs: 25
+dataset: cifar100
+optim: adam
+activation: relu
+device cuda:0
+Files already downloaded and verified
+Files already downloaded and verified
+Epoch 1, Loss: 3.5524998017785188
+Accuracy on MNIST: 0.2345
+Epoch 2, Loss: 3.0413974972771896
+Accuracy on MNIST: 0.2520
+Epoch 3, Loss: 2.833819030418811
+Accuracy on MNIST: 0.2795
+Epoch 4, Loss: 2.6777413957636096
+Accuracy on MNIST: 0.2804
+Epoch 5, Loss: 2.5546605869965604
+Accuracy on MNIST: 0.2818
+Epoch 6, Loss: 2.4447095854802536
+Accuracy on MNIST: 0.2840
+Epoch 7, Loss: 2.3397043690952977
+Accuracy on MNIST: 0.2840
+Epoch 8, Loss: 2.245580091891347
+Accuracy on MNIST: 0.2821
+Epoch 9, Loss: 2.1584193375502654
+Accuracy on MNIST: 0.2887
+Epoch 10, Loss: 2.0709339513735974
+Accuracy on MNIST: 0.2914
+Epoch 11, Loss: 1.995369060788487
+Accuracy on MNIST: 0.2877
+Epoch 12, Loss: 1.9281848706424198
+Accuracy on MNIST: 0.2901
+Epoch 13, Loss: 1.8582160367617908
+Accuracy on MNIST: 0.2852
+Epoch 14, Loss: 1.79465398846417
+Accuracy on MNIST: 0.2793
+Epoch 15, Loss: 1.7429777130208104
+Accuracy on MNIST: 0.2767
+Epoch 16, Loss: 1.6870955051478864
+Accuracy on MNIST: 0.2810
+Epoch 17, Loss: 1.6340837743674343
+Accuracy on MNIST: 0.2771
+Epoch 18, Loss: 1.5857343882303243
+Accuracy on MNIST: 0.2744
+Epoch 19, Loss: 1.537674684442165
+Accuracy on MNIST: 0.2741
+Epoch 20, Loss: 1.493384734034462
+Accuracy on MNIST: 0.2665
+Epoch 21, Loss: 1.4595521259445146
+Accuracy on MNIST: 0.2709
+Epoch 22, Loss: 1.4158437853429993
+Accuracy on MNIST: 0.2659
+Epoch 23, Loss: 1.3773367501037364
+Accuracy on MNIST: 0.2608
+Epoch 24, Loss: 1.3442754120073177
+Accuracy on MNIST: 0.2651
+Epoch 25, Loss: 1.3093400662401435
+Accuracy on MNIST: 0.2616
+CNN(
+  (conv1): Conv2d(3, 9, kernel_size=(5, 5), stride=(1, 1), padding=(1, 1))
+  (fc1): Linear(in_features=2025, out_features=100, bias=True)
+)
+tensor(0.2251, device='cuda:0', grad_fn=<MeanBackward0>)
+tensor(0.1896, device='cuda:0', grad_fn=<MeanBackward0>)
+ITERATION:  0 0
+tensor(0.5000)
+init. error: tensor(-0.1605, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6131, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(0.0141)
+tensor(0.5000)
+init. error: tensor(-0.1605, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6133, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5392) tensor(0.0142)
+tensor(0.5001)
+init. error: tensor(-0.1605, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6158, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5396) tensor(0.0144)
+Epoch 1, Min Loss: 38.13877877138429, Max Loss: 40.34720283443645,Mean Loss: 38.87539396245601
+Epoch 2, Min Loss: 5.076839152029005, Max Loss: 5.42840755187859,Mean Loss: 5.161149134878384
+Epoch 3, Min Loss: 4.897987798108893, Max Loss: 4.9641426377377265,Mean Loss: 4.923282989000869
+Epoch 4, Min Loss: 4.749092801142547, Max Loss: 4.8189605413857155,Mean Loss: 4.776050415685622
+Epoch 5, Min Loss: 4.590227393780724, Max Loss: 4.671645782761654,Mean Loss: 4.622380964634782
+Epoch 6, Min Loss: 4.422125796140251, Max Loss: 4.51600222264306,Mean Loss: 4.459636353638213
+Epoch 7, Min Loss: 4.246082621105646, Max Loss: 4.3527241157273115,Mean Loss: 4.2893433061696715
+Epoch 8, Min Loss: 4.069430104756759, Max Loss: 4.187360424106404,Mean Loss: 4.117737092406062
+Epoch 9, Min Loss: 3.8949734437263617, Max Loss: 4.023107528686523,Mean Loss: 3.9477194226394268
+Epoch 10, Min Loss: 3.730380417936939, Max Loss: 3.8638253898943886,Mean Loss: 3.7841012584961065
+Best network (i=3) eval: 
