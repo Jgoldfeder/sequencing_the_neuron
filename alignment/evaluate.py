@@ -27,7 +27,7 @@ def network_accuracy(network, test_loader):
 
 
 
-def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=False):
+def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=False,return_nets=False):
     reconstruction = copy.deepcopy(reconstruction)
     original = copy.deepcopy(original)
     original = original.cuda()
@@ -47,4 +47,6 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     
     if return_blackbox:
         return original
+    if return_nets:
+        return original,reconstruction        
     return metrics

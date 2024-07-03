@@ -22,11 +22,11 @@ device = 0
 # https://discuss.pytorch.org/t/tensors-of-the-same-index-must-be-on-the-same-device-and-the-same-dtype-except-step-tensors-that-can-be-cpu-and-float32-notwithstanding/190335
 #torch.set_default_dtype(torch.float64)
 
-def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False):
+def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False,return_nets=False):
     if cnn:
         return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
     else:
-        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh)
+        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets)
 
 
 
