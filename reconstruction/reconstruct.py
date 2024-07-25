@@ -23,14 +23,25 @@ num_epochs  = int(sys.argv[5])
 dataset  = str(sys.argv[6])
 optim_ = str(sys.argv[7]) # optimizer for black box network
 activation  = str(sys.argv[8])
+sampling_method  = str(sys.argv[9])
+sampling_options = ['committee','rand_gauss','rand_uni','dataset','expanded_dataset','fully_expanded_dataset',"easy","hard"]
+if sampling_method not in sampling_options:
+    raise ValueError("invalid sampling argument")
+strong_start=False
+single_strong_start = False
+save_samples=True
 
 input_dim=784
 if dataset in ['cifar10','cifar100']:
     input_dim = 1024*3
 if dataset in ['places365']:
     input_dim = 256*256*3
-    
-name = "seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation
+strong_start_str=""
+if strong_start:
+    strong_start_str="strong_start_"
+if single_strong_start:
+    strong_start_str="single_strong_start_"    
+name = strong_start_str+"seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation + "_sampling_method_"+sampling_method
 
 import os
 if not os.path.exists("./results/"):
@@ -170,19 +181,42 @@ class CNN_5_5_cifar100(nn.Module):
         return x
 
 net = Net()
+torch.save(net.state_dict(), models_path+"original_params_black_box.pt")
 net.to(device)
-
 util.train_blackbox(net,num_epochs,dataset,optim_)
 print(net)
+print("weight mean magnitude per layer")
 for l in net.layers:
     print(l.weight.abs().mean())
+
+og_net=Net()
+og_net.load_state_dict(torch.load(models_path+"original_params_black_box.pt"))
+print("distance weights moved during training, mean and max")
+for i in range(len(net.layers)):
+    dists=[]
+    for j in range(net.layers[i].weight.shape[0]):
+        for k in range(net.layers[i].weight.shape[1]):
+            dist = abs(net.layers[i].weight[j][k]-og_net.layers[i].weight[j][k])
+            dists.append(dist)
+    dists=torch.tensor(dists)
+    print(dists.mean(),dists.max())
+    
 # save net
 torch.save(net.state_dict(), models_path+"black_box.pt")
 
 pop_size = 10
 subs = []
 for j in range(pop_size):
-  subs.append(Net())
+  subs.append(Net())      
+  if strong_start:
+      subs[-1].load_state_dict(torch.load(models_path+"original_params_black_box.pt"))
+      with torch.no_grad():
+          for i in range(len(net.layers)):
+            for j in range(net.layers[i].weight.shape[0]):
+                for k in range(net.layers[i].weight.shape[1]):
+                    subs[-1].layers[i].weight[j][k] += torch.rand(1).item()/100
+if single_strong_start:
+    subs[0].load_state_dict(torch.load(models_path+"original_params_black_box.pt"))
 population = util.Population(subs)
 population.cuda(device)
 net = net.cuda(device)
@@ -191,6 +225,132 @@ criterion = nn.L1Loss()
 lr = 0.001
 
 population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+
+if sampling_method =="dataset":
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+
+    
+if sampling_method =="expanded_dataset":
+    # only for MNIST
+    if dataset!="mnist":
+        raise ValueError("expanded_dataset only supported for mnist")
+
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+            
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("emnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+
+if sampling_method =="fully_expanded_dataset":
+    # only for MNIST
+    if dataset!="mnist":
+        raise ValueError("fully expanded_dataset only supported for mnist")
+
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+            
+    # trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("emnist")
+    # with torch.no_grad():
+    #     for i, data in enumerate(trainloader, 0):
+    #         inputs, labels = data
+    #         inputs = inputs.view(-1, input_dim)
+    #         new_inputs, labels = inputs.to(device), labels.to(device)            
+    #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+    #         population.add_data(new_inputs, new_outputs,window=50000)
+    #     for i, data in enumerate(test_loader, 0):
+    #         inputs, labels = data
+    #         inputs = inputs.view(-1, input_dim)
+    #         new_inputs, labels = inputs.to(device), labels.to(device)            
+    #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+    #         population.add_data(new_inputs, new_outputs,window=50000)
+
+
+    
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("qmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("fmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("kmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
 
 with torch.enable_grad():
     for outer_iter in range(outer_iterations):
@@ -204,15 +364,40 @@ with torch.enable_grad():
         
         
         print("ITERATION: ",outer_iter, len(population.inputs))    
-        samples_to_generate = num_samples
-        while samples_to_generate > 0:
+        if sampling_method =="committee":
+            samples_to_generate = num_samples
+            while samples_to_generate > 0:
+                
+                new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=min(samples_to_generate,100002),epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
+                samples_to_generate -= 100002
+                new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+                population.add_data(new_inputs, new_outputs,window=500)
+                if save_samples:
+                    torch.save(new_inputs,models_path +"/data_iteration_"+str(outer_iter)+".pt")
             
-            new_inputs = util.get_adv(population.subs,lr=0.01,num_samples=min(samples_to_generate,100002),epochs=2000,schedule = [500,1000,1500],reverse=False,range_=1.000,input_dim=input_dim) 
-            samples_to_generate -= 100002
+            gc.collect()
+        if sampling_method =="rand_gauss":
+            new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
             population.add_data(new_inputs, new_outputs,window=500)
+        if sampling_method =="rand_uni":
+            new_inputs=util.get_random_uniform(num_samples,input_dim=input_dim)
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
+        if sampling_method =="hard" or sampling_method =="easy":
+            reverse=True
+            if sampling_method =="easy":
+                reverse=False
+            if outer_iter>3:
+                new_inputs=util.get_hard(num_samples,population,input_dim=input_dim,reverse=reverse)
+            else:
+                new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
+            
+#sampling_options = ['committee','rand_gauss','rand_uni','dataset','expanded_dataset',"easy","hard"]
+
         
-        gc.collect()
         for i in range(10):
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
