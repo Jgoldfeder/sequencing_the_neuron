@@ -18,6 +18,7 @@ device = 0
 
 
 
+
 # note: pytorch currently has a bug where this won't work
 # https://discuss.pytorch.org/t/tensors-of-the-same-index-must-be-on-the-same-device-and-the-same-dtype-except-step-tensors-that-can-be-cpu-and-float32-notwithstanding/190335
 #torch.set_default_dtype(torch.float64)
