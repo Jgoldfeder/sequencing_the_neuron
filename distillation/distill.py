@@ -24,6 +24,7 @@ parser.add_argument('--seed', type=int, help='Random seed for initialization')
 parser.add_argument('--outer_iter', type=int, help='Number of outer iterations')
 parser.add_argument('--samples', type=int, help='Number of samples to generate')
 parser.add_argument('--epochs', type=int, help='Number of epochs for training')
+parser.add_argument('--pop', type=int, help='Student population size')
 parser.add_argument('--dataset', type=str, help='Name of the dataset to use', default="imagenet")
 parser.add_argument('--optim_', type=str, help='Optimizer for black box network', default="adam")
 parser.add_argument('--sampling_method', type=str, help='Sampling method to use', default="committee")
@@ -39,6 +40,7 @@ num_epochs = args.epochs
 dataset = args.dataset
 optim_ = args.optim_
 sampling_method = args.sampling_method
+pop_size = args.pop
 
 # Will add dataset options where we train on both CD generated samples and real training data.
 sampling_options = ['committee']
@@ -84,7 +86,6 @@ torch.manual_seed(seed)
 net = imagenet_model_dict["ResNet50"](pretrained=True)
 net = net.to(device)
 
-pop_size = 10
 subs = []
 for j in range(pop_size):
   subs.append(imagenet_model_dict["ResNet18"]())      
