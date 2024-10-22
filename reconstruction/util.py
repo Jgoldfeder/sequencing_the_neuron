@@ -6,6 +6,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import numpy as np
+import tqdm
 
 import sys
 sys.path.append('./alignment')
@@ -401,7 +402,8 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
     optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
     error=0
     softmax = torch.nn.Softmax()
-    for epoch in range(epochs):
+    print("Generating adverserial samples.")
+    for epoch in tqdm(range(epochs)):
         if epoch in schedule:
             lr = lr/10
             optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
