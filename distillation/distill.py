@@ -42,6 +42,7 @@ dataset = args.dataset
 optim_ = args.optim_
 sampling_method = args.sampling_method
 pop_size = args.pop
+multigpu = args.multigpu
 
 # Will add dataset options where we train on both CD generated samples and real training data.
 sampling_options = ['committee']
