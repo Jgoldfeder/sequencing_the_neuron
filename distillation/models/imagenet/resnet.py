@@ -190,7 +190,7 @@ class ResNet(nn.Module):
         ]
         feats["preact_feats"] = [stem, feat1, feat2, feat3, feat4]
 
-        return out, feats
+        return out #, feats
 
 
 def resnet18(pretrained=False, **kwargs):
