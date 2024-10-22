@@ -1,6 +1,7 @@
 # Ignore generated files
 *.pyc
 __pycache__
+alignment/__pycache__/
 
 # Ignore build and compilation artifacts
 build/
@@ -23,3 +24,9 @@ lib/
 # Ignore dataset and model checkpoints
 dataset_cache/
 model_checkpoints/
+
+# Project specific
+
+distillation/distillers/
+distillation/engine/
+distillation/results/
