@@ -40,7 +40,7 @@ sampling_method = args.sampling_method
 
 # Now you can use the variables in your code
 
-sampling_options = ['committee','rand_gauss','rand_uni','dataset',"easy","hard"]
+sampling_options = ['committee']
 if sampling_method not in sampling_options:
     raise ValueError("invalid sampling argument")
 
@@ -57,7 +57,6 @@ models_path = "./models/"+name+"/"
 if not os.path.exists(models_path):
     os.makedirs(models_path)
 
-
 sys.stdout = open("./results/"+name, "w")
 print ("Log file for:"+name)
 
@@ -68,6 +67,7 @@ print(f"given_num_samples: {num_samples}")
 print(f"num_epochs: {num_epochs}")
 print(f"dataset: {dataset}")
 print(f"optim: {optim_}")
+print(f"sampling method:{sampling_method}")
 
 device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -125,39 +125,21 @@ with torch.enable_grad():
                     torch.save(new_inputs,models_path +"/data_iteration_"+str(outer_iter)+".pt")
             
             gc.collect()
-        if sampling_method =="rand_gauss":
-            new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
-            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-            population.add_data(new_inputs, new_outputs,window=500)
-        if sampling_method =="rand_uni":
-            new_inputs=util.get_random_uniform(num_samples,input_dim=input_dim)
-            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-            population.add_data(new_inputs, new_outputs,window=500)
-        if sampling_method =="hard" or sampling_method =="easy":
-            reverse=True
-            if sampling_method =="easy":
-                reverse=False
-            if outer_iter>3:
-                new_inputs=util.get_hard(num_samples,population,input_dim=input_dim,reverse=reverse)
-            else:
-                new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
-            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-            population.add_data(new_inputs, new_outputs,window=500)
-            
-#sampling_options = ['committee','rand_gauss','rand_uni','dataset','expanded_dataset',"easy","hard"]
-
         
-        for i in range(10):
+        for i in range(num_epochs):
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
         population.save(models_path +"/population_iteration_"+str(outer_iter)+".pt")
-        if outer_iter in [15,30,54]:
-            population.evaluate(net,tanh=False)
+
+        # Needs a different evaluation method
+        # if outer_iter in [15,30,54]:
+        #     population.evaluate(net,tanh=False)
         
 
 for i in range(10):
     print(population.subs[i].loss)
 sys.stdout.flush()
 
-for i in range(10):
-    print(util.evaluate(population.subs[i],net,tanh=False))
+ # Needs a different evaluation method
+# for i in range(10):
+#     print(util.evaluate(population.subs[i],net,tanh=False))
