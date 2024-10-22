@@ -162,6 +162,7 @@ class ResNet(nn.Module):
         return [256, 512, 1024, 2048]
 
     def forward(self, x):
+        x = x.view(-1, 3, 224, 224)
         x = self.conv1(x)
         x = self.bn1(x)
         stem = x
