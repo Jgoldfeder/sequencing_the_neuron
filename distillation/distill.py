@@ -28,6 +28,7 @@ parser.add_argument('--pop', type=int, help='Student population size')
 parser.add_argument('--dataset', type=str, help='Name of the dataset to use', default="imagenet")
 parser.add_argument('--optim_', type=str, help='Optimizer for black box network', default="adam")
 parser.add_argument('--sampling_method', type=str, help='Sampling method to use', default="committee")
+parser.add_argument('--multigpu', type=bool, help='Student population size', default=False)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -88,7 +89,10 @@ net = net.to(device)
 
 subs = []
 for j in range(pop_size):
-  subs.append(imagenet_model_dict["ResNet18"]())      
+  if multigpu:
+    subs.append(nn.DataParallel(imagenet_model_dict["ResNet18"]())) 
+  else: 
+    subs.append(imagenet_model_dict["ResNet18"]())
 
 population = util.Population(subs)
 population.cuda(device)
@@ -134,6 +138,7 @@ with torch.enable_grad():
             
             gc.collect()
         
+        print("Training Model")
         for i in range(num_epochs):
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
