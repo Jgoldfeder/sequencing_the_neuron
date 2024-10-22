@@ -9,6 +9,8 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import numpy as np
+sys.path.append('./reconstruction')
+sys.path.append('../reconstruction')
 import util
 import gc
 import argparse
@@ -18,22 +20,22 @@ from models import imagenet_model_dict
 parser = argparse.ArgumentParser(description="Script for configuring training parameters")
 
 # Add arguments
-parser.add_argument('seed', type=int, help='Random seed for initialization')
-parser.add_argument('outer_iterations', type=int, help='Number of outer iterations')
-parser.add_argument('num_samples', type=int, help='Number of samples to generate')
-parser.add_argument('num_epochs', type=int, help='Number of epochs for training')
-parser.add_argument('dataset', type=str, help='Name of the dataset to use')
-parser.add_argument('optim_', type=str, help='Optimizer for black box network')
-parser.add_argument('sampling_method', type=str, help='Sampling method to use', default="committee")
+parser.add_argument('--seed', type=int, help='Random seed for initialization')
+parser.add_argument('--outer_iter', type=int, help='Number of outer iterations')
+parser.add_argument('--samples', type=int, help='Number of samples to generate')
+parser.add_argument('--epochs', type=int, help='Number of epochs for training')
+parser.add_argument('--dataset', type=str, help='Name of the dataset to use', default="imagenet")
+parser.add_argument('--optim_', type=str, help='Optimizer for black box network', default="adam")
+parser.add_argument('--sampling_method', type=str, help='Sampling method to use', default="committee")
 
 # Parse the arguments
 args = parser.parse_args()
 
 # Assign the arguments to variables
 seed = args.seed
-outer_iterations = args.outer_iterations
-num_samples = args.num_samples
-num_epochs = args.num_epochs
+outer_iterations = args.outer_iter
+num_samples = args.samples
+num_epochs = args.epochs
 dataset = args.dataset
 optim_ = args.optim_
 sampling_method = args.sampling_method
