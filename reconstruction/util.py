@@ -6,7 +6,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import numpy as np
-import tqdm
+from tqdm import tqdm
 
 import sys
 sys.path.append('./alignment')
