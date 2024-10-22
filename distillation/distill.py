@@ -40,8 +40,7 @@ dataset = args.dataset
 optim_ = args.optim_
 sampling_method = args.sampling_method
 
-# Now you can use the variables in your code
-
+# Will add dataset options where we train on both CD generated samples and real training data.
 sampling_options = ['committee']
 if sampling_method not in sampling_options:
     raise ValueError("invalid sampling argument")
@@ -61,6 +60,12 @@ if not os.path.exists(models_path):
 
 sys.stdout = open("./results/"+name, "w")
 print ("Log file for:"+name)
+
+input_dim=784
+if dataset in ['cifar10','cifar100']:
+    input_dim = 1024*3
+if dataset in ['imagenet']:
+    input_dim = 224*224*3
 
 
 print(f"seed: {seed}")
@@ -142,6 +147,6 @@ for i in range(10):
     print(population.subs[i].loss)
 sys.stdout.flush()
 
- # Needs a different evaluation method
+# Needs a different evaluation method
 # for i in range(10):
 #     print(util.evaluate(population.subs[i],net,tanh=False))
