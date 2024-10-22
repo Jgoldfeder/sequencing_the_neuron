@@ -80,7 +80,7 @@ print(f"dataset: {dataset}")
 print(f"optim: {optim_}")
 print(f"sampling method:{sampling_method}")
 
-device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device(f"cuda" if torch.cuda.is_available() else "cpu")
 
 print("device",device)
 torch.manual_seed(seed)

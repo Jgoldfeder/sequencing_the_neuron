@@ -38,6 +38,7 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        print(f"DEVICE: {x.device}")
         x = F.relu(x)
         residual = x
 
