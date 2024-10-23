@@ -30,3 +30,5 @@ model_checkpoints/
 distillation/distillers/
 distillation/engine/
 distillation/results/
+download_ckpts/
+distillation/download_ckpts/

@@ -1,1 +1,2 @@
 from .imagenet import get_imagenet_dataloaders, get_imagenet_dataloaders_sample
+from .cifar100 import get_cifar100_dataloaders, get_cifar100_dataloaders_sample
