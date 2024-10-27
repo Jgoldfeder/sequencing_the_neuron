@@ -2,6 +2,7 @@
 *.pyc
 __pycache__
 alignment/__pycache__/
+mdistiller/__pycache__/
 
 # Ignore build and compilation artifacts
 build/
@@ -27,11 +28,11 @@ model_checkpoints/
 
 # Project specific
 
-distillation/distillers/
-distillation/engine/
-distillation/results/
 download_ckpts/
 distillation/download_ckpts/
-mdistiller/wandb/
+mdistiller/wandb/*
+mdistiller/wandb
 wandb
 mdistiller/output/
+data/
+mdistiller/*.out

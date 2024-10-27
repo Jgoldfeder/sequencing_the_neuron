@@ -4,6 +4,9 @@ import torch.backends.cudnn as cudnn
 
 cudnn.benchmark = True
 
+import sys
+sys.path.append('..')
+
 from mdistiller.distillers import Vanilla
 from mdistiller.models import cifar_model_dict, imagenet_model_dict
 from mdistiller.dataset import get_dataset
