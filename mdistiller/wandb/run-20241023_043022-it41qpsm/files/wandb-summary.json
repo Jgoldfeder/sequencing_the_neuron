@@ -1,0 +1,1 @@
+{"train_acc":29,"best_acc":1.1699999570846558,"_timestamp":1.7296722444766717e+09,"train_loss":19.48115348815918,"current lr":0.05,"test_acc_top5":5.210000038146973,"_step":3,"test_acc":1,"test_loss":5.2558512687683105,"_runtime":21.818045519,"_wandb":{"runtime":28}}

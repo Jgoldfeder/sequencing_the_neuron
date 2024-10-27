@@ -1,0 +1,24 @@
+EXPERIMENT:
+  NAME: "CD on cifar100 with random samples"
+  TAG: "CD,res32x4,res8x4"
+  PROJECT: "cifar100_baselines"
+DISTILLER:
+  TYPE: "CD"
+  TEACHER: "resnet32x4"
+  STUDENT: "resnet8x4"
+SOLVER:
+  BATCH_SIZE: 64
+  EPOCHS: 250
+  LR: 0.05
+  LR_DECAY_STAGES: [50, 100, 150, 200]
+  LR_DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0005
+  MOMENTUM: 0.9
+  TYPE: "SGD"
+  TRAINER: "cd"
+CD:
+  POPULATION_SIZE: 5
+  SAMPLES_PER_EPOCH: 1000
+  EPOCHS: 0
+  USE_DATASET: False
+  USE_ADV: True

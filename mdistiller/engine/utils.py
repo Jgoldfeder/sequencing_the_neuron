@@ -30,8 +30,8 @@ def validate(val_loader, distiller):
     batch_time, losses, top1, top5 = [AverageMeter() for _ in range(4)]
     criterion = nn.CrossEntropyLoss()
     num_iter = len(val_loader)
-    pbar = tqdm(range(num_iter))
-
+    # pbar = tqdm(range(num_iter))
+    msg = ""
     distiller.eval()
     with torch.no_grad():
         start_time = time.time()
@@ -53,9 +53,10 @@ def validate(val_loader, distiller):
             msg = "Top-1:{top1.avg:.3f}| Top-5:{top5.avg:.3f}".format(
                 top1=top1, top5=top5
             )
-            pbar.set_description(log_msg(msg, "EVAL"))
-            pbar.update()
-    pbar.close()
+    #         pbar.set_description(log_msg(msg, "EVAL"))
+    #         pbar.update()
+    # pbar.close()
+    print(msg)
     return top1.avg, top5.avg, losses.avg
 
 
@@ -64,6 +65,7 @@ def log_msg(msg, mode="INFO"):
         "INFO": 36,
         "TRAIN": 32,
         "EVAL": 31,
+        "SAMPLING": 34
     }
     msg = "\033[{}m[{}] {}\033[0m".format(color_map[mode], mode, msg)
     return msg

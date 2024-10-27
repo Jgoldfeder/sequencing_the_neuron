@@ -32,3 +32,6 @@ distillation/engine/
 distillation/results/
 download_ckpts/
 distillation/download_ckpts/
+mdistiller/wandb/
+wandb
+mdistiller/output/
