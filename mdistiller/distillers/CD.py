@@ -70,14 +70,19 @@ class CD(nn.Module):
         self.inputs.append(inputs)
         self.outputs.append(outputs)
 
-    def get_adv_samples(self, num_samples):
+    def get_adv_samples(self, num_samples, base_images=None):
         # generate adversarial samples
         if self.cfg.DATASET.TYPE == "cifar100":
             input_dims = [num_samples, 3, 32, 32]
         else: 
             input_dims = [num_samples, 3, 224, 224]
-        adv = torch.zeros(input_dims, requires_grad = True, device="cuda")
-        nn.init.uniform_(adv,-1,1)
+        if self.cfg.CD.SAMPLE_INIT == "uniform":   
+            adv = torch.zeros(input_dims, requires_grad = True, device="cuda")
+            nn.init.uniform_(adv,-1,1)
+        elif self.cfg.CD.SAMPLE_INIT == "image":
+            adv = base_images.cuda()
+            adv.requires_grad_()
+
         lr = self.cfg.CD.LR
         optimizer = torch.optim.Adam([adv], lr=lr)
         error=0

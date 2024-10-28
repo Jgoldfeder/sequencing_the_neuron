@@ -103,15 +103,16 @@ class BaseTrainer(object):
             "top5": AverageMeter(),
         }
         num_iter = len(self.train_loader)
-        pbar = tqdm(range(num_iter), file=sys.stdout)
+        # pbar = tqdm(range(num_iter), file=sys.stdout)
 
         # train loops
         self.distiller.train()
         for idx, data in enumerate(self.train_loader):
             msg = self.train_iter(data, epoch, train_meters)
-            pbar.set_description(log_msg(msg, "TRAIN"))
-            pbar.update()
-        pbar.close()
+        #     pbar.set_description(log_msg(msg, "TRAIN"))
+        #     pbar.update()
+        # pbar.close()
+        print(msg)
 
         # validate
         test_acc, test_acc_top5, test_loss = validate(self.val_loader, self.distiller)
@@ -201,7 +202,21 @@ class CDTrainer(BaseTrainer):
         return torch.utils.data.DataLoader(
             SampleDataset(torch.cat(self.distiller.module.inputs),torch.cat(self.distiller.module.outputs)), 
             batch_size=self.cfg.SOLVER.BATCH_SIZE,
-            shuffle=True), error
+            shuffle=True, num_workers=self.cfg.DATASET.NUM_WORKERS), error
+    def train(self, resume=False):
+        epoch = 1
+        if resume:
+            state = load_checkpoint(os.path.join(self.log_path, "latest"))
+            epoch = state["epoch"] + 1
+            self.distiller.load_state_dict(state["model"])
+            self.optimizer.load_state_dict(state["optimizer"])
+            self.best_acc = state["best_acc"]
+        while epoch < self.cfg.SOLVER.EPOCHS + 1:
+            self.train_epoch(epoch)
+            epoch += 1
+        print(log_msg("Best accuracy:{}".format(self.best_acc), "EVAL"))
+        with open(os.path.join(self.log_path, "worklog.txt"), "a") as writer:
+            writer.write("best_acc\t" + "{:.2f}".format(float(self.best_acc)))
     def train_epoch(self, epoch):
         lr = adjust_learning_rate(epoch, self.cfg, self.optimizer)
         log_dict = OrderedDict()

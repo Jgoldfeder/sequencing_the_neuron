@@ -52,6 +52,22 @@ def main(cfg, resume, opts):
             )
         distiller = distiller_dict[cfg.DISTILLER.TYPE](model_student)
     # distillation
+    if cfg.DISTILLER.TYPE == "CDD":
+        if cfg.DATASET.TYPE == "imagenet":
+            model_teacher = imagenet_model_dict[cfg.DISTILLER.TEACHER](pretrained=True)
+            model_student = imagenet_model_dict[cfg.DISTILLER.STUDENT](pretrained=False)
+        else:
+            model_student = cifar_model_dict[cfg.DISTILLER.STUDENT][0](
+                num_classes=num_classes
+            )
+            model_dict = cifar_model_dict
+            net, pretrain_model_path = model_dict[cfg.DISTILLER.TEACHER]
+            assert (
+                pretrain_model_path is not None
+            ), "no pretrain model for teacher {}".format(cfg.DISTILLER.TEACHER)
+            model_teacher = net(num_classes=num_classes)
+            model_teacher.load_state_dict(load_checkpoint(pretrain_model_path)["model"])
+        distiller = distiller_dict[cfg.DISTILLER.TYPE](model_student, model_teacher, cfg)
     elif cfg.DISTILLER.TYPE == "CD":
         if cfg.DATASET.TYPE == "imagenet":
             model_teacher = imagenet_model_dict[cfg.DISTILLER.TEACHER](pretrained=True)
@@ -99,16 +115,6 @@ def main(cfg, resume, opts):
                 model_student, model_teacher, cfg
             )
     distiller = torch.nn.DataParallel(distiller.cuda())
-
-    if cfg.DISTILLER.TYPE != "NONE":
-        print(
-            log_msg(
-                "Extra parameters of {}: {}\033[0m".format(
-                    cfg.DISTILLER.TYPE, distiller.module.get_extra_parameters()
-                ),
-                "INFO",
-            )
-        )
 
     # train
     trainer = trainer_dict[cfg.SOLVER.TRAINER](
