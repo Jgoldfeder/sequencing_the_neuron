@@ -58,7 +58,7 @@ def main(cfg, resume, opts):
             model_students = []
             for i in range(cfg.CD.POPULATION_SIZE):
                 student = imagenet_model_dict[cfg.DISTILLER.STUDENT](pretrained=False)
-                model_students.append(distiller_dict["NONE"](student))
+                model_students.append(distiller_dict["CDStudent"](student, cfg))
         else:
             model_dict = cifar_model_dict
             net, pretrain_model_path = model_dict[cfg.DISTILLER.TEACHER]
@@ -72,7 +72,7 @@ def main(cfg, resume, opts):
                 student = model_dict[cfg.DISTILLER.STUDENT][0](
                     num_classes=num_classes
                 )
-                model_students.append(distiller_dict["NONE"](student))
+                model_students.append(distiller_dict["CDStudent"](student, cfg))
         distiller = distiller_dict["CD"](model_students, model_teacher, cfg)
     else:
         print(log_msg("Loading teacher model", "INFO"))

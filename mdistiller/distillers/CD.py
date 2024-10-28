@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ._base import Distiller
+from ._base import Distiller, Vanilla
 from tqdm import tqdm
 
 import sys
@@ -10,6 +10,7 @@ sys.path.append('../engine/utils.py')
 from reconstruction.util import init_uniform
 
 from mdistiller.engine.utils import log_msg
+from .KD import kd_loss
 
 class CD(nn.Module):
     def __init__(self, students, teacher, cfg):
@@ -47,11 +48,11 @@ class CD(nn.Module):
     def forward_train(self, image, target, **kwargs):
         # training function for the distillation method
         logits = []
-        losses = {"ce": []}
+        losses = {"kl": []}
         for student in self.students:
             student_logits, student_loss_dict = student.forward_train(image, target)
             logits.append(student_logits)
-            losses["ce"].append(student_loss_dict["ce"])
+            losses["kl"].append(student_loss_dict["kl"])
         return logits, losses
 
     def forward_test(self, image):
@@ -71,7 +72,6 @@ class CD(nn.Module):
 
     def get_adv_samples(self, num_samples):
         # generate adversarial samples
-        # return get_adv(self.students, num_samples=num_samples, input_dim=input_dim)
         if self.cfg.DATASET.TYPE == "cifar100":
             input_dims = [num_samples, 3, 32, 32]
         else: 
@@ -111,3 +111,21 @@ class CD(nn.Module):
         # print("final error:",error)
         # print("stats:", adv.detach().abs().cpu().mean(),adv.detach().cpu().mean())
         return adv.detach().cpu(), error
+
+
+class CDStudent(Vanilla):
+    def __init__(self, student, cfg):
+        super(CDStudent, self).__init__(student)
+        self.temperature = cfg.KD.TEMPERATURE
+
+    def forward_train(self, image, target, **kwargs):
+        logits_student, _ = self.student(image)
+
+        # losses
+        loss = kd_loss(
+            logits_student, target, self.temperature
+        )
+        losses_dict = {
+            "kl": loss,
+        }
+        return logits_student, losses_dict

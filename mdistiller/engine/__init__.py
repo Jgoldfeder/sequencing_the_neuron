@@ -1,8 +1,5 @@
-from .trainer import BaseTrainer, CRDTrainer, DOT, CRDDOT, CDTrainer
+from .trainer import BaseTrainer, CDTrainer
 trainer_dict = {
     "base": BaseTrainer,
-    "crd": CRDTrainer,
-    "dot": DOT,
-    "crd_dot": CRDDOT,
     "cd": CDTrainer
 }
