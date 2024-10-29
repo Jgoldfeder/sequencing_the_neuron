@@ -1,5 +1,5 @@
 EXPERIMENT:
-  NAME: "CDD cifar100 resnet first test"
+  NAME: "CDD cifar100 resnet baseline (0 epochs of adverserial augmentation)"
   TAG: "kd,res32x4,res8x4"
   PROJECT: "cifar100_baselines"
 DISTILLER:

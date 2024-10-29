@@ -1,5 +1,5 @@
 EXPERIMENT:
-  NAME: "CDD cifar100 resnet first test"
+  NAME: "CDD cifar100 resnet (10 epochs of adverserial augmentation)"
   TAG: "kd,res32x4,res8x4"
   PROJECT: "cifar100_baselines"
 DISTILLER:
@@ -18,5 +18,5 @@ SOLVER:
   MOMENTUM: 0.9
   TYPE: "SGD"
 CD:
-  EPOCHS: 0
+  EPOCHS: 10
 
