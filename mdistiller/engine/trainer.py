@@ -18,9 +18,9 @@ from .utils import (
 )
 from .dot import DistillationOrientedTrainer
 
-import sys
-sys.path.append('../../reconstruction')
-from reconstruction.util import SampleDataset
+# import sys
+# sys.path.append('../../reconstruction')
+# from reconstruction.util import SampleDataset
 
 
 class BaseTrainer(object):
@@ -190,6 +190,7 @@ class BaseTrainer(object):
         )
         return msg
 
+"""
 class CDTrainer(BaseTrainer):
     def __init__(self, experiment_name, distiller, train_loader, val_loader, cfg):
         super().__init__(experiment_name, distiller, train_loader, val_loader, cfg)
@@ -319,3 +320,5 @@ class CDTrainer(BaseTrainer):
             train_meters["top5"].avg,
         )
         return msg
+    
+"""

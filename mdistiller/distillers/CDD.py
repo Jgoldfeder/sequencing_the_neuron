@@ -7,8 +7,6 @@ from .KD import KD, kd_loss
 
 
 class CDD(Distiller):
-    """Distilling the Knowledge in a Neural Network"""
-
     def __init__(self, student, teacher, cfg):
         super(CDD, self).__init__(student, teacher)
         self.cfg = cfg
@@ -24,11 +22,12 @@ class CDD(Distiller):
         for epoch in range(self.cfg.CD.EPOCHS):
             logits_student, _ = self.student(augmented_image)
             logits_student = torch.nn.functional.normalize(logits_student, p=1.0, dim=-1)
-            logits_teacher, _ = self.teacher(image)
+            logits_teacher, _ = self.teacher(augmented_image)
             logits_teacher = torch.nn.functional.normalize(logits_teacher, p=1.0, dim=-1)
             self.student.zero_grad()
             self.teacher.zero_grad()
             loss = nn.MSELoss()(logits_student, logits_teacher)
+            loss = -loss
             augmented_image.grad = torch.autograd.grad(loss, augmented_image)[0]
             optimizer.step()
             optimizer.zero_grad()
@@ -50,4 +49,34 @@ class CDD(Distiller):
             # "loss_ce": loss_ce,
             "loss_kd": loss_kd,
         }
-        return logits_student, losses_dict
+        return logits_student, losses_dict, image, logits_student, logits_teacher
+    
+    def forward_cd_eval(self, image, lr, epochs):
+        augmented_image = image.detach().clone().requires_grad_(True)
+        optimizer = torch.optim.Adam([augmented_image], lr=lr)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+        logits = {}
+        
+        for epoch in range(epochs[-1] + 1):
+            logits_student, _ = self.student(augmented_image)
+            logits_student = torch.nn.functional.normalize(logits_student, p=1.0, dim=-1)
+            logits_teacher, _ = self.teacher(augmented_image)
+            logits_teacher = torch.nn.functional.normalize(logits_teacher, p=1.0, dim=-1)
+
+            self.student.zero_grad()
+            self.teacher.zero_grad()
+            loss = nn.MSELoss()(logits_student, logits_teacher)
+            loss = -loss
+
+            if epoch in epochs:
+                logits[epoch] = {"student": logits_student.clone().detach(), 
+                                 "teacher": logits_teacher.clone().detach(), 
+                                 "image": augmented_image.clone().detach(),
+                                 "loss": F.mse_loss(logits_student, logits_teacher, reduction='none').mean(dim=1)}
+
+            augmented_image.grad = torch.autograd.grad(loss, augmented_image)[0]
+            optimizer.step()
+            optimizer.zero_grad()
+            scheduler.step(loss)
+
+        return logits
