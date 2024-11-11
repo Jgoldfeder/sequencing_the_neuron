@@ -49,7 +49,7 @@ class CDD(Distiller):
             # "loss_ce": loss_ce,
             "loss_kd": loss_kd,
         }
-        return logits_student, losses_dict, image, logits_student, logits_teacher
+        return logits_student, losses_dict
     
     def forward_cd_eval(self, image, lr, epochs):
         augmented_image = image.detach().clone().requires_grad_(True)
