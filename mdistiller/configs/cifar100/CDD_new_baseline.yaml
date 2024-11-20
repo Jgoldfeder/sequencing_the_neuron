@@ -1,0 +1,22 @@
+EXPERIMENT:
+  NAME: "CDD cifar100 resnet (10 epochs of adverserial augmentation) POST BUG FIX"
+  TAG: "kd,res32x4,res8x4"
+  PROJECT: "cifar100_baselines"
+DISTILLER:
+  TYPE: "CDD"
+  TEACHER: "resnet32x4"
+  STUDENT: "resnet8x4"
+LOG:
+  WANDB: True
+SOLVER:
+  BATCH_SIZE: 64
+  EPOCHS: 150
+  LR: 0.05
+  LR_DECAY_STAGES: [50, 75, 125]
+  LR_DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0005
+  MOMENTUM: 0.9
+  TYPE: "SGD"
+CD:
+  EPOCHS: 0
+
