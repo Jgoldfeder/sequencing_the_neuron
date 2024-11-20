@@ -1,5 +1,5 @@
 EXPERIMENT:
-  NAME: "CDD cifar100 resnet baseline (100 epochs of adverserial augmentation)"
+  NAME: "CDD cifar100 resnet (10 epochs of adverserial augmentation) POST BUG FIX"
   TAG: "kd,res32x4,res8x4"
   PROJECT: "cifar100_baselines"
 DISTILLER:
@@ -18,5 +18,6 @@ SOLVER:
   MOMENTUM: 0.9
   TYPE: "SGD"
 CD:
-  EPOCHS: 100
+  EPOCHS: 50
+
 
