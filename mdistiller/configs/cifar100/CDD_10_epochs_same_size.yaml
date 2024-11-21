@@ -1,6 +1,6 @@
 EXPERIMENT:
-  NAME: "CDD cifar100 resnet NEW MACHINE BASELINE"
-  TAG: "kd,res32x4,res8x4"
+  NAME: "CDD cifar100 resnet (10 epochs) SAME SIZE"
+  TAG: "kd,res32x4,res32x4"
   PROJECT: "cifar100_baselines"
 DISTILLER:
   TYPE: "CDD"
@@ -18,5 +18,5 @@ SOLVER:
   MOMENTUM: 0.9
   TYPE: "SGD"
 CD:
-  EPOCHS: 0
+  EPOCHS: 10
 
