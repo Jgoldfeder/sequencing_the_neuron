@@ -16,7 +16,10 @@ class CDD(Distiller):
     
     def forward_train(self, image, target, **kwargs):
         lr = self.cfg.CD.LR
-        augmented_image = image.detach().clone().requires_grad_(True)
+        if self.cfg.CD.RANDOM_INIT:
+            augmented_image = nn.init.uniform_(torch.zeros_like(image, device="cuda", requires_grad=True), a=-1.0, b=1.0)
+        else:
+            augmented_image = image.detach().clone().requires_grad_(True)
         optimizer = torch.optim.Adam([augmented_image], lr=lr)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
         for epoch in range(self.cfg.CD.EPOCHS):
