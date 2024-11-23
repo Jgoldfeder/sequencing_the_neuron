@@ -1,5 +1,5 @@
 EXPERIMENT:
-  NAME: "CDD cifar100 resnet (50 epochs) RANDOM INIT"
+  NAME: "CDD cifar100 resnet (0 epochs) RANDOM BASELINE"
   TAG: "kd,res32x4,res8x4"
   PROJECT: "cifar100_baselines"
 DISTILLER:
