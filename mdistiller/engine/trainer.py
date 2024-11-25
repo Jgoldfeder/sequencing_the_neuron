@@ -232,8 +232,12 @@ class IterativeTrainer(BaseTrainer):
             "top5": AverageMeter(),
         }
 
+        # train loops
+        self.distiller.train()
+
+        # data generation
         for i in range(math.ceil(self.cfg.CD.IMAGES_PER_EPOCH/self.cfg.SOLVER.BATCH_SIZE)):
-            _, _, image, logits_teacher = self.distiller.forward_train(torch.zeros([self.cfg.SOLVER.BATCH_SIZE,32,32]), True)
+            _, _, image, logits_teacher = self.distiller(torch.zeros([self.cfg.SOLVER.BATCH_SIZE,32,32]), True)
             self.inputs.append(image)
             self.outputs.append(logits_teacher)
             self.optimizer.zero_grad()
@@ -242,9 +246,6 @@ class IterativeTrainer(BaseTrainer):
             self.train_loader = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
         else:
             self.train_loader = SampleDataset(torch.cat(self.inputs[-self.cfg.CD.WINDOW:]),torch.cat(self.outputs[-self.cfg.CD.WINDOW:]))   
-
-        # train loops
-        self.distiller.train()
 
         for idx, data in enumerate(self.train_loader):
             msg = self.train_iter(data, epoch, train_meters)
