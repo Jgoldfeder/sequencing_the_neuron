@@ -237,7 +237,7 @@ class IterativeTrainer(BaseTrainer):
 
         # data generation
         for i in range(math.ceil(self.cfg.CD.IMAGES_PER_EPOCH/self.cfg.SOLVER.BATCH_SIZE)):
-            _, _, image, logits_teacher = self.distiller(torch.zeros([self.cfg.SOLVER.BATCH_SIZE,32,32]), True)
+            _, _, image, logits_teacher = self.distiller(torch.zeros(image=[self.cfg.SOLVER.BATCH_SIZE,32,32]), augment=True)
             self.inputs.append(image)
             self.outputs.append(logits_teacher)
             self.optimizer.zero_grad()
