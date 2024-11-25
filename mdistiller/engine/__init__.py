@@ -1,5 +1,5 @@
-from .trainer import BaseTrainer
+from .trainer import BaseTrainer, IterativeTrainer
 trainer_dict = {
     "base": BaseTrainer,
-    # "cd": CDTrainer
+    "iter": IterativeTrainer
 }

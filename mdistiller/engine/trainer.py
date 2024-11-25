@@ -1,5 +1,6 @@
 import os
 import time
+import math
 from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
@@ -189,78 +190,79 @@ class BaseTrainer(object):
             train_meters["top5"].avg,
         )
         return msg
+    
+from torch.utils.data import Dataset, DataLoader
+class SampleDataset(Dataset):
+    def __init__(self, inputs, outputs):
+        self.inputs = inputs
+        self.outputs = outputs
 
-"""
-class CDTrainer(BaseTrainer):
+    def __len__(self):
+        return len(self.inputs)
+
+    def __getitem__(self, idx):
+        input_sample = self.inputs[idx]
+        output_sample = self.outputs[idx]
+        return input_sample, output_sample, idx
+    
+class IterativeTrainer(BaseTrainer):
     def __init__(self, experiment_name, distiller, train_loader, val_loader, cfg):
-        super().__init__(experiment_name, distiller, train_loader, val_loader, cfg)
-        self.adv_loader = []
-    def get_adv_trainloader(self):
-        samples, error = self.distiller.module.get_adv_samples(self.cfg.CD.SAMPLES_PER_EPOCH, )
-        preds, _ = self.distiller.module.teacher(samples.cuda())
-        targets = preds.cpu().detach()
-        self.distiller.module.add_data(samples, targets)
-        return torch.utils.data.DataLoader(
-            SampleDataset(torch.cat(self.distiller.module.inputs),torch.cat(self.distiller.module.outputs)), 
-            batch_size=self.cfg.SOLVER.BATCH_SIZE,
-            shuffle=True, num_workers=self.cfg.DATASET.NUM_WORKERS), error
-    def train(self, resume=False):
-        epoch = 1
-        if resume:
-            state = load_checkpoint(os.path.join(self.log_path, "latest"))
-            epoch = state["epoch"] + 1
-            self.distiller.load_state_dict(state["model"])
-            self.optimizer.load_state_dict(state["optimizer"])
-            self.best_acc = state["best_acc"]
-        while epoch < self.cfg.SOLVER.EPOCHS + 1:
-            self.train_epoch(epoch)
-            epoch += 1
-        print(log_msg("Best accuracy:{}".format(self.best_acc), "EVAL"))
-        with open(os.path.join(self.log_path, "worklog.txt"), "a") as writer:
-            writer.write("best_acc\t" + "{:.2f}".format(float(self.best_acc)))
+        self.cfg = cfg
+        self.distiller = distiller
+        self.val_loader = val_loader
+        self.optimizer = self.init_optimizer(cfg)
+        self.best_acc = -1
+        self.inputs = []
+        self.outputs = []
+
+        username = getpass.getuser()
+        # init loggers
+        self.log_path = os.path.join(cfg.LOG.PREFIX, experiment_name)
+        if not os.path.exists(self.log_path):
+            os.makedirs(self.log_path)
+        self.tf_writer = SummaryWriter(os.path.join(self.log_path, "train.events"))
+
     def train_epoch(self, epoch):
         lr = adjust_learning_rate(epoch, self.cfg, self.optimizer)
-        log_dict = OrderedDict()
-        msg = ""
-
-        self.distiller.train()
-
         train_meters = {
+            "training_time": AverageMeter(),
+            "data_time": AverageMeter(),
             "losses": AverageMeter(),
             "top1": AverageMeter(),
             "top5": AverageMeter(),
         }
 
-        self.adv_loader, adv_error = self.get_adv_trainloader()
-        log_dict["adv_sample_generation_error"] = adv_error
-        for idx, data in enumerate(self.adv_loader):
+        for i in range(math.ceil(self.cfg.CD.IMAGES_PER_EPOCH/self.cfg.SOLVER.BATCH_SIZE)):
+            _, _, image, logits_teacher = self.distiller.forward_train(torch.zeros([self.cfg.SOLVER.BATCH_SIZE,32,32]), True)
+            self.inputs.append(image)
+            self.outputs.append(logits_teacher)
+            self.optimizer.zero_grad()
+
+        if self.cfg.CD.WINDOW is None or len(self.inputs) <=self.cfg.CD.WINDOW:
+            self.train_loader = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
+        else:
+            self.train_loader = SampleDataset(torch.cat(self.inputs[-self.cfg.CD.WINDOW:]),torch.cat(self.outputs[-self.cfg.CD.WINDOW:]))   
+
+        # train loops
+        self.distiller.train()
+
+        for idx, data in enumerate(self.train_loader):
             msg = self.train_iter(data, epoch, train_meters)
         print(msg)
-        log_dict["adv_train_acc"] = train_meters['top1'].avg
-        log_dict["adv_train_loss"] = train_meters['losses'].avg
 
         # validate
-        test_accs = []
-        test_accs_top5 = []
-        test_losses = []
-
-        for student in self.distiller.module.students:
-            test_acc, test_acc_top5, test_loss = validate(self.val_loader, student)
-            test_accs.append(test_acc)
-            test_accs_top5.append(test_acc_top5)
-            test_losses.append(test_loss)
+        test_acc, test_acc_top5, test_loss = validate(self.val_loader, self.distiller)
 
         # log
-        log_dict.update(OrderedDict(
+        log_dict = OrderedDict(
             {
-                "test_acc": max(test_accs),
-                "test_acc_top5": max(test_accs_top5),
-                "test_loss": min(test_losses),
+                "train_acc": train_meters["top1"].avg,
+                "train_loss": train_meters["losses"].avg,
+                "test_acc": test_acc,
+                "test_acc_top5": test_acc_top5,
+                "test_loss": test_loss,
             }
-        ))
-        for student, acc in enumerate(test_accs):
-            log_dict["test_acc_student_" + str(student)] = acc
-
+        )
         self.log(lr, epoch, log_dict)
         # saving checkpoint
         state = {
@@ -269,7 +271,7 @@ class CDTrainer(BaseTrainer):
             "optimizer": self.optimizer.state_dict(),
             "best_acc": self.best_acc,
         }
-        student_state = {"model": self.distiller.module.students.state_dict()}
+        student_state = {"model": self.distiller.module.student.state_dict()}
         save_checkpoint(state, os.path.join(self.log_path, "latest"))
         save_checkpoint(
             student_state, os.path.join(self.log_path, "student_latest")
@@ -291,34 +293,35 @@ class CDTrainer(BaseTrainer):
 
     def train_iter(self, data, epoch, train_meters):
         self.optimizer.zero_grad()
-        image, target = data
+        train_start_time = time.time()
+        image, target, index = data
+        train_meters["data_time"].update(time.time() - train_start_time)
         image = image.float()
         image = image.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
+        index = index.cuda(non_blocking=True)
 
         # forward
-        preds, losses_dict = self.distiller(image=image, target=target, epoch=epoch)
+        preds, losses_dict, _, _ = self.distiller(image=image, augment=False)
 
-        # backward on kl divergence loss for each student
-        loss = sum([l.mean() for l in losses_dict["kl"]])
+        # backward
+        loss = sum([l.mean() for l in losses_dict.values()])
         loss.backward()
-
         self.optimizer.step()
+        train_meters["training_time"].update(time.time() - train_start_time)
         # collect info
         batch_size = image.size(0)
-        target_classes = torch.argmax(target, dim=-1)
-        acc1s = [accuracy(p, target_classes) for p in preds]
-        acc5s = [accuracy(p, target_classes, topk=(5,)) for p in preds]
+        acc1, acc5 = accuracy(preds, target, topk=(1, 5))
         train_meters["losses"].update(loss.cpu().detach().numpy().mean(), batch_size)
-        train_meters["top1"].update(max(acc1s)[0].cpu().item(), batch_size)
-        train_meters["top5"].update(max(acc5s)[0].cpu().item(), batch_size)
+        train_meters["top1"].update(acc1[0], batch_size)
+        train_meters["top5"].update(acc5[0], batch_size)
         # print info
-        msg = "Epoch:{}| Loss:{:.4f}| Top-1:{:.3f}| Top-5:{:.3f}".format(
+        msg = "Epoch:{}| Time(data):{:.3f}| Time(train):{:.3f}| Loss:{:.4f}| Top-1:{:.3f}| Top-5:{:.3f}".format(
             epoch,
+            train_meters["data_time"].avg,
+            train_meters["training_time"].avg,
             train_meters["losses"].avg,
             train_meters["top1"].avg,
             train_meters["top5"].avg,
         )
         return msg
-    
-"""
