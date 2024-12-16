@@ -1,0 +1,25 @@
+EXPERIMENT:
+  NAME: "CDD cifar100 resnet (500 epochs, same size, random init, iterative training, 1024 images per epoch, window=20000)"
+  TAG: "kd,res32x4,resnet32x4"
+  PROJECT: "cifar100_baselines"
+DISTILLER:
+  TYPE: "CDD_iter"
+  TEACHER: "resnet32x4"
+  STUDENT: "resnet32x4"
+LOG:
+  WANDB: True
+SOLVER:
+  TRAINER: "iter"
+  BATCH_SIZE: 64
+  EPOCHS: 300
+  LR: 0.05
+  LR_DECAY_STAGES: [150, 180, 210]
+  LR_DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0005
+  MOMENTUM: 0.9
+  TYPE: "SGD"
+CD:
+  EPOCHS: 500
+  RANDOM_INIT: True
+  IMAGES_PER_EPOCH: 1024
+

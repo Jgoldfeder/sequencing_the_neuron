@@ -18,7 +18,7 @@ from mdistiller.engine.cfg import show_cfg
 from mdistiller.engine import trainer_dict
 
 
-def main(cfg, resume, opts):
+def main_train(cfg, resume, opts):
     experiment_name = cfg.EXPERIMENT.NAME
     if experiment_name == "":
         experiment_name = cfg.EXPERIMENT.TAG
@@ -135,4 +135,4 @@ if __name__ == "__main__":
     cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
-    main(cfg, args.resume, args.opts)
+    main_train(cfg, args.resume, args.opts)

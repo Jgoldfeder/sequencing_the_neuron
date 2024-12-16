@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import OrderedDict
 import getpass
+import wandb
 from tensorboardX import SummaryWriter
 from .utils import (
     AverageMeter,
@@ -57,16 +58,16 @@ class BaseTrainer(object):
         for k, v in log_dict.items():
             self.tf_writer.add_scalar(k, v, epoch)
         self.tf_writer.flush()
-        # wandb log
-        if self.cfg.LOG.WANDB:
-            import wandb
-            log_dict["current lr"] = lr
-            # wandb.log({"current lr": lr})
-            wandb.log(log_dict)
         if log_dict["test_acc"] > self.best_acc:
             self.best_acc = log_dict["test_acc"]
             if self.cfg.LOG.WANDB:
                 wandb.run.summary["best_acc"] = self.best_acc
+        log_dict["best_acc"] = self.best_acc
+        # wandb log
+        if self.cfg.LOG.WANDB:
+            log_dict["current lr"] = lr
+            # wandb.log({"current lr": lr})
+            wandb.log(log_dict)
         # worklog.txt
         with open(os.path.join(self.log_path, "worklog.txt"), "a") as writer:
             lines = [
@@ -230,6 +231,7 @@ class IterativeTrainer(BaseTrainer):
             "losses": AverageMeter(),
             "top1": AverageMeter(),
             "top5": AverageMeter(),
+            "disagreement_error": AverageMeter(),
         }
 
         # train loops
@@ -237,17 +239,18 @@ class IterativeTrainer(BaseTrainer):
 
         # data generation
         for i in range(math.ceil(self.cfg.CD.IMAGES_PER_EPOCH/self.cfg.SOLVER.BATCH_SIZE)):
-            _, _, image, logits_teacher = self.distiller(torch.zeros(image=[self.cfg.SOLVER.BATCH_SIZE,32,32]), augment=True)
-            self.inputs.append(image)
-            self.outputs.append(logits_teacher)
+            _, _, image, logits_teacher, disagreement_error = self.distiller.module.forward_train(torch.zeros(self.cfg.SOLVER.BATCH_SIZE,3,32,32), augment=True)
+            self.inputs.append(image.detach().cpu())
+            self.outputs.append(logits_teacher.detach().cpu())
+            train_meters["disagreement_error"].update(disagreement_error.detach().cpu(), self.cfg.SOLVER.BATCH_SIZE)
             self.optimizer.zero_grad()
 
         if self.cfg.CD.WINDOW is None or len(self.inputs) <=self.cfg.CD.WINDOW:
-            self.train_loader = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
+            self.ds = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
         else:
-            self.train_loader = SampleDataset(torch.cat(self.inputs[-self.cfg.CD.WINDOW:]),torch.cat(self.outputs[-self.cfg.CD.WINDOW:]))   
-
-        for idx, data in enumerate(self.train_loader):
+            self.ds = SampleDataset(torch.cat(self.inputs[-self.cfg.CD.WINDOW:]),torch.cat(self.outputs[-self.cfg.CD.WINDOW:]))   
+        self.train_loader = DataLoader(self.ds, batch_size=self.cfg.SOLVER.BATCH_SIZE, shuffle=True, num_workers=4)
+        for data in self.train_loader:
             msg = self.train_iter(data, epoch, train_meters)
         print(msg)
 
@@ -262,6 +265,8 @@ class IterativeTrainer(BaseTrainer):
                 "test_acc": test_acc,
                 "test_acc_top5": test_acc_top5,
                 "test_loss": test_loss,
+                "num_train_images": len(self.inputs),
+                "disagreement_error": train_meters["disagreement_error"].avg,
             }
         )
         self.log(lr, epoch, log_dict)
@@ -300,10 +305,9 @@ class IterativeTrainer(BaseTrainer):
         image = image.float()
         image = image.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
-        index = index.cuda(non_blocking=True)
 
         # forward
-        preds, losses_dict, _, _ = self.distiller(image=image, augment=False)
+        preds, losses_dict, _, _, _ = self.distiller(image=image, augment=False)
 
         # backward
         loss = sum([l.mean() for l in losses_dict.values()])
@@ -312,7 +316,7 @@ class IterativeTrainer(BaseTrainer):
         train_meters["training_time"].update(time.time() - train_start_time)
         # collect info
         batch_size = image.size(0)
-        acc1, acc5 = accuracy(preds, target, topk=(1, 5))
+        acc1, acc5 = accuracy(preds, torch.argmax(target, dim=1), topk=(1, 5))
         train_meters["losses"].update(loss.cpu().detach().numpy().mean(), batch_size)
         train_meters["top1"].update(acc1[0], batch_size)
         train_meters["top5"].update(acc5[0], batch_size)

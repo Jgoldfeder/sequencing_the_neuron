@@ -3,18 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ._base import Distiller
+from .CDD import CDD
 from .KD import KD, kd_loss
 
 
-class CDD_iter(Distiller):
-    def __init__(self, student, teacher, cfg):
-        super(CDD_iter, self).__init__(student, teacher)
-        self.cfg = cfg
-        self.temperature = cfg.KD.TEMPERATURE
-        self.ce_loss_weight = cfg.KD.LOSS.CE_WEIGHT
-        self.kd_loss_weight = cfg.KD.LOSS.KD_WEIGHT
-    
-    def forward_train(self, image, augment=False, **kwargs):
+class CDD_iter(CDD):    
+    def forward_train(self, image, augment=False):
+        loss = 0
         if augment:
             lr = self.cfg.CD.LR
             if self.cfg.CD.RANDOM_INIT:
@@ -39,7 +34,6 @@ class CDD_iter(Distiller):
 
             image = augmented_image.detach().requires_grad_(False)
 
-
         logits_student, _ = self.student(image)
         with torch.no_grad():
             logits_teacher, _ = self.teacher(image)
@@ -53,4 +47,4 @@ class CDD_iter(Distiller):
             # "loss_ce": loss_ce,
             "loss_kd": loss_kd,
         }
-        return logits_student, losses_dict, image, logits_teacher
+        return logits_student, losses_dict, image, logits_teacher, loss

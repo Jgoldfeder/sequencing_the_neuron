@@ -1,0 +1,13 @@
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_1_0.01.yaml # 72
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_1_0.05.yaml # 73.82
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_2_0.01.yaml # 72
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_2_0.05.yaml # 74.15
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_3_0.01.yaml # 71
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_3_0.05.yaml # 72
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_4_0.01.yaml # 71
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_4_0.05.yaml # 72
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_5_0.01.yaml # 71
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_6_0.01.yaml # 70
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_10_0.01.yaml # 67
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_15_0.01.yaml # 60
+python3 tools/train.py --cfg configs/cifar100/small_overnight/CDD_20_0.01.yaml # 60
