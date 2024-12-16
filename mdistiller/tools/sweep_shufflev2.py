@@ -46,5 +46,5 @@ sweep_configuration = {
 
 # Start the sweep
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="cifar100_baselines")
-cfg.merge_from_file("configs/cifar100/CDD_VGG_sweep.yaml")
+cfg.merge_from_file("configs/cifar100/CDD_SHUFFLEV2_SWEEP.yaml")
 wandb.agent(sweep_id, function=main, count=200)
