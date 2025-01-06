@@ -192,8 +192,13 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
         fnn_layer_weights_biases[:, index_1:index_2] = fnn_layer_weights_biases[:, index_1:index_2] * kernel_2_scales
         fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons] = fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons] * kernel_3_scales
 
-        # norms of fnn weights and biases 
+        # fnn_layer.weight[:, 0:index_1] = fnn_layer_weights_biases[:, 0:index_1] * kernel_1_scales
+        # fnn_layer.weight[:, index_1:index_2] = fnn_layer_weights_biases[:, index_1:index_2] * kernel_2_scales
+        # fnn_layer.weight[:, index_2:number_fnn_input_neurons] = fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons] * kernel_3_scales
 
+        # norms of fnn weights and biases 
+        # print(fnn_layer_weights_biases)
+        
         appended_fnn_weights_biases_1 = torch.cat((fnn_layer_weights_biases[:, 0:index_1],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
         fnn_layer_norm_1 = torch.norm(appended_fnn_weights_biases_1 ,dim=1, p=2)
         appended_fnn_weights_biases_2 = torch.cat((fnn_layer_weights_biases[:, index_1:index_2],fnn_layer_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
@@ -208,7 +213,6 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
         avg_out_scale_mul_2 = (sum(fnn_layer_norm_2)/len(fnn_layer_norm_2)) **0.5
         avg_out_scale_mul_3 = (sum(fnn_layer_norm_3)/len(fnn_layer_norm_3)) ** 0.5
 
-
         # multiply these avg out scales across the CNN 
         cnn_layer.weight[0] =   cnn_layer.weight[0]*avg_out_scale_mul_1 # all 196 rows are the same so take any one except bias
         cnn_layer.bias[0] =   cnn_layer.bias[0]*avg_out_scale_mul_1
@@ -219,10 +223,18 @@ def standardize_scale_cnn(model: torch.nn.Module, tanh: bool =None):
         cnn_layer.weight[2] =  cnn_layer.weight[2]*avg_out_scale_mul_3 #  want to only use the weights and not the biases
         cnn_layer.bias[2] =   cnn_layer.bias[2]*avg_out_scale_mul_3
 
+        for i in range(3):
+            print(torch.norm(cnn_layer.weight[i], p=2))
+
         # divide this for FNN 
         fnn_layer.weight[:, 0:index_1] =  fnn_layer_weights_biases[:, 0:index_1]/avg_out_scale_mul_1
         fnn_layer.weight[:, index_1:index_2] =  fnn_layer_weights_biases[:, index_1:index_2]/avg_out_scale_mul_2
         fnn_layer.weight[:, index_2:number_fnn_input_neurons] = fnn_layer_weights_biases[:, index_2:number_fnn_input_neurons]/avg_out_scale_mul_3
+
+        print(torch.norm(fnn_layer.weight[:, 0:index_1], p=2))
+        print(torch.norm(fnn_layer.weight[:, index_1:index_2], p=2))
+        print(torch.norm(fnn_layer.weight[:, index_2:number_fnn_input_neurons], p=2))
+
 
 def get_mae(original, reconstructed): 
     original_layers = standardize.get_layers(original)
@@ -265,15 +277,16 @@ def bruteforce_cnn_evaluate(model: torch.nn.Module, model_to_evaluate: torch.nn.
             min_max_abs_error = mae
             perm_model_w_lowest_max_error = copy.deepcopy(aligned_model_copy)
     
+    # return perm_model_w_lowest_max_error
     model_to_evaluate = perm_model_w_lowest_max_error
     low_max_error_model_layers =   standardize.get_layers(perm_model_w_lowest_max_error)  
     #print('cnn of lowest max error, ',low_max_error_model_layers[0].weight)
     #print('fnn of lowest max error, ',low_max_error_model_layers[1].weight)
 
-    print("avg abs magnitude cnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[0].weight.flatten())))
-    print("avg abs magnitude cnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[0].bias.flatten())))
-    print("avg abs magnitute fnn_layer_weights", torch.mean(torch.abs(low_max_error_model_layers[1].weight.flatten())))
-    print("avg abs magnitudefnn_layer_biases", torch.mean(torch.abs(low_max_error_model_layers[1].bias.flatten())))
+    print("avg abs magnitude cnn_layer_weights:", torch.mean(torch.abs(low_max_error_model_layers[0].weight.flatten())))
+    print("avg abs magnitude cnn_layer_biases:", torch.mean(torch.abs(low_max_error_model_layers[0].bias.flatten())))
+    print("avg abs magnitute fnn_layer_weights:", torch.mean(torch.abs(low_max_error_model_layers[1].weight.flatten())))
+    print("avg abs magnitudefnn_layer_biases:", torch.mean(torch.abs(low_max_error_model_layers[1].bias.flatten())))
 
     # now evaluate for all of them. 
     #mean_se, layers_mean_se = meanse_meanae.calculate_distance_mse_or_mae('mse', model, perm_model_w_lowest_max_error)

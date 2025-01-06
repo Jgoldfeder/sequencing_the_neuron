@@ -51,12 +51,14 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     max_ae = float('-inf')
     layerwise_metrics = []
     for og_weight, re_weight, layername in zip(original.state_dict().values(), reconstruction.state_dict().values(), original.state_dict().keys()):
+        #squared error, absolute error, max absolute errors, average percent errors for total
         total_se += torch.nn.functional.mse_loss(og_weight, re_weight, reduction="sum").item()
         total_ae += torch.nn.functional.l1_loss(og_weight, re_weight, reduction="sum").item()
         layermax_ae = torch.nn.functional.l1_loss(og_weight, re_weight, reduction="none").max().item()
         max_ae = max(layermax_ae, max_ae)
         total_ape += (torch.abs((og_weight - re_weight) / og_weight) * 100).sum().item()
 
+        #layerwise metrics
         layer_se = torch.nn.functional.mse_loss(og_weight, re_weight, reduction="mean").item()
         layer_ae = torch.nn.functional.l1_loss(og_weight, re_weight, reduction="mean").item()
         layer_ape = (torch.abs((og_weight - re_weight) / og_weight) * 100).mean().item()

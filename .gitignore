@@ -1,0 +1,9 @@
+alignment/__pycache__
+reconstruction/__pycache__/
+.venv/
+data/
+models/
+results/
+
+alignment/loaded_model.py
+alignment/test*

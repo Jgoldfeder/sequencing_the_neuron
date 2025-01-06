@@ -98,6 +98,8 @@ class Population(nn.Module):
 
 
     def train_one_epoch(self,batch_size = 128,epoch_num=0,restore=False,bottom_half=False):
+
+        #check datasets. If only one dataset is used, populate the datasets dict with one item. 
         if self.ds is not None and len(self.datasets) == 0:
             self.datasets[0] = self.ds
         elif self.ds is None and len(self.datasets) == 0:
@@ -115,10 +117,11 @@ class Population(nn.Module):
         criterion = nn.L1Loss()
 
         running_losses = np.array([0.0]*pop_size)
+        #initialize dataloaders for each sequence length dataset
         loaders = {length: iter(DataLoader(ds, batch_size=batch_size, shuffle=True))
                    for length, ds in self.datasets.items()}
         dataset_size = sum(len(dl) for dl in loaders.values())
-        active_datasets = set(loaders.keys())
+        active_datasets = set(loaders.keys()) #set to keep track of each dataset that still has items
         #ratios=[]
         while active_datasets:
             for seq_length in list(active_datasets):
@@ -183,24 +186,6 @@ class Population(nn.Module):
         for l_mse, l_mae, l_max_ae, l_mape, layername in layerwise_metrics:
             print(f"{layername} - mse: {l_mse}, mae: {l_mae}, max_ae: {l_max_ae}, mape: {l_mape}")
         print("-"*50)
-        # print("OLD REDISTRIBUTION")
-        # mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=True)
-        # print("total mse:", mse)
-        # print("total mae:", mae)
-        # print("total max_ae:", max_ae)
-        # print("total mape:", mape)
-        # layernum = 1
-        # for l_mse, l_mae, l_max_ae, l_mape in layerwise_metrics:
-        #     print(f"Matrix {layernum} - mse: {l_mse}, mae: {l_mae}, max_ae: {l_max_ae}, mape: {l_mape}")
-        #     layernum += 1
-        # print("-"*50)
-
-        # print("OLD ALIGNMENT")
-        # mean_ae, layers_mean_ae, max_overall_error = evaluate(net,self.subs[self.best],tanh=tanh, cnn=True)
-        # print("mean_ae:", mean_ae)
-        # print("layers_mean_ae:", layers_mean_ae)
-        # print("max_overall_error:", max_overall_error)
-        # print("-"*50)
         
     def forward(self, x):
         outs = []
