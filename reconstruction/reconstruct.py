@@ -472,7 +472,7 @@ with torch.enable_grad():
             population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
         
         
-        print("ITERATION: ",outer_iter, len(population.inputs))    
+        print("ITERATION: ",outer_iter, len(population.inputs))
         if sampling_method =="committee":
             samples_to_generate = num_samples
             seq_len = None

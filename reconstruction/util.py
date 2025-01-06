@@ -66,7 +66,7 @@ class Population(nn.Module):
 
         self.inputs_dict = defaultdict(list)
         self.outputs_dict = defaultdict(list)
-        self.datasets = []
+        self.datasets = {}
         
 
     def save(self,PATH):
@@ -89,9 +89,9 @@ class Population(nn.Module):
         self.outputs_dict[seq_len].append(outputs)
 
         if window is None or len(self.inputs_dict[seq_len]) <= window:
-            self.datasets.append(SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))) 
+            self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))
         else:
-            self.datasets.append(SampleDataset(torch.cat(self.inputs_dict[seq_len][-window:]), torch.cat(self.outputs_dict[seq_len][-window:])))  
+            self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len][-window:]), torch.cat(self.outputs_dict[seq_len][-window:]))
             
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
@@ -99,7 +99,7 @@ class Population(nn.Module):
 
     def train_one_epoch(self,batch_size = 128,epoch_num=0,restore=False,bottom_half=False):
         if self.ds is not None and len(self.datasets) == 0:
-            self.datasets.append(self.ds)
+            self.datasets[0] = self.ds
         elif self.ds is None and len(self.datasets) == 0:
             raise Exception("no datasets")
         elif self.ds is not None and len(self.datasets) > 0:
@@ -115,27 +115,49 @@ class Population(nn.Module):
         criterion = nn.L1Loss()
 
         running_losses = np.array([0.0]*pop_size)
-        dataset_size = 0
+        loaders = {length: iter(DataLoader(ds, batch_size=batch_size, shuffle=True))
+                   for length, ds in self.datasets.items()}
+        dataset_size = sum(len(dl) for dl in loaders.values())
+        active_datasets = set(loaders.keys())
         #ratios=[]
-        for dataset in self.datasets:
-            dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-            dataset_size += len(dl)
-            for i in dl:
-                x,y = i
-                x=x.cuda(device)
-                y=y.cuda(device)
-                optimizer.zero_grad()
-                y_hats = self(x)
-        
-                loss = [criterion(y_hats[i], y) for i in range(pop_size)]
-                
-                (sum(loss)*200).backward()
+        while active_datasets:
+            for seq_length in list(active_datasets):
+                try:
+                    x,y = next(loaders[seq_length]) #if this fails, means that that dataset is exhausted
+                    x=x.cuda(device)
+                    y=y.cuda(device)
+                    optimizer.zero_grad()
+                    y_hats = self(x)
+            
+                    loss = [criterion(y_hats[i], y) for i in range(pop_size)]
+                    
+                    (sum(loss)*200).backward()
 
-                #ratios.append(self.subs[0].fc1.weight.grad.abs().mean()/self.subs[0].fc2.weight.grad.abs().mean())
-                if restore:
-                    self.restore_grad()
-                optimizer.step()   
-                running_losses += torch.tensor(loss).detach().numpy()
+                    #ratios.append(self.subs[0].fc1.weight.grad.abs().mean()/self.subs[0].fc2.weight.grad.abs().mean())
+                    if restore:
+                        self.restore_grad()
+                    optimizer.step()   
+                    running_losses += torch.tensor(loss).detach().numpy()
+                except:
+                    active_datasets.remove(seq_length) #remove exhausted dataset
+        # for dataset in self.datasets:
+        #     # dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        #     for i in dl:
+        #         x,y = i
+        #         x=x.cuda(device)
+        #         y=y.cuda(device)
+        #         optimizer.zero_grad()
+        #         y_hats = self(x)
+        
+        #         loss = [criterion(y_hats[i], y) for i in range(pop_size)]
+                
+        #         (sum(loss)*200).backward()
+
+        #         #ratios.append(self.subs[0].fc1.weight.grad.abs().mean()/self.subs[0].fc2.weight.grad.abs().mean())
+        #         if restore:
+        #             self.restore_grad()
+        #         optimizer.step()   
+        #         running_losses += torch.tensor(loss).detach().numpy()
 
         losses = list(running_losses/dataset_size)
         

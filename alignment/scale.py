@@ -21,6 +21,8 @@ def get_scales(layer, tanh: bool = False):
         scales = torch.sign(weights.sum(dim=1))
     else:
         scales = weights.norm(dim=1, p=2)
+        # print('oldweight:', weights)
+        # print('oldnorms:', scales)
 
     return scales
 
