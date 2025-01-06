@@ -1,5 +1,7 @@
 
 import copy
+import math
+from collections import defaultdict
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -22,11 +24,12 @@ device = 0
 # https://discuss.pytorch.org/t/tensors-of-the-same-index-must-be-on-the-same-device-and-the-same-dtype-except-step-tensors-that-can-be-cpu-and-float32-notwithstanding/190335
 #torch.set_default_dtype(torch.float64)
 
-def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False,return_nets=False):
+def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False,return_nets=False,old_redist=False):
     if cnn:
         return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
     else:
-        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets)
+        #return evaluate_.evaluate_reconstruction_old(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets)
+        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets,old_redist=old_redist)
 
 
 
@@ -59,6 +62,12 @@ class Population(nn.Module):
         self.outputs = []
         self.best = None
         self.pop_size = len(subs)
+        self.ds = None
+
+        self.inputs_dict = defaultdict(list)
+        self.outputs_dict = defaultdict(list)
+        self.datasets = []
+        
 
     def save(self,PATH):
         torch.save(self.state_dict(), PATH)
@@ -73,43 +82,62 @@ class Population(nn.Module):
         if window is None or len(self.inputs) <=window:
             self.ds = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
         else:
-            self.ds = SampleDataset(torch.cat(self.inputs[-window:]),torch.cat(self.outputs[-window:]))      
+            self.ds = SampleDataset(torch.cat(self.inputs[-window:]),torch.cat(self.outputs[-window:]))
+
+    def add_rnn_dataset(self, inputs, outputs, seq_len, window = None):
+        self.inputs_dict[seq_len].append(inputs)
+        self.outputs_dict[seq_len].append(outputs)
+
+        if window is None or len(self.inputs_dict[seq_len]) <= window:
+            self.datasets.append(SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))) 
+        else:
+            self.datasets.append(SampleDataset(torch.cat(self.inputs_dict[seq_len][-window:]), torch.cat(self.outputs_dict[seq_len][-window:])))  
             
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
 
 
     def train_one_epoch(self,batch_size = 128,epoch_num=0,restore=False,bottom_half=False):
+        if self.ds is not None and len(self.datasets) == 0:
+            self.datasets.append(self.ds)
+        elif self.ds is None and len(self.datasets) == 0:
+            raise Exception("no datasets")
+        elif self.ds is not None and len(self.datasets) > 0:
+            raise Exception("both self.ds and self.datasets exist")
+        
         if bottom_half:
             original = self.subs
             self.subs = nn.ModuleList(sorted(self.subs, key=lambda x: x.loss,reverse=True))
             self.subs = nn.ModuleList(self.subs[:len(self.subs)//2])
-        dl = DataLoader(self.ds, batch_size=batch_size, shuffle=True)
         best = None
         pop_size = len(self.subs)
         optimizer = self.optimizer
         criterion = nn.L1Loss()
 
         running_losses = np.array([0.0]*pop_size)
+        dataset_size = 0
         #ratios=[]
-        for i in dl:
-            x,y = i
-            x=x.cuda(device)
-            y=y.cuda(device)
-            optimizer.zero_grad()
-            y_hats = self(x)
-    
-            loss = [criterion(y_hats[i], y) for i in range(pop_size)]
-            
-            (sum(loss)*200).backward()
+        for dataset in self.datasets:
+            dl = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+            dataset_size += len(dl)
+            for i in dl:
+                x,y = i
+                x=x.cuda(device)
+                y=y.cuda(device)
+                optimizer.zero_grad()
+                y_hats = self(x)
+        
+                loss = [criterion(y_hats[i], y) for i in range(pop_size)]
+                
+                (sum(loss)*200).backward()
 
-            #ratios.append(self.subs[0].fc1.weight.grad.abs().mean()/self.subs[0].fc2.weight.grad.abs().mean())
-            if restore:
-                self.restore_grad()
-            optimizer.step()   
-            running_losses += torch.tensor(loss).detach().numpy()
+                #ratios.append(self.subs[0].fc1.weight.grad.abs().mean()/self.subs[0].fc2.weight.grad.abs().mean())
+                if restore:
+                    self.restore_grad()
+                optimizer.step()   
+                running_losses += torch.tensor(loss).detach().numpy()
 
-        losses = list(running_losses/len(dl))
+        losses = list(running_losses/dataset_size)
         
         print(f"Epoch {epoch_num+1}, Min Loss: {min(losses)}, Max Loss: {max(losses)},Mean Loss: {np.array(losses).mean()}") 
         self.best = losses.index(min(losses))
@@ -121,7 +149,36 @@ class Population(nn.Module):
         #print(torch.tensor(ratios).mean())
     
     def evaluate(self,net,tanh=False):
-        print(evaluate(net,self.subs[self.best],tanh=tanh))
+        # print(evaluate(net,self.subs[self.best],tanh=tanh))
+        # return
+        print("-"*50)
+        print("NEW REDISTRIBUTION")
+        mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=False)
+        print("total mse:", mse)
+        print("total mae:", mae)
+        print("total max_ae:", max_ae)
+        print("total mape:", mape)
+        for l_mse, l_mae, l_max_ae, l_mape, layername in layerwise_metrics:
+            print(f"{layername} - mse: {l_mse}, mae: {l_mae}, max_ae: {l_max_ae}, mape: {l_mape}")
+        print("-"*50)
+        # print("OLD REDISTRIBUTION")
+        # mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=True)
+        # print("total mse:", mse)
+        # print("total mae:", mae)
+        # print("total max_ae:", max_ae)
+        # print("total mape:", mape)
+        # layernum = 1
+        # for l_mse, l_mae, l_max_ae, l_mape in layerwise_metrics:
+        #     print(f"Matrix {layernum} - mse: {l_mse}, mae: {l_mae}, max_ae: {l_max_ae}, mape: {l_mape}")
+        #     layernum += 1
+        # print("-"*50)
+
+        # print("OLD ALIGNMENT")
+        # mean_ae, layers_mean_ae, max_overall_error = evaluate(net,self.subs[self.best],tanh=tanh, cnn=True)
+        # print("mean_ae:", mean_ae)
+        # print("layers_mean_ae:", layers_mean_ae)
+        # print("max_overall_error:", max_overall_error)
+        # print("-"*50)
         
     def forward(self, x):
         outs = []
@@ -391,7 +448,10 @@ def init_uniform(net,scale=20):
 
     net.apply(init_weights) 
 
-def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=False,range_=1,device=device,input_dim=784):
+def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=False,range_=1,device=device,input_dim=784, model_type='fnn', sequence_length=None):
+    if model_type == 'rnn':
+        input_dim = int(input_dim*sequence_length/(math.sqrt(input_dim)))
+    
     adv = nn.Embedding(num_samples,input_dim)
     adv.cuda(device)
     range_ = range_
@@ -408,7 +468,14 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
         for idx,s in enumerate(sub_list):
             s.cuda(device)
             #out = softmax(s(adv.weight)) 
-            out = torch.nn.functional.normalize(s(adv.weight), p=1.0, dim=-1)
+            if model_type == 'cnn':
+                weight = adv.weight.view(num_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim)))
+            elif model_type == 'rnn':
+                batch_size = num_samples
+                weight = adv.weight.view(batch_size, sequence_length, input_dim//sequence_length)
+            else:
+                weight = adv.weight
+            out = torch.nn.functional.normalize(s(weight), p=1.0, dim=-1)
             #out = s(adv.weight)
             
             outs.append(out)
@@ -432,13 +499,13 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
         optimizer.zero_grad()
 
     print("final error:",error)
-    print("stats:", adv.weight.detach().abs().cpu().mean(),adv.weight.detach().cpu().mean())
-    return adv.weight.detach().cpu()
+    print("stats:", weight.detach().abs().cpu().mean(),adv.weight.detach().cpu().mean())
+    return weight.detach().cpu()
 
 
 
 
-def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):    
+def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn'):    
     if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365']:
         raise ValueError("Unknown Dataset")
     if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:
@@ -531,7 +598,10 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
                 
-                images = images.view(-1, input_dim)
+                if model_type == 'fnn':
+                    images = images.view(-1, input_dim)
+                elif model_type == 'rnn':
+                    images = images.squeeze(1)
     
                 outputs = network(images)
                 _, predicted = torch.max(outputs, 1)
@@ -559,12 +629,20 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
         
     # Train the neural network
     for epoch in range(num_epochs):
+        net.train()
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
-            inputs = inputs.view(-1, input_dim)
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            elif model_type == 'rnn':
+                inputs = inputs.squeeze(1)
+                sequence_length = 4
+                sequence_length = min(sequence_length, inputs.size(1))
+                inputs = inputs[:, :4, :]
+
             inputs, labels = inputs.to(device), labels.to(device)
-            
+       
             optimizer.zero_grad()
             
             outputs = net(inputs)
@@ -575,5 +653,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam"):
             running_loss += loss.item()
         print(f"Epoch {epoch+1}, Loss: {running_loss / len(trainloader)}")
         # Calculate and print accuracy
+        net.eval()
         accuracy = evaluate_accuracy(net)
         print(f"Accuracy on MNIST: {accuracy:.4f}")
+        net.train()
