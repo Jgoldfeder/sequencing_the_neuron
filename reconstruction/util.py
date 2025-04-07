@@ -456,7 +456,7 @@ def init_uniform(net,scale=20):
     net.apply(init_weights) 
 
 def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=False,range_=1,device=device,input_dim=784, model_type='fnn', sequence_length=None):
-    if model_type == 'rnn':
+    if model_type == 'rnn' or model_type == 'trans':
         input_dim = int(input_dim*sequence_length/(math.sqrt(input_dim)))
     
     adv = nn.Embedding(num_samples,input_dim)
@@ -477,7 +477,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
             #out = softmax(s(adv.weight)) 
             if model_type == 'cnn':
                 weight = adv.weight.view(num_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim)))
-            elif model_type == 'rnn':
+            elif model_type == 'rnn' or model_type == 'trans':
                 batch_size = num_samples
                 weight = adv.weight.view(batch_size, sequence_length, input_dim//sequence_length)
             else:
@@ -607,7 +607,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
                 
                 if model_type == 'fnn':
                     images = images.view(-1, input_dim)
-                elif model_type == 'rnn':
+                elif model_type == 'rnn' or model_type == 'trans':
                     images = images.squeeze(1)
     
                 outputs = network(images)
@@ -642,7 +642,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
             inputs, labels = data
             if model_type == 'fnn':
                 inputs = inputs.view(-1, input_dim)
-            elif model_type == 'rnn':
+            elif model_type == 'rnn' or model_type == 'trans':
                 inputs = inputs.squeeze(1)
                 sequence_length = 4
                 sequence_length = min(sequence_length, inputs.size(1))

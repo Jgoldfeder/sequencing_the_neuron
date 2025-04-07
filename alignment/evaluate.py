@@ -1,7 +1,7 @@
 import torch
 import copy
 from recon_evals import e_mae, e_layers_mae, e_max_ae, e_mse
-from standardize_align_new import Standardizer
+from standardize_align_new import Standardizer, SingleTransformerEncoderStandardizer
 
 def network_accuracy(network, test_loader):
     # Set the network to evaluation mode
@@ -26,7 +26,7 @@ def network_accuracy(network, test_loader):
     accuracy = correct / total
     return accuracy
 
-def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=False,return_nets=False, old_redist=False):
+def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=False,return_nets=False, old_redist=False, model_type='fnn'):
     #standardize both original and reconstruction, align networks, then calculate metrics
     reconstruction = copy.deepcopy(reconstruction)
     original = copy.deepcopy(original)
@@ -34,23 +34,35 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     reconstruction = reconstruction.cuda()
 
     #standardize network
-    std_reconstruction = Standardizer(reconstruction, old_redist)
-    std_target = Standardizer(original, old_redist)
+    if model_type == 'trans':
+        std_reconstruction = SingleTransformerEncoderStandardizer(reconstruction, old_redist)
+        std_target = SingleTransformerEncoderStandardizer(original, old_redist)
+    else:
+        std_reconstruction = Standardizer(reconstruction, old_redist)
+        std_target = Standardizer(original, old_redist)
     #align networks
     std_reconstruction.align(std_target)
     reconstruction = std_reconstruction.reload()
     original = std_target.reload()
 
+    if model_type == 'trans':
+        re_layerdict = std_reconstruction.layers
+        og_layerdict = std_target.layers
+    else:
+        re_layerdict = reconstruction.state_dict()
+        og_layerdict = original.state_dict()
+
     #calculate metrics
     total_size = sum(
-        weights.numel() for weights in original.state_dict().values()
+        weights.numel() for weights in og_layerdict.values()
     )
     total_se = 0
     total_ae = 0
     total_ape = 0
     max_ae = float('-inf')
     layerwise_metrics = []
-    for og_weight, re_weight, layername in zip(original.state_dict().values(), reconstruction.state_dict().values(), original.state_dict().keys()):
+
+    for og_weight, re_weight, layername in zip(og_layerdict.values(), re_layerdict.values(), og_layerdict.keys()):
         #squared error, absolute error, max absolute errors, average percent errors for total
         total_se += torch.nn.functional.mse_loss(og_weight, re_weight, reduction="sum").item()
         total_ae += torch.nn.functional.l1_loss(og_weight, re_weight, reduction="sum").item()
@@ -72,6 +84,19 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     #can separate out biases and see if the biases are worse than the weights?
 
     return mse, mae, max_ae, mape, layerwise_metrics
+
+def evaluate_reconstruction_transformer(original, reconstruction):
+    reconstruction = copy.deepcopy(reconstruction)
+    original = copy.deepcopy(original)
+    original = original.cuda()
+    reconstruction = reconstruction.cuda()
+
+    std_reconstruction = SingleTransformerEncoderStandardizer(reconstruction, old_redist)
+    std_target = SingleTransformerEncoderStandardizer(original, old_redist)
+    #align networks
+    std_reconstruction.align(std_target)
+    reconstruction = std_reconstruction.reload()
+    original = std_target.reload()
 
 def evaluate_reconstruction_old(original, reconstruction,return_blackbox=False,tanh=False,return_nets=False):
     reconstruction = copy.deepcopy(reconstruction)

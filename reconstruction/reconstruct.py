@@ -29,7 +29,7 @@ input_shape = str(sys.argv[10])
 input_shape = tuple(int(x) for x in input_shape.split('x')) if input_shape[0].isdigit() else None
 if input_shape is not None:
     if len(input_shape) == 1:
-        input_shape = input_shape[0] #input size of RNN
+        input_shape = input_shape[0] #input size of RNN or transformer
     else:
         assert len(input_shape) == 3 #checking just for cnns
 sampling_method = 'committee'
@@ -78,6 +78,9 @@ elif layer_dim[0].lower() == 'cnn':
         layer_configs.append({'in_channels': int(layer[0]), 'out_channels': int(layer[1]), 'kernel_size': int(layer[2]), 'stride': int(layer[3])})
 elif layer_dim[0].lower() == 'rnn':
     model_type = 'rnn'
+    layer_configs = [int(x) for x in layer_dim[1:]]
+elif layer_dim[0].lower() == 'trans':
+    model_type = 'trans'
     layer_configs = [int(x) for x in layer_dim[1:]]
 else:
     raise ValueError('cannot parse layers')
@@ -239,6 +242,24 @@ class base_RNN(nn.Module):
         out = self.layers[-1](out[:, -1, :])
         return out
 
+class base_TransformerEncoder(nn.Module):
+    def __init__(self, d_model, layer_configs):
+        super(base_TransformerEncoder, self).__init__()
+        self.encoder_layer = nn.TransformerEncoderLayer(
+            d_model = d_model,
+            nhead = 1,
+            dim_feedforward = layer_configs[0],
+            dropout = 0,
+            activation = 'relu',
+            batch_first = True
+        )
+        self.linear = nn.Linear(d_model, 10)
+    def forward(self, x):
+        x = self.encoder_layer(x)
+        x = x[:, -1, :]
+        x = self.linear(x)
+        return x
+
 if model_type == 'rnn':
     print('RNN model')
     net = var_RNN(input_shape, layer_configs)
@@ -249,6 +270,9 @@ elif model_type == 'cnn':
     # else:
     #     net = base_CNN()
     net = var_CNN(input_shape, layer_configs, activation_f)
+elif model_type == 'trans':
+    print('Transformer model')
+    net = base_TransformerEncoder(input_shape, layer_configs)
 else:
     net = Net()
 
@@ -258,15 +282,18 @@ util.train_blackbox(net,num_epochs,dataset,optim_, model_type=model_type)
 print(net)
 print("weight mean magnitude per layer")
 
-for l in net.layers:
-    if isinstance(l, nn.RNN):
-        print("input weights:", l.weight_ih_l0.abs().mean())
-        print("hidden weights:", l.weight_hh_l0.abs().mean())
-    else:
-        print("weights:", l.weight.abs().mean())
+if model_type != 'trans':
+    for l in net.layers:
+        if isinstance(l, nn.RNN):
+            print("input weights:", l.weight_ih_l0.abs().mean())
+            print("hidden weights:", l.weight_hh_l0.abs().mean())
+        else:
+            print("weights:", l.weight.abs().mean())
 
 if model_type == 'rnn':
     og_net = var_RNN(input_shape, layer_configs)
+elif model_type == 'trans':
+    og_net = base_TransformerEncoder(input_shape, layer_configs)
 elif model_type == 'cnn':
     # if layer_dim ==2:
     #     og_net = two_CNN()
@@ -295,6 +322,8 @@ subs = []
 for j in range(pop_size):
     if model_type == 'rnn':
         subs.append(var_RNN(input_shape, layer_configs))
+    elif model_type == 'trans':
+        subs.append(base_TransformerEncoder(input_shape, layer_configs))
     elif model_type == 'cnn':
     # if layer_dim ==2:
     #     subs.append(two_CNN())
@@ -476,7 +505,7 @@ with torch.enable_grad():
         if sampling_method =="committee":
             samples_to_generate = num_samples
             seq_len = None
-            if model_type == 'rnn':
+            if model_type == 'rnn' or model_type == 'trans':
                 for l in range(1, 4):
                     samples_per_seq_len = samples_to_generate // 3 #hardcoded # of sequence lengths (1, 2, 3), maybe change to parameter?
                     seq_len = l
