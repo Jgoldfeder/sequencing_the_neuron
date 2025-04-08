@@ -1,0 +1,2031 @@
+Log file for:seed_31_RNNx28_outer_iterations_55_num_samples_10000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_var_RNN_28
+seed: 31
+layer_dim: ['RNN', '28']
+outer_iterations: 55
+given_num_samples: 10000
+num_epochs: 5
+dataset: mnist
+optim: adam
+activation: relu
+device cuda:0
+RNN model
+Epoch 1, Loss: 2.1025832080841065
+Accuracy on MNIST: 0.1067
+Epoch 2, Loss: 2.049637948735555
+Accuracy on MNIST: 0.1769
+Epoch 3, Loss: 2.036715405845642
+Accuracy on MNIST: 0.1448
+Epoch 4, Loss: 2.0315621826807657
+Accuracy on MNIST: 0.1793
+Epoch 5, Loss: 2.028347698911031
+Accuracy on MNIST: 0.1545
+var_RNN(
+  (layers): ModuleList(
+    (0): RNN(28, 28, batch_first=True)
+    (1): Linear(in_features=28, out_features=10, bias=True)
+  )
+)
+weight mean magnitude per layer
+input weights: tensor(0.1579, device='cuda:0', grad_fn=<MeanBackward0>)
+hidden weights: tensor(0.1199, device='cuda:0', grad_fn=<MeanBackward0>)
+weights: tensor(0.1587, device='cuda:0', grad_fn=<MeanBackward0>)
+ITERATION:  0 0
+tensor(0.4998)
+init. error: tensor(-0.4907, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6849, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6547) tensor(-0.0476)
+tensor(0.5011)
+init. error: tensor(-0.4870, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.7836, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6568) tensor(0.0066)
+tensor(0.4987)
+init. error: tensor(-0.4856, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.8344, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6591) tensor(-0.0025)
+Epoch 1, Min Loss: 0.9635595200974264, Max Loss: 1.0306419538862912,Mean Loss: 0.9970639020572474
+Epoch 2, Min Loss: 0.5351581658110206, Max Loss: 0.6228704732141377,Mean Loss: 0.5845563858011624
+Epoch 3, Min Loss: 0.26513108555917386, Max Loss: 0.3021098721174546,Mean Loss: 0.28947830319772533
+Epoch 4, Min Loss: 0.18991874048003443, Max Loss: 0.2102453394068612,Mean Loss: 0.20367145571443768
+Epoch 5, Min Loss: 0.16146849068226637, Max Loss: 0.17586288463186334,Mean Loss: 0.17014449832064132
+Epoch 6, Min Loss: 0.15001087019472947, Max Loss: 0.1604376514384776,Mean Loss: 0.15578842831798542
+Epoch 7, Min Loss: 0.14054564634958902, Max Loss: 0.14959055304895214,Mean Loss: 0.14520984063913794
+Epoch 8, Min Loss: 0.1329759184593036, Max Loss: 0.14162486653637002,Mean Loss: 0.13816419069045854
+Epoch 9, Min Loss: 0.12600333087238264, Max Loss: 0.13316205778607615,Mean Loss: 0.1305485052642999
+Epoch 10, Min Loss: 0.12074876466283092, Max Loss: 0.12812843983188088,Mean Loss: 0.12538351031181252
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.03274875851260457
+total mae: 0.13487728193884982
+total max_ae: 1.4951446056365967
+total mape: 344.6039246944798
+Matrix 1 - mse: 0.024386120960116386, mae: 0.12080256640911102, max_ae: 0.5118664503097534, mape: 256.8974304199219
+Matrix 2 - mse: 0.035674966871738434, mae: 0.14837802946567535, max_ae: 0.7740459442138672, mape: 398.3345031738281
+Matrix 3 - mse: 0.023787332698702812, mae: 0.12109769880771637, max_ae: 0.3456655740737915, mape: 148.55967712402344
+Matrix 4 - mse: 0.021249111741781235, mae: 0.12426207214593887, max_ae: 0.31670913100242615, mape: 1347.06689453125
+Matrix 5 - mse: 0.05081881210207939, mae: 0.1412515491247177, max_ae: 1.4951446056365967, mape: 363.2367858886719
+Matrix 6 - mse: 0.010294372215867043, mae: 0.06970202177762985, max_ae: 0.2805287539958954, mape: 228.6229248046875
+--------------------------------------------------
+ITERATION:  1 0
+tensor(0.5007)
+init. error: tensor(-0.0226, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4896, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7640) tensor(-0.0360)
+tensor(0.5002)
+init. error: tensor(-0.0233, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5716, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8211) tensor(-0.0167)
+tensor(0.5006)
+init. error: tensor(-0.0296, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6265, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7029) tensor(-0.0035)
+Epoch 1, Min Loss: 0.12000366301896671, Max Loss: 0.12949199617529908,Mean Loss: 0.1249323144958665
+Epoch 2, Min Loss: 0.1102156167694678, Max Loss: 0.11818170816016695,Mean Loss: 0.11397265156110128
+Epoch 3, Min Loss: 0.10229849838651717, Max Loss: 0.1113989930289487,Mean Loss: 0.10567028701305389
+Epoch 4, Min Loss: 0.09420168792518477, Max Loss: 0.10598647352308035,Mean Loss: 0.09915560971635083
+Epoch 5, Min Loss: 0.08589436515855292, Max Loss: 0.09972201144943635,Mean Loss: 0.09164681585660825
+Epoch 6, Min Loss: 0.08091076916704575, Max Loss: 0.09733345991310974,Mean Loss: 0.08731932936701924
+Epoch 7, Min Loss: 0.07452953726363679, Max Loss: 0.09045194854649405,Mean Loss: 0.08070932523502658
+Epoch 8, Min Loss: 0.06983676662979027, Max Loss: 0.08597373282536865,Mean Loss: 0.07687848325042675
+Epoch 9, Min Loss: 0.06537929164866606, Max Loss: 0.0799687547919651,Mean Loss: 0.07180874978813032
+Epoch 10, Min Loss: 0.06289365591170887, Max Loss: 0.0764910410468777,Mean Loss: 0.06874691448252028
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.019334496717847486
+total mae: 0.09828210971634466
+total max_ae: 1.1789219379425049
+total mape: 304.32423890371933
+Matrix 1 - mse: 0.013893095776438713, mae: 0.07960020750761032, max_ae: 0.6258358955383301, mape: 160.2017822265625
+Matrix 2 - mse: 0.023009052500128746, mae: 0.1190001368522644, max_ae: 0.5960661768913269, mape: 478.7894592285156
+Matrix 3 - mse: 0.017108911648392677, mae: 0.1066812127828598, max_ae: 0.2416010946035385, mape: 150.1387176513672
+Matrix 4 - mse: 0.021495146676898003, mae: 0.11770302057266235, max_ae: 0.3758656978607178, mape: 791.9910888671875
+Matrix 5 - mse: 0.024959804490208626, mae: 0.09260417520999908, max_ae: 1.1789219379425049, mape: 194.83755493164062
+Matrix 6 - mse: 0.000528395117726177, mae: 0.01973561942577362, max_ae: 0.03995977342128754, mape: 57.33110427856445
+--------------------------------------------------
+ITERATION:  2 0
+tensor(0.5004)
+init. error: tensor(-0.0141, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4390, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8619) tensor(-0.0534)
+tensor(0.4996)
+init. error: tensor(-0.0146, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5430, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8429) tensor(-0.0459)
+tensor(0.5002)
+init. error: tensor(-0.0195, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5971, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7405) tensor(-0.0054)
+Epoch 1, Min Loss: 0.06360302456660466, Max Loss: 0.07777856155230314,Mean Loss: 0.07000631765507366
+Epoch 2, Min Loss: 0.05765986039188048, Max Loss: 0.0677412451250748,Mean Loss: 0.06206750306896318
+Epoch 3, Min Loss: 0.05136887626859127, Max Loss: 0.05848336407614079,Mean Loss: 0.05448461849812567
+Epoch 4, Min Loss: 0.04466471847623149, Max Loss: 0.05088225711113627,Mean Loss: 0.04795111549873709
+Epoch 5, Min Loss: 0.03906052240192016, Max Loss: 0.044747080505519045,Mean Loss: 0.042509587131737414
+Epoch 6, Min Loss: 0.035935302415327705, Max Loss: 0.04095865194090258,Mean Loss: 0.03862193123939246
+Epoch 7, Min Loss: 0.032677986682539094, Max Loss: 0.03808687972705382,Mean Loss: 0.03490854501450899
+Epoch 8, Min Loss: 0.02787003508599112, Max Loss: 0.03599644024549853,Mean Loss: 0.03148362183185836
+Epoch 9, Min Loss: 0.025896325186129263, Max Loss: 0.03449303573056024,Mean Loss: 0.028847582917465232
+Epoch 10, Min Loss: 0.02361544363973838, Max Loss: 0.033028123708953395,Mean Loss: 0.026567563014026862
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.011263646368931662
+total mae: 0.05855478024812826
+total max_ae: 0.776018500328064
+total mape: 222.90053336722474
+Matrix 1 - mse: 0.010606364347040653, mae: 0.041514426469802856, max_ae: 0.776018500328064, mape: 93.35508728027344
+Matrix 2 - mse: 0.013418484479188919, mae: 0.07939853519201279, max_ae: 0.6280226707458496, mape: 285.52862548828125
+Matrix 3 - mse: 0.014091097749769688, mae: 0.10591601580381393, max_ae: 0.21972936391830444, mape: 181.73794555664062
+Matrix 4 - mse: 0.017763100564479828, mae: 0.11299140006303787, max_ae: 0.32756417989730835, mape: 2059.0029296875
+Matrix 5 - mse: 0.006539270747452974, mae: 0.03969486057758331, max_ae: 0.633549153804779, mape: 238.419921875
+Matrix 6 - mse: 2.2421143512474373e-05, mae: 0.003411980113014579, max_ae: 0.010610801167786121, mape: 8.847047805786133
+--------------------------------------------------
+ITERATION:  3 0
+tensor(0.5001)
+init. error: tensor(-0.0067, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3376, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6408) tensor(-0.0346)
+tensor(0.5000)
+init. error: tensor(-0.0067, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4404, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8248) tensor(-0.0371)
+tensor(0.5002)
+init. error: tensor(-0.0087, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5328, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7167) tensor(-0.0093)
+Epoch 1, Min Loss: 0.021937881872725832, Max Loss: 0.0350891864867975,Mean Loss: 0.02555544429148237
+Epoch 2, Min Loss: 0.016904073015956037, Max Loss: 0.032989458714828196,Mean Loss: 0.022159438408767766
+Epoch 3, Min Loss: 0.012837396407819758, Max Loss: 0.02939111358754224,Mean Loss: 0.02001566264538489
+Epoch 4, Min Loss: 0.011304527464101674, Max Loss: 0.022922296688487432,Mean Loss: 0.018005471183469218
+Epoch 5, Min Loss: 0.010725467034552077, Max Loss: 0.022320149916769803,Mean Loss: 0.01669116970119325
+Epoch 6, Min Loss: 0.00967833371374361, Max Loss: 0.021811359575502762,Mean Loss: 0.01579327911333736
+Epoch 7, Min Loss: 0.008896465699313058, Max Loss: 0.02159111999913655,Mean Loss: 0.015171916712095463
+Epoch 8, Min Loss: 0.006869287231691285, Max Loss: 0.021514751139976498,Mean Loss: 0.0143915983845187
+Epoch 9, Min Loss: 0.005308022735242948, Max Loss: 0.020579603580038318,Mean Loss: 0.013725205934800519
+Epoch 10, Min Loss: 0.004576794996580128, Max Loss: 0.019965915940114005,Mean Loss: 0.013092809997547788
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.011666661427706174
+total mae: 0.04266713532768073
+total max_ae: 0.9709237813949585
+total mape: 142.2078396703507
+Matrix 1 - mse: 0.009052718058228493, mae: 0.03138911351561546, max_ae: 0.7531691193580627, mape: 72.99816131591797
+Matrix 2 - mse: 0.016007423400878906, mae: 0.05729620158672333, max_ae: 0.9709237813949585, mape: 150.92417907714844
+Matrix 3 - mse: 0.014022874645888805, mae: 0.09975362569093704, max_ae: 0.2077794075012207, mape: 137.27247619628906
+Matrix 4 - mse: 0.01712745614349842, mae: 0.1082753986120224, max_ae: 0.27508628368377686, mape: 1579.030517578125
+Matrix 5 - mse: 0.006466528866440058, mae: 0.02252492494881153, max_ae: 0.7885472774505615, mape: 173.44395446777344
+Matrix 6 - mse: 1.7016316178342095e-07, mae: 0.00038180872797966003, max_ae: 0.0006348863244056702, mape: 0.9890822768211365
+--------------------------------------------------
+ITERATION:  4 0
+tensor(0.5000)
+init. error: tensor(-0.0042, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2336, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6465) tensor(-0.0175)
+tensor(0.4992)
+init. error: tensor(-0.0043, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3510, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7581) tensor(-0.0088)
+tensor(0.5000)
+init. error: tensor(-0.0057, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4565, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7075) tensor(0.0126)
+Epoch 1, Min Loss: 0.004115447883674962, Max Loss: 0.02151083097545595,Mean Loss: 0.013421016099198647
+Epoch 2, Min Loss: 0.0037291577372715696, Max Loss: 0.021077949332096908,Mean Loss: 0.012898839311094618
+Epoch 3, Min Loss: 0.003935466800179757, Max Loss: 0.020438856038143112,Mean Loss: 0.012567919105446588
+Epoch 4, Min Loss: 0.0038494432206513194, Max Loss: 0.017239006564319762,Mean Loss: 0.011647582749280103
+Epoch 5, Min Loss: 0.0038616220581734295, Max Loss: 0.016635790400065575,Mean Loss: 0.01102423090057424
+Epoch 6, Min Loss: 0.0038373231932025734, Max Loss: 0.01649247923677292,Mean Loss: 0.010230062434160964
+Epoch 7, Min Loss: 0.003816353515152061, Max Loss: 0.016313976350039998,Mean Loss: 0.009848834858649265
+Epoch 8, Min Loss: 0.00386702603393309, Max Loss: 0.01669416433585344,Mean Loss: 0.009672781695112712
+Epoch 9, Min Loss: 0.0038769783382402254, Max Loss: 0.016574264939418572,Mean Loss: 0.00906425687355748
+Epoch 10, Min Loss: 0.0038773527365955937, Max Loss: 0.01612792208492127,Mean Loss: 0.00838307468402337
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009535540765520609
+total mae: 0.034699878699653235
+total max_ae: 0.7680677771568298
+total mape: 153.74192287580595
+Matrix 1 - mse: 0.008675610646605492, mae: 0.02622625045478344, max_ae: 0.7533197402954102, mape: 55.27487564086914
+Matrix 2 - mse: 0.012483267113566399, mae: 0.045602403581142426, max_ae: 0.7680677771568298, mape: 196.94189453125
+Matrix 3 - mse: 0.014570395462214947, mae: 0.10240449756383896, max_ae: 0.20745126903057098, mape: 140.37515258789062
+Matrix 4 - mse: 0.019862933084368706, mae: 0.10881467163562775, max_ae: 0.45295536518096924, mape: 1522.198974609375
+Matrix 5 - mse: 0.0024940345901995897, mae: 0.014942172914743423, max_ae: 0.31871724128723145, mape: 178.44241333007812
+Matrix 6 - mse: 2.0604905159871123e-07, mae: 0.00039577047573402524, max_ae: 0.0007165409624576569, mape: 0.813389003276825
+--------------------------------------------------
+ITERATION:  5 0
+tensor(0.5004)
+init. error: tensor(-0.0035, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1966, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6013) tensor(-0.0147)
+tensor(0.5004)
+init. error: tensor(-0.0034, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3195, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7058) tensor(0.0071)
+tensor(0.5002)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4346, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6572) tensor(0.0158)
+Epoch 1, Min Loss: 0.0037983312684331757, Max Loss: 0.016552117899800357,Mean Loss: 0.00854743201451366
+Epoch 2, Min Loss: 0.0037166558513007293, Max Loss: 0.01187618691342037,Mean Loss: 0.007439630820421819
+Epoch 3, Min Loss: 0.0037599086492510225, Max Loss: 0.011656212612001253,Mean Loss: 0.006886306224222989
+Epoch 4, Min Loss: 0.003721483906614032, Max Loss: 0.01150782107572962,Mean Loss: 0.006609559908806198
+Epoch 5, Min Loss: 0.003738116755069836, Max Loss: 0.011540687656910766,Mean Loss: 0.006322399839018764
+Epoch 6, Min Loss: 0.0037850558803898195, Max Loss: 0.011470275848107368,Mean Loss: 0.005570027813824919
+Epoch 7, Min Loss: 0.00370027449073108, Max Loss: 0.011452639354550357,Mean Loss: 0.00529573491352986
+Epoch 8, Min Loss: 0.003753358795018507, Max Loss: 0.011382218214384041,Mean Loss: 0.005305797602973736
+Epoch 9, Min Loss: 0.0037699701335643316, Max Loss: 0.011326115552683536,Mean Loss: 0.0052531945347689775
+Epoch 10, Min Loss: 0.0037244561161780686, Max Loss: 0.01138355826820103,Mean Loss: 0.005236715395845741
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.015796784294792022
+total mae: 0.059119431860063736
+total max_ae: 0.8239563703536987
+total mape: 187.7724091132233
+Matrix 1 - mse: 0.00929970946162939, mae: 0.03883708640933037, max_ae: 0.6327203512191772, mape: 100.06099700927734
+Matrix 2 - mse: 0.024176886305212975, mae: 0.08428974449634552, max_ae: 0.8239563703536987, mape: 229.50621032714844
+Matrix 3 - mse: 0.016371872276067734, mae: 0.10844071209430695, max_ae: 0.22799217700958252, mape: 150.7598419189453
+Matrix 4 - mse: 0.018039841204881668, mae: 0.11509689688682556, max_ae: 0.2458990067243576, mape: 1744.3453369140625
+Matrix 5 - mse: 0.010806655511260033, mae: 0.03700169920921326, max_ae: 0.7132338285446167, mape: 171.2288818359375
+Matrix 6 - mse: 1.6145361314556794e-07, mae: 0.00036273663863539696, max_ae: 0.0007209405303001404, mape: 0.8666433691978455
+--------------------------------------------------
+ITERATION:  6 0
+tensor(0.4991)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1246, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5775) tensor(0.0137)
+tensor(0.5002)
+init. error: tensor(-0.0023, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2141, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6670) tensor(0.0119)
+tensor(0.4993)
+init. error: tensor(-0.0031, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2883, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6676) tensor(0.0380)
+Epoch 1, Min Loss: 0.003659694840500127, Max Loss: 0.012188821030218924,Mean Loss: 0.005008538938866603
+Epoch 2, Min Loss: 0.0036123735325985385, Max Loss: 0.012010434178990267,Mean Loss: 0.004618473241967307
+Epoch 3, Min Loss: 0.0035938291512683136, Max Loss: 0.011171049865537118,Mean Loss: 0.004484112257551815
+Epoch 4, Min Loss: 0.0036100917826290507, Max Loss: 0.006168249389156699,Mean Loss: 0.003949561461863317
+Epoch 5, Min Loss: 0.003593881499358028, Max Loss: 0.003852205449670908,Mean Loss: 0.003709012637418524
+Epoch 6, Min Loss: 0.003622171731270816, Max Loss: 0.003817726407345815,Mean Loss: 0.0037195833961536384
+Epoch 7, Min Loss: 0.00361168580124463, Max Loss: 0.0038355670935345514,Mean Loss: 0.0036824672056209977
+Epoch 8, Min Loss: 0.003654773472523203, Max Loss: 0.0038164451867743246,Mean Loss: 0.0037311471843629518
+Epoch 9, Min Loss: 0.0036384978761913388, Max Loss: 0.003833489425326201,Mean Loss: 0.0037295015373366492
+Epoch 10, Min Loss: 0.0035988599170197876, Max Loss: 0.0037704077439990884,Mean Loss: 0.003650624432765758
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.014240018634328016
+total mae: 0.04358360679993404
+total max_ae: 1.196352481842041
+total mape: 118.35391464552286
+Matrix 1 - mse: 0.00789820309728384, mae: 0.030904289335012436, max_ae: 0.4989944398403168, mape: 75.11663818359375
+Matrix 2 - mse: 0.02274957485496998, mae: 0.059895243495702744, max_ae: 1.196352481842041, mape: 159.88356018066406
+Matrix 3 - mse: 0.01478575635701418, mae: 0.09309838712215424, max_ae: 0.31538090109825134, mape: 119.70429992675781
+Matrix 4 - mse: 0.018866822123527527, mae: 0.09803508222103119, max_ae: 0.40832775831222534, mape: 1030.5809326171875
+Matrix 5 - mse: 0.008161657489836216, mae: 0.02456270530819893, max_ae: 1.0260231494903564, mape: 35.97687530517578
+Matrix 6 - mse: 1.2073330424300366e-07, mae: 0.00028947796090506017, max_ae: 0.0007352866232395172, mape: 0.7717338800430298
+--------------------------------------------------
+ITERATION:  7 0
+tensor(0.4991)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0790, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5322) tensor(-0.0067)
+tensor(0.5000)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1536, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5460) tensor(-0.0015)
+tensor(0.4999)
+init. error: tensor(-0.0019, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1779, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5470) tensor(-0.0006)
+Epoch 1, Min Loss: 0.0035702539311089202, Max Loss: 0.0037386241831568775,Mean Loss: 0.0036529195775300274
+Epoch 2, Min Loss: 0.003566268546413696, Max Loss: 0.003724130464326077,Mean Loss: 0.003633894910057546
+Epoch 3, Min Loss: 0.0036011625983683906, Max Loss: 0.0036902622446614466,Mean Loss: 0.003641480799340334
+Epoch 4, Min Loss: 0.0035393010336730764, Max Loss: 0.003746006874835229,Mean Loss: 0.0036575306762093055
+Epoch 5, Min Loss: 0.0035537135024195916, Max Loss: 0.003697953107674727,Mean Loss: 0.003631764311005696
+Epoch 6, Min Loss: 0.003553306698737637, Max Loss: 0.0037636816432393065,Mean Loss: 0.0036387224860450233
+Epoch 7, Min Loss: 0.0035386540481227445, Max Loss: 0.0037993177226734727,Mean Loss: 0.0036633233886046368
+Epoch 8, Min Loss: 0.0035863291925361308, Max Loss: 0.0037266737547565626,Mean Loss: 0.00364379991244822
+Epoch 9, Min Loss: 0.003528718422657, Max Loss: 0.0037638468097380396,Mean Loss: 0.0036608440500761697
+Epoch 10, Min Loss: 0.0035954564795000637, Max Loss: 0.0037637482154973005,Mean Loss: 0.0036633510168791105
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009991252111277984
+total mae: 0.0426261167454581
+total max_ae: 0.6518346071243286
+total mape: 142.8721414843074
+Matrix 1 - mse: 0.006012645084410906, mae: 0.029025685042142868, max_ae: 0.46655863523483276, mape: 81.03109741210938
+Matrix 2 - mse: 0.015249599702656269, mae: 0.058963049203157425, max_ae: 0.6518346071243286, mape: 182.3590850830078
+Matrix 3 - mse: 0.012182164005935192, mae: 0.08725372701883316, max_ae: 0.27498212456703186, mape: 116.45886993408203
+Matrix 4 - mse: 0.015851840376853943, mae: 0.09569856524467468, max_ae: 0.2762500047683716, mape: 1104.0213623046875
+Matrix 5 - mse: 0.005959652829915285, mae: 0.026707811281085014, max_ae: 0.5163707733154297, mape: 117.07064819335938
+Matrix 6 - mse: 1.139136358574433e-07, mae: 0.00023668362700846046, max_ae: 0.0008301790803670883, mape: 0.6141594052314758
+--------------------------------------------------
+ITERATION:  8 0
+tensor(0.4994)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0894, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5376) tensor(-0.0180)
+tensor(0.4993)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1718, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5436) tensor(-0.0020)
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2169, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5376) tensor(0.0039)
+Epoch 1, Min Loss: 0.003538100873582236, Max Loss: 0.0036602533540701886,Mean Loss: 0.0035883835808451408
+Epoch 2, Min Loss: 0.0035049147385991172, Max Loss: 0.003619083878498631,Mean Loss: 0.0035620788310554144
+Epoch 3, Min Loss: 0.003536667068808026, Max Loss: 0.0037130269169036467,Mean Loss: 0.0035915502691854727
+Epoch 4, Min Loss: 0.003442060073766808, Max Loss: 0.0036360757660232894,Mean Loss: 0.0035692822600710645
+Epoch 5, Min Loss: 0.003479255463896124, Max Loss: 0.0036260812481915842,Mean Loss: 0.003550925865411089
+Epoch 6, Min Loss: 0.0035146339079296673, Max Loss: 0.003632833250426493,Mean Loss: 0.0035791111534376726
+Epoch 7, Min Loss: 0.0034578860969292427, Max Loss: 0.0036597347449748795,Mean Loss: 0.003582602016663861
+Epoch 8, Min Loss: 0.0034817410560887213, Max Loss: 0.0036365290033897758,Mean Loss: 0.003589689075617146
+Epoch 9, Min Loss: 0.003499599810444021, Max Loss: 0.003646950724606837,Mean Loss: 0.0035687109474194095
+Epoch 10, Min Loss: 0.003527840964297601, Max Loss: 0.003661168262512303,Mean Loss: 0.0036056007201620633
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009885563721467365
+total mae: 0.0318800415225763
+total max_ae: 0.976306676864624
+total mape: 112.6355856563604
+Matrix 1 - mse: 0.007050408981740475, mae: 0.02280534990131855, max_ae: 0.725145161151886, mape: 46.25076675415039
+Matrix 2 - mse: 0.013344424776732922, mae: 0.04133322834968567, max_ae: 0.8135331273078918, mape: 184.74069213867188
+Matrix 3 - mse: 0.012165709398686886, mae: 0.09411938488483429, max_ae: 0.20266303420066833, mape: 151.33059692382812
+Matrix 4 - mse: 0.012113056145608425, mae: 0.09405997395515442, max_ae: 0.2033044844865799, mape: 805.8900756835938
+Matrix 5 - mse: 0.008041470311582088, mae: 0.01950680837035179, max_ae: 0.976306676864624, mape: 27.412080764770508
+Matrix 6 - mse: 1.711826200789801e-07, mae: 0.0002826210984494537, max_ae: 0.0010360311716794968, mape: 0.9645711779594421
+--------------------------------------------------
+ITERATION:  9 0
+tensor(0.5005)
+init. error: tensor(-0.0016, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0780, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5273) tensor(-0.0126)
+tensor(0.5001)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1497, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5434) tensor(-0.0091)
+tensor(0.5004)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1633, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5418) tensor(0.0017)
+Epoch 1, Min Loss: 0.0034817568790458608, Max Loss: 0.003592742643296434,Mean Loss: 0.00353221202732163
+Epoch 2, Min Loss: 0.0034921992366704485, Max Loss: 0.003629100745564318,Mean Loss: 0.003551667343668264
+Epoch 3, Min Loss: 0.0034714250133590584, Max Loss: 0.0035844582766272923,Mean Loss: 0.0035348239483142543
+Epoch 4, Min Loss: 0.0034279387927974177, Max Loss: 0.0035860851446395153,Mean Loss: 0.0035054427360430252
+Epoch 5, Min Loss: 0.003509784012432512, Max Loss: 0.003561617891035793,Mean Loss: 0.0035431442226426615
+Epoch 6, Min Loss: 0.003462010890561268, Max Loss: 0.0035917372512846704,Mean Loss: 0.0035400525453048804
+Epoch 7, Min Loss: 0.0034481901065629684, Max Loss: 0.003569708093440298,Mean Loss: 0.0035110503126688183
+Epoch 8, Min Loss: 0.0034646294418726703, Max Loss: 0.003552259582715191,Mean Loss: 0.0035074384553243168
+Epoch 9, Min Loss: 0.0034671938346744154, Max Loss: 0.0035421837162209193,Mean Loss: 0.0035012007154296885
+Epoch 10, Min Loss: 0.0034423066409578528, Max Loss: 0.003583780563968941,Mean Loss: 0.0035203860817812336
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009535775028472776
+total mae: 0.03469141204320789
+total max_ae: 0.7689697742462158
+total mape: 153.90107789632543
+Matrix 1 - mse: 0.008671987801790237, mae: 0.026239588856697083, max_ae: 0.7521504163742065, mape: 55.54114532470703
+Matrix 2 - mse: 0.012485748156905174, mae: 0.0455625057220459, max_ae: 0.7689697742462158, mape: 197.1409149169922
+Matrix 3 - mse: 0.014574532397091389, mae: 0.1021944209933281, max_ae: 0.2078290730714798, mape: 139.7841796875
+Matrix 4 - mse: 0.01986054517328739, mae: 0.10888490825891495, max_ae: 0.45391082763671875, mape: 1525.66650390625
+Matrix 5 - mse: 0.002498658373951912, mae: 0.014975447207689285, max_ae: 0.31880199909210205, mape: 177.9371795654297
+Matrix 6 - mse: 1.3485849592598242e-07, mae: 0.0003173438017256558, max_ae: 0.0007207635790109634, mape: 0.889356255531311
+--------------------------------------------------
+ITERATION:  10 0
+tensor(0.5005)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0849, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5363) tensor(-0.0103)
+tensor(0.5002)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1659, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5442) tensor(-0.0093)
+tensor(0.5001)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1937, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5415) tensor(-0.0024)
+Epoch 1, Min Loss: 0.0034455349936698813, Max Loss: 0.003542139984422292,Mean Loss: 0.0034889223447854708
+Epoch 2, Min Loss: 0.003418991219120586, Max Loss: 0.0035365267271253997,Mean Loss: 0.0034685690377682884
+Epoch 3, Min Loss: 0.003442149332119089, Max Loss: 0.0035425994790904618,Mean Loss: 0.0034868995500720846
+Epoch 4, Min Loss: 0.0034083622477237186, Max Loss: 0.0035279328379667885,Mean Loss: 0.0034758373299076393
+Epoch 5, Min Loss: 0.0034532554040186047, Max Loss: 0.0035194379578485993,Mean Loss: 0.0034813235067562274
+Epoch 6, Min Loss: 0.003418252542063082, Max Loss: 0.003499979174981184,Mean Loss: 0.003460921521623813
+Epoch 7, Min Loss: 0.00342777444671137, Max Loss: 0.0035363894959530976,Mean Loss: 0.0034702149925470716
+Epoch 8, Min Loss: 0.003420053079514535, Max Loss: 0.003489320376140846,Mean Loss: 0.0034569937175649755
+Epoch 9, Min Loss: 0.003428318285976663, Max Loss: 0.003521035949941714,Mean Loss: 0.0034691680557131996
+Epoch 10, Min Loss: 0.003442801149258032, Max Loss: 0.0035497218753230792,Mean Loss: 0.0034958065288947402
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009882396511931532
+total mae: 0.03188858189996694
+total max_ae: 0.9755624532699585
+total mape: 112.5443133156875
+Matrix 1 - mse: 0.0070487987250089645, mae: 0.022813836112618446, max_ae: 0.7286736369132996, mape: 46.53437805175781
+Matrix 2 - mse: 0.013344180770218372, mae: 0.04133674129843712, max_ae: 0.8132020831108093, mape: 184.3861541748047
+Matrix 3 - mse: 0.01214172039180994, mae: 0.09403306990861893, max_ae: 0.20366084575653076, mape: 150.82418823242188
+Matrix 4 - mse: 0.012147088535130024, mae: 0.09419242292642593, max_ae: 0.2023065835237503, mape: 800.765380859375
+Matrix 5 - mse: 0.008024010807275772, mae: 0.019527049735188484, max_ae: 0.9755624532699585, mape: 27.55487060546875
+Matrix 6 - mse: 1.1373226982414053e-07, mae: 0.0002806488482747227, max_ae: 0.0005699396133422852, mape: 0.8241955637931824
+--------------------------------------------------
+ITERATION:  11 0
+tensor(0.4987)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0772, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5257) tensor(-0.0121)
+tensor(0.5001)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1505, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5421) tensor(-0.0118)
+tensor(0.5000)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1683, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5436) tensor(-0.0107)
+Epoch 1, Min Loss: 0.0033943830991013195, Max Loss: 0.003551245928613402,Mean Loss: 0.003473087137841218
+Epoch 2, Min Loss: 0.0033762718185826562, Max Loss: 0.0034994218890894557,Mean Loss: 0.0034400013583098625
+Epoch 3, Min Loss: 0.0034165349005633246, Max Loss: 0.0034891203772394576,Mean Loss: 0.003456969837322557
+Epoch 4, Min Loss: 0.003385134574765449, Max Loss: 0.0034650242288621277,Mean Loss: 0.003426050997410142
+Epoch 5, Min Loss: 0.003396299950819572, Max Loss: 0.0034594664039711157,Mean Loss: 0.003435595110088269
+Epoch 6, Min Loss: 0.0034205723701127093, Max Loss: 0.003486191074735199,Mean Loss: 0.0034416066017058933
+Epoch 7, Min Loss: 0.003399178353035549, Max Loss: 0.0034895694193930907,Mean Loss: 0.003440022624637612
+Epoch 8, Min Loss: 0.0034012119361850755, Max Loss: 0.0034869767302606147,Mean Loss: 0.003450876492992678
+Epoch 9, Min Loss: 0.0033962005764182073, Max Loss: 0.003537138313697225,Mean Loss: 0.003443698582979028
+Epoch 10, Min Loss: 0.003420000845316061, Max Loss: 0.0035293083571755856,Mean Loss: 0.0034455304803470157
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01910373858101321
+total mae: 0.060490527809690005
+total max_ae: 1.0401498079299927
+total mape: 195.2956784466591
+Matrix 1 - mse: 0.010484985075891018, mae: 0.04107163846492767, max_ae: 0.5811294317245483, mape: 108.04145050048828
+Matrix 2 - mse: 0.029620874673128128, mae: 0.0857255682349205, max_ae: 0.9496666193008423, mape: 284.2167053222656
+Matrix 3 - mse: 0.01992788538336754, mae: 0.10623762011528015, max_ae: 0.4304826557636261, mape: 128.44009399414062
+Matrix 4 - mse: 0.022237660363316536, mae: 0.11817903071641922, max_ae: 0.3584824800491333, mape: 1666.25732421875
+Matrix 5 - mse: 0.014074728824198246, mae: 0.03601207211613655, max_ae: 1.0401498079299927, mape: 57.16343688964844
+Matrix 6 - mse: 1.1911631503380704e-07, mae: 0.0002812746097333729, max_ae: 0.0006551481783390045, mape: 0.8235187530517578
+--------------------------------------------------
+ITERATION:  12 0
+tensor(0.4996)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0818, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5355) tensor(-0.0133)
+tensor(0.4979)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1316, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5414) tensor(-0.0070)
+tensor(0.5000)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1490, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5472) tensor(-0.0105)
+Epoch 1, Min Loss: 0.0033907461064056404, Max Loss: 0.0034387104217853924,Mean Loss: 0.0034113722614586366
+Epoch 2, Min Loss: 0.0033959393421232626, Max Loss: 0.00345819927668503,Mean Loss: 0.003421253585879084
+Epoch 3, Min Loss: 0.0033961863134034666, Max Loss: 0.003468375687527354,Mean Loss: 0.0034194730230633777
+Epoch 4, Min Loss: 0.0034009763461953797, Max Loss: 0.003479611488180586,Mean Loss: 0.0034310012338461494
+Epoch 5, Min Loss: 0.0033512001129374102, Max Loss: 0.0034462399759055953,Mean Loss: 0.00340662514421926
+Epoch 6, Min Loss: 0.00338325594437909, Max Loss: 0.0034364868774349818,Mean Loss: 0.003408641966397746
+Epoch 7, Min Loss: 0.003405340853925203, Max Loss: 0.0034568539830610438,Mean Loss: 0.003432617431734191
+Epoch 8, Min Loss: 0.0033715535998792663, Max Loss: 0.003458273095262173,Mean Loss: 0.0034114784279185616
+Epoch 9, Min Loss: 0.0033736357494942868, Max Loss: 0.0034357823745782227,Mean Loss: 0.0034071009562538592
+Epoch 10, Min Loss: 0.003368415788116963, Max Loss: 0.003443686158277686,Mean Loss: 0.003399227873349587
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01857865683786405
+total mae: 0.06880541760114371
+total max_ae: 0.9754410982131958
+total mape: 227.03175003526104
+Matrix 1 - mse: 0.01119311060756445, mae: 0.04742846265435219, max_ae: 0.6043294072151184, mape: 111.83840942382812
+Matrix 2 - mse: 0.026866065338253975, mae: 0.09368941187858582, max_ae: 0.8150623440742493, mape: 278.5255126953125
+Matrix 3 - mse: 0.017291782423853874, mae: 0.11259588599205017, max_ae: 0.24577674269676208, mape: 199.05055236816406
+Matrix 4 - mse: 0.015086192637681961, mae: 0.10462463647127151, max_ae: 0.2459588646888733, mape: 1287.43212890625
+Matrix 5 - mse: 0.01719488762319088, mae: 0.053467899560928345, max_ae: 0.9754410982131958, mape: 310.2198486328125
+Matrix 6 - mse: 2.2699948942772608e-07, mae: 0.0003969297686126083, max_ae: 0.0008860975503921509, mape: 1.0389684438705444
+--------------------------------------------------
+ITERATION:  13 0
+tensor(0.4991)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0745, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5300) tensor(-0.0088)
+tensor(0.4996)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1349, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5467) tensor(-0.0088)
+tensor(0.4998)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1651, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5462) tensor(0.0064)
+Epoch 1, Min Loss: 0.00336139121201069, Max Loss: 0.0034225554805810913,Mean Loss: 0.0033919043884945745
+Epoch 2, Min Loss: 0.003339356146807139, Max Loss: 0.0034036649421474124,Mean Loss: 0.0033865104592606075
+Epoch 3, Min Loss: 0.003380273928775792, Max Loss: 0.0034651491404076033,Mean Loss: 0.003406560653240113
+Epoch 4, Min Loss: 0.003367091803344528, Max Loss: 0.00342008062660743,Mean Loss: 0.0033993948482913343
+Epoch 5, Min Loss: 0.003350270256324082, Max Loss: 0.003432314676730767,Mean Loss: 0.0034031395223192797
+Epoch 6, Min Loss: 0.003343835282605877, Max Loss: 0.003430392889741404,Mean Loss: 0.0033831026532124796
+Epoch 7, Min Loss: 0.003348099724906071, Max Loss: 0.003441457060800161,Mean Loss: 0.003390275718355712
+Epoch 8, Min Loss: 0.003353448959801254, Max Loss: 0.0034064329663448605,Mean Loss: 0.0033829258357507192
+Epoch 9, Min Loss: 0.0033615661264984145, Max Loss: 0.0034164486974161555,Mean Loss: 0.0033841087608844807
+Epoch 10, Min Loss: 0.003329762505555541, Max Loss: 0.003430109674484239,Mean Loss: 0.003389653636070234
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018589314679068582
+total mae: 0.06881541952338992
+total max_ae: 0.9756251573562622
+total mape: 226.67623421390977
+Matrix 1 - mse: 0.011202702298760414, mae: 0.04743132367730141, max_ae: 0.6014177799224854, mape: 111.97727966308594
+Matrix 2 - mse: 0.026892106980085373, mae: 0.09372283518314362, max_ae: 0.8140357136726379, mape: 277.7323303222656
+Matrix 3 - mse: 0.01730496436357498, mae: 0.11267081648111343, max_ae: 0.2465640902519226, mape: 198.8943328857422
+Matrix 4 - mse: 0.015062998980283737, mae: 0.1045142188668251, max_ae: 0.24517521262168884, mape: 1286.3988037109375
+Matrix 5 - mse: 0.01716896891593933, mae: 0.0534343458712101, max_ae: 0.9756251573562622, mape: 309.7406005859375
+Matrix 6 - mse: 3.2083045198305626e-07, mae: 0.0005052054184488952, max_ae: 0.0008355621248483658, mape: 1.039626955986023
+--------------------------------------------------
+ITERATION:  14 0
+tensor(0.5007)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0699, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5329) tensor(-0.0224)
+tensor(0.4997)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1169, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5491) tensor(-0.0101)
+tensor(0.5010)
+init. error: tensor(-0.0016, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1436, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5482) tensor(-0.0084)
+Epoch 1, Min Loss: 0.003333362596404602, Max Loss: 0.0033957898326897433,Mean Loss: 0.0033669473270368
+Epoch 2, Min Loss: 0.0033486809464174498, Max Loss: 0.0033996893866121342,Mean Loss: 0.0033629595876583734
+Epoch 3, Min Loss: 0.0033356744404025632, Max Loss: 0.0034079552953208735,Mean Loss: 0.0033754168585647623
+Epoch 4, Min Loss: 0.003328604824892515, Max Loss: 0.0033836163059612246,Mean Loss: 0.00336140864076732
+Epoch 5, Min Loss: 0.003320156220822748, Max Loss: 0.003402955624832416,Mean Loss: 0.003370567258264957
+Epoch 6, Min Loss: 0.003344376607397487, Max Loss: 0.0034114119617821986,Mean Loss: 0.003373080891400951
+Epoch 7, Min Loss: 0.0033399821888070685, Max Loss: 0.0033881275820536443,Mean Loss: 0.0033622476042319853
+Epoch 8, Min Loss: 0.003343012272419902, Max Loss: 0.0034068452027662976,Mean Loss: 0.0033758284747110387
+Epoch 9, Min Loss: 0.0033534650278912934, Max Loss: 0.003402594526351322,Mean Loss: 0.0033780580324165137
+Epoch 10, Min Loss: 0.003343312783868105, Max Loss: 0.003397124160736193,Mean Loss: 0.003366105586999868
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009536334484595482
+total mae: 0.03465021069306596
+total max_ae: 0.7655879855155945
+total mape: 153.31388252182566
+Matrix 1 - mse: 0.008684809319674969, mae: 0.02619755268096924, max_ae: 0.7534574866294861, mape: 55.236629486083984
+Matrix 2 - mse: 0.012476692907512188, mae: 0.04551401361823082, max_ae: 0.7655879855155945, mape: 196.1971435546875
+Matrix 3 - mse: 0.014560590498149395, mae: 0.10222141444683075, max_ae: 0.20782604813575745, mape: 140.12448120117188
+Matrix 4 - mse: 0.019887903705239296, mae: 0.10887590795755386, max_ae: 0.4543885588645935, mape: 1523.8551025390625
+Matrix 5 - mse: 0.0024905831087380648, mae: 0.014938021078705788, max_ae: 0.3174544870853424, mape: 177.53506469726562
+Matrix 6 - mse: 4.5390089553620783e-07, mae: 0.0005264075589366257, max_ae: 0.0011031962931156158, mape: 1.7445951700210571
+--------------------------------------------------
+ITERATION:  15 0
+tensor(0.5008)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0859, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5330) tensor(-0.0206)
+tensor(0.4994)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1526, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5452) tensor(-0.0065)
+tensor(0.4998)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1728, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5468) tensor(0.0083)
+Epoch 1, Min Loss: 0.003314512557555137, Max Loss: 0.0033790476880274545,Mean Loss: 0.003343252822208536
+Epoch 2, Min Loss: 0.0033157548851150197, Max Loss: 0.003364679856547826,Mean Loss: 0.003335998488352549
+Epoch 3, Min Loss: 0.0033193327644248194, Max Loss: 0.003369264656123471,Mean Loss: 0.003346505759900565
+Epoch 4, Min Loss: 0.0033295332765962346, Max Loss: 0.003388689078165371,Mean Loss: 0.0033523829021085707
+Epoch 5, Min Loss: 0.0033293169449566734, Max Loss: 0.0033723181662028766,Mean Loss: 0.003354131289253584
+Epoch 6, Min Loss: 0.0033341826020023566, Max Loss: 0.003382173246747654,Mean Loss: 0.0033570854694907593
+Epoch 7, Min Loss: 0.003340420414731541, Max Loss: 0.0033804156333458917,Mean Loss: 0.0033562532813229845
+Epoch 8, Min Loss: 0.0033344263622978446, Max Loss: 0.003386623938150388,Mean Loss: 0.0033574854353876594
+Epoch 9, Min Loss: 0.0033456337913483985, Max Loss: 0.0033920060239150014,Mean Loss: 0.0033668515470566345
+Epoch 10, Min Loss: 0.0033233990717445733, Max Loss: 0.003387699715167619,Mean Loss: 0.003356032109027059
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.016291996846931753
+total mae: 0.049725205577178126
+total max_ae: 1.038967251777649
+total mape: 171.6748518261167
+Matrix 1 - mse: 0.008396012708544731, mae: 0.03113502636551857, max_ae: 0.6004596948623657, mape: 64.07698059082031
+Matrix 2 - mse: 0.024574195966124535, mae: 0.06981071829795837, max_ae: 0.9507232904434204, mape: 269.2945861816406
+Matrix 3 - mse: 0.012889559380710125, mae: 0.09636632353067398, max_ae: 0.2647703289985657, mape: 161.11013793945312
+Matrix 4 - mse: 0.014968023635447025, mae: 0.10353536158800125, max_ae: 0.2648097276687622, mape: 1662.599365234375
+Matrix 5 - mse: 0.016265086829662323, mae: 0.0372602753341198, max_ae: 1.038967251777649, mape: 57.6844596862793
+Matrix 6 - mse: 9.375673215572533e-08, mae: 0.0002456722722854465, max_ae: 0.0005778372287750244, mape: 0.6848524212837219
+--------------------------------------------------
+ITERATION:  16 0
+tensor(0.5008)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0774, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5400) tensor(-0.0102)
+tensor(0.4996)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1475, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5475) tensor(-0.0032)
+tensor(0.4992)
+init. error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1642, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5457) tensor(0.0081)
+Epoch 1, Min Loss: 0.0033176636005898268, Max Loss: 0.003356136635821437,Mean Loss: 0.0033369737442507665
+Epoch 2, Min Loss: 0.00329986166826853, Max Loss: 0.0033523317642032424,Mean Loss: 0.003332763922284794
+Epoch 3, Min Loss: 0.0033075716051942884, Max Loss: 0.003383044028158533,Mean Loss: 0.003340710963743331
+Epoch 4, Min Loss: 0.0032980658659996277, Max Loss: 0.003382134796724401,Mean Loss: 0.0033357033741387085
+Epoch 5, Min Loss: 0.0032999066909690437, Max Loss: 0.0033647250497253656,Mean Loss: 0.0033389417168467306
+Epoch 6, Min Loss: 0.0033135588381973296, Max Loss: 0.0033507677765786926,Mean Loss: 0.003334470341470859
+Epoch 7, Min Loss: 0.0033115168562307365, Max Loss: 0.003358695646508025,Mean Loss: 0.003327545418397146
+Epoch 8, Min Loss: 0.00330794931930526, Max Loss: 0.003361907777465642,Mean Loss: 0.0033299487973272937
+Epoch 9, Min Loss: 0.003288693547025043, Max Loss: 0.003362446047275719,Mean Loss: 0.0033349731800387875
+Epoch 10, Min Loss: 0.0033070595265781095, Max Loss: 0.0033543681554903475,Mean Loss: 0.0033264281964204426
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01628672680195112
+total mae: 0.04971434052229753
+total max_ae: 1.0397357940673828
+total mape: 171.87209116179366
+Matrix 1 - mse: 0.008402961306273937, mae: 0.031137987971305847, max_ae: 0.6017106771469116, mape: 64.2884750366211
+Matrix 2 - mse: 0.0245591439306736, mae: 0.06978249549865723, max_ae: 0.9490928649902344, mape: 269.2217712402344
+Matrix 3 - mse: 0.012871011160314083, mae: 0.09623504430055618, max_ae: 0.2648695707321167, mape: 161.08343505859375
+Matrix 4 - mse: 0.014977783896028996, mae: 0.10366713255643845, max_ae: 0.264712929725647, mape: 1667.4498291015625
+Matrix 5 - mse: 0.016252627596259117, mae: 0.03725424408912659, max_ae: 1.0397357940673828, mape: 58.15575408935547
+Matrix 6 - mse: 1.5615562176662934e-07, mae: 0.00031344156013801694, max_ae: 0.0007299445569515228, mape: 0.8602405786514282
+--------------------------------------------------
+ITERATION:  17 0
+tensor(0.5005)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0687, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5380) tensor(-0.0031)
+tensor(0.4987)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1224, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5521) tensor(-0.0082)
+tensor(0.5001)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1448, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5485) tensor(-0.0062)
+Epoch 1, Min Loss: 0.003296749561683717, Max Loss: 0.0033519228835776,Mean Loss: 0.0033223152635442053
+Epoch 2, Min Loss: 0.0032915772933971494, Max Loss: 0.003341332958749054,Mean Loss: 0.0033161278238920317
+Epoch 3, Min Loss: 0.003296911785382842, Max Loss: 0.003335075167096864,Mean Loss: 0.00331596502536183
+Epoch 4, Min Loss: 0.0032934936331576706, Max Loss: 0.0033509663027899536,Mean Loss: 0.003323935293314166
+Epoch 5, Min Loss: 0.003303239957177444, Max Loss: 0.003350398201617666,Mean Loss: 0.003319873572867634
+Epoch 6, Min Loss: 0.0033011025048290538, Max Loss: 0.0033248761882551034,Mean Loss: 0.0033139306349215135
+Epoch 7, Min Loss: 0.003302099618968193, Max Loss: 0.003359504983927981,Mean Loss: 0.0033291260864713387
+Epoch 8, Min Loss: 0.003289102074249468, Max Loss: 0.0033492305430568633,Mean Loss: 0.003320674958412988
+Epoch 9, Min Loss: 0.0032968804919324816, Max Loss: 0.0033681951664071967,Mean Loss: 0.003330373714391194
+Epoch 10, Min Loss: 0.0032885490293849138, Max Loss: 0.003330122192982493,Mean Loss: 0.003310976617961505
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020173310166925564
+total mae: 0.0704090599035854
+total max_ae: 1.039177656173706
+total mape: 229.96829207489108
+Matrix 1 - mse: 0.011533155106008053, mae: 0.04816417023539543, max_ae: 0.6321686506271362, mape: 97.65068817138672
+Matrix 2 - mse: 0.02995860017836094, mae: 0.09792871028184891, max_ae: 0.9515379667282104, mape: 329.0996398925781
+Matrix 3 - mse: 0.012170668691396713, mae: 0.08183644711971283, max_ae: 0.2345387041568756, mape: 76.1334457397461
+Matrix 4 - mse: 0.017290474846959114, mae: 0.10819289088249207, max_ae: 0.24232980608940125, mape: 1667.1004638671875
+Matrix 5 - mse: 0.01877593621611595, mae: 0.053215257823467255, max_ae: 1.039177656173706, mape: 202.7215118408203
+Matrix 6 - mse: 4.246827245424356e-07, mae: 0.0005027542938478291, max_ae: 0.001580866053700447, mape: 1.4473141431808472
+--------------------------------------------------
+ITERATION:  18 0
+tensor(0.5019)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0747, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5343) tensor(-0.0138)
+tensor(0.5007)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1484, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5406) tensor(0.0043)
+tensor(0.5004)
+init. error: tensor(-0.0019, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1693, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5351) tensor(0.0096)
+Epoch 1, Min Loss: 0.003264304756960125, Max Loss: 0.0033300715056612663,Mean Loss: 0.003295850205427871
+Epoch 2, Min Loss: 0.0032857382534230936, Max Loss: 0.0033489699445332405,Mean Loss: 0.0033096700613230736
+Epoch 3, Min Loss: 0.0032675268730959863, Max Loss: 0.0033454438079768096,Mean Loss: 0.0033017808958808585
+Epoch 4, Min Loss: 0.003282903814773776, Max Loss: 0.0033099690907158834,Mean Loss: 0.003297423316124206
+Epoch 5, Min Loss: 0.0032701768765050158, Max Loss: 0.0033300598526025816,Mean Loss: 0.003297135592548929
+Epoch 6, Min Loss: 0.003277966066215037, Max Loss: 0.003327384651372198,Mean Loss: 0.0033048894215904983
+Epoch 7, Min Loss: 0.0032874024561477077, Max Loss: 0.003336416580398148,Mean Loss: 0.003310185721547359
+Epoch 8, Min Loss: 0.0032795551512470192, Max Loss: 0.0033219115597216517,Mean Loss: 0.003302113602495732
+Epoch 9, Min Loss: 0.0032764998353943114, Max Loss: 0.0033244937980355547,Mean Loss: 0.0033041136541149727
+Epoch 10, Min Loss: 0.0032819443506868482, Max Loss: 0.0033333547516688584,Mean Loss: 0.00330571427412277
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018584786696395166
+total mae: 0.06881156466782576
+total max_ae: 0.9763973951339722
+total mape: 226.82661379691575
+Matrix 1 - mse: 0.011190837249159813, mae: 0.047394100576639175, max_ae: 0.6031236052513123, mape: 111.53590393066406
+Matrix 2 - mse: 0.02687731944024563, mae: 0.09375356137752533, max_ae: 0.8140407204627991, mape: 278.8665771484375
+Matrix 3 - mse: 0.017296532168984413, mae: 0.11259922385215759, max_ae: 0.2457776516675949, mape: 198.61424255371094
+Matrix 4 - mse: 0.01510692574083805, mae: 0.10467236489057541, max_ae: 0.2459610253572464, mape: 1281.85498046875
+Matrix 5 - mse: 0.017209095880389214, mae: 0.05342322960495949, max_ae: 0.9763973951339722, mape: 309.3116760253906
+Matrix 6 - mse: 2.0919343057812512e-07, mae: 0.0003459564468357712, max_ae: 0.0008424371480941772, mape: 1.0197889804840088
+--------------------------------------------------
+ITERATION:  19 0
+tensor(0.5004)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0805, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5397) tensor(-0.0174)
+tensor(0.5003)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1411, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5482) tensor(-0.0044)
+tensor(0.4999)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1635, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5489) tensor(0.0151)
+Epoch 1, Min Loss: 0.003247381196175464, Max Loss: 0.003306406087907277,Mean Loss: 0.003285784656021895
+Epoch 2, Min Loss: 0.0032807253352871986, Max Loss: 0.0033117913878858464,Mean Loss: 0.003296424118250891
+Epoch 3, Min Loss: 0.0032640520293372366, Max Loss: 0.00329365378441578,Mean Loss: 0.0032824662525729117
+Epoch 4, Min Loss: 0.0032708083120846854, Max Loss: 0.0033029371206661396,Mean Loss: 0.0032912871638691643
+Epoch 5, Min Loss: 0.0032727141762982233, Max Loss: 0.0033055292311969437,Mean Loss: 0.0032872610102233297
+Epoch 6, Min Loss: 0.0032781877348570824, Max Loss: 0.00332667315765774,Mean Loss: 0.0032964906834141395
+Epoch 7, Min Loss: 0.003260411247484292, Max Loss: 0.003311369026969459,Mean Loss: 0.003280639818180457
+Epoch 8, Min Loss: 0.003276837778235491, Max Loss: 0.0033174085932930505,Mean Loss: 0.0032996272161814563
+Epoch 9, Min Loss: 0.0032646772068498347, Max Loss: 0.003309110091764643,Mean Loss: 0.0032896442991121834
+Epoch 10, Min Loss: 0.003277178494817149, Max Loss: 0.00332590226568208,Mean Loss: 0.003302380955275154
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009694115643871204
+total mae: 0.03624105883826469
+total max_ae: 0.7986575961112976
+total mape: 131.43526981417537
+Matrix 1 - mse: 0.009174628183245659, mae: 0.02861838787794113, max_ae: 0.7986575961112976, mape: 74.94635772705078
+Matrix 2 - mse: 0.010264557786285877, mae: 0.04305880144238472, max_ae: 0.46397724747657776, mape: 136.13873291015625
+Matrix 3 - mse: 0.014762730337679386, mae: 0.10575307905673981, max_ae: 0.26480355858802795, mape: 177.60630798339844
+Matrix 4 - mse: 0.015390930697321892, mae: 0.10905858874320984, max_ae: 0.24091783165931702, mape: 1571.8172607421875
+Matrix 5 - mse: 0.008821109309792519, mae: 0.025544844567775726, max_ae: 0.7227494716644287, mape: 132.43397521972656
+Matrix 6 - mse: 2.1322368581877527e-07, mae: 0.00031842105090618134, max_ae: 0.001112600788474083, mape: 1.1016581058502197
+--------------------------------------------------
+ITERATION:  20 0
+tensor(0.4982)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0628, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5327) tensor(-0.0142)
+tensor(0.4999)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1215, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5454) tensor(-0.0012)
+tensor(0.4992)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1587, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(0.0168)
+Epoch 1, Min Loss: 0.0032520749574855715, Max Loss: 0.003287980608900879,Mean Loss: 0.003271592249975735
+Epoch 2, Min Loss: 0.003264260769900099, Max Loss: 0.0033135914560205744,Mean Loss: 0.0032852345927057184
+Epoch 3, Min Loss: 0.0032357215976940726, Max Loss: 0.0032915189996668773,Mean Loss: 0.0032665872534768645
+Epoch 4, Min Loss: 0.0032679916957985534, Max Loss: 0.0033036568725210076,Mean Loss: 0.0032826501256731045
+Epoch 5, Min Loss: 0.003257543200826925, Max Loss: 0.0032922912907799957,Mean Loss: 0.0032792629133854183
+Epoch 6, Min Loss: 0.003245750766791542, Max Loss: 0.0032868715744164213,Mean Loss: 0.003269019605736104
+Epoch 7, Min Loss: 0.003265548706378855, Max Loss: 0.0032869736317519783,Mean Loss: 0.0032780460554483895
+Epoch 8, Min Loss: 0.0032396410580999894, Max Loss: 0.0033050316547558033,Mean Loss: 0.0032779066572960315
+Epoch 9, Min Loss: 0.003258092994706281, Max Loss: 0.0032942385232112826,Mean Loss: 0.0032792983583747443
+Epoch 10, Min Loss: 0.0032623301196856675, Max Loss: 0.0032996238436568495,Mean Loss: 0.003274914664089114
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009696127203368592
+total mae: 0.03620254855297405
+total max_ae: 0.7986787557601929
+total mape: 131.20506021346168
+Matrix 1 - mse: 0.009167592972517014, mae: 0.0285074170678854, max_ae: 0.7986787557601929, mape: 74.70684814453125
+Matrix 2 - mse: 0.010270683094859123, mae: 0.04305395856499672, max_ae: 0.4657995104789734, mape: 135.7794952392578
+Matrix 3 - mse: 0.014726552180945873, mae: 0.10564596951007843, max_ae: 0.2655591666698456, mape: 177.0916290283203
+Matrix 4 - mse: 0.015443775802850723, mae: 0.10918162763118744, max_ae: 0.24224123358726501, mape: 1570.201416015625
+Matrix 5 - mse: 0.008835738524794579, mae: 0.02559765987098217, max_ae: 0.7218011021614075, mape: 132.7413787841797
+Matrix 6 - mse: 3.138166846383683e-07, mae: 0.0005042531411163509, max_ae: 0.0008390415459871292, mape: 1.3404194116592407
+--------------------------------------------------
+ITERATION:  21 0
+tensor(0.5000)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0659, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5359) tensor(-0.0131)
+tensor(0.5002)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1326, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5417) tensor(0.0001)
+tensor(0.5002)
+init. error: tensor(-0.0016, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1602, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5408) tensor(0.0015)
+Epoch 1, Min Loss: 0.0032461569148363933, Max Loss: 0.003311784158489018,Mean Loss: 0.0032700463693601904
+Epoch 2, Min Loss: 0.0032404160794785547, Max Loss: 0.0033048942172605863,Mean Loss: 0.003270745363932531
+Epoch 3, Min Loss: 0.0032234862506080354, Max Loss: 0.0033037748919756416,Mean Loss: 0.0032672230979983903
+Epoch 4, Min Loss: 0.003251099912534971, Max Loss: 0.003292361312937415,Mean Loss: 0.0032704617368878156
+Epoch 5, Min Loss: 0.0032467996032592237, Max Loss: 0.003279171205949476,Mean Loss: 0.003260753311008107
+Epoch 6, Min Loss: 0.0032490336304739813, Max Loss: 0.0032784947942068677,Mean Loss: 0.0032657410783368057
+Epoch 7, Min Loss: 0.0032587054000098514, Max Loss: 0.0032940911775692413,Mean Loss: 0.0032742301314134933
+Epoch 8, Min Loss: 0.003251484918262283, Max Loss: 0.0033064567545638183,Mean Loss: 0.0032709353001787672
+Epoch 9, Min Loss: 0.0032357056130657464, Max Loss: 0.00326800126717614,Mean Loss: 0.0032598992768178856
+Epoch 10, Min Loss: 0.0032507201714759852, Max Loss: 0.0032911047970933718,Mean Loss: 0.0032646743138470672
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02017126600945866
+total mae: 0.07040874940141756
+total max_ae: 1.040433645248413
+total mape: 229.47480142029352
+Matrix 1 - mse: 0.01153858657926321, mae: 0.048160407692193985, max_ae: 0.6308864951133728, mape: 97.55540466308594
+Matrix 2 - mse: 0.029944637790322304, mae: 0.09792552143335342, max_ae: 0.9489947557449341, mape: 327.8063659667969
+Matrix 3 - mse: 0.01219250913709402, mae: 0.08188831061124802, max_ae: 0.23467183113098145, mape: 76.18658447265625
+Matrix 4 - mse: 0.01726839505136013, mae: 0.1081344485282898, max_ae: 0.24290482699871063, mape: 1660.9134521484375
+Matrix 5 - mse: 0.018785875290632248, mae: 0.0532376766204834, max_ae: 1.040433645248413, mape: 203.85867309570312
+Matrix 6 - mse: 3.701481716689159e-07, mae: 0.00037878425791859627, max_ae: 0.001751590520143509, mape: 1.191664695739746
+--------------------------------------------------
+ITERATION:  22 0
+tensor(0.5020)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0718, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5316) tensor(-0.0231)
+tensor(0.5004)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1218, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5488) tensor(-0.0102)
+tensor(0.4998)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1642, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5451) tensor(0.0095)
+Epoch 1, Min Loss: 0.0032354863410573548, Max Loss: 0.00328671190731348,Mean Loss: 0.0032583493877478
+Epoch 2, Min Loss: 0.0032378212266952686, Max Loss: 0.0032882034208802963,Mean Loss: 0.003262558664931205
+Epoch 3, Min Loss: 0.0032410568320272604, Max Loss: 0.0032700403867331773,Mean Loss: 0.0032542713120190304
+Epoch 4, Min Loss: 0.003243740598725732, Max Loss: 0.0032821523107365736,Mean Loss: 0.0032566546618715457
+Epoch 5, Min Loss: 0.0032356856688354053, Max Loss: 0.003269098760222094,Mean Loss: 0.003252960663515679
+Epoch 6, Min Loss: 0.0032350655293697616, Max Loss: 0.003267272465788098,Mean Loss: 0.003255743163768651
+Epoch 7, Min Loss: 0.003233786487699326, Max Loss: 0.0032752609949920947,Mean Loss: 0.003257446194179889
+Epoch 8, Min Loss: 0.003246224059648564, Max Loss: 0.0032780792222551216,Mean Loss: 0.0032641196883496453
+Epoch 9, Min Loss: 0.0032487730781131418, Max Loss: 0.0032788537916231537,Mean Loss: 0.00326040485223845
+Epoch 10, Min Loss: 0.0032442048662714713, Max Loss: 0.0032679658988380737,Mean Loss: 0.003257893145370458
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018593583673942815
+total mae: 0.06882732091160139
+total max_ae: 0.9760682582855225
+total mape: 227.79080908475376
+Matrix 1 - mse: 0.011213772930204868, mae: 0.04745376110076904, max_ae: 0.6014384627342224, mape: 112.06001281738281
+Matrix 2 - mse: 0.026885727420449257, mae: 0.09373756498098373, max_ae: 0.8146754503250122, mape: 280.1958312988281
+Matrix 3 - mse: 0.017297906801104546, mae: 0.11274851113557816, max_ae: 0.24587500095367432, mape: 199.48770141601562
+Matrix 4 - mse: 0.015086214989423752, mae: 0.10448183864355087, max_ae: 0.2458634376525879, mape: 1286.6121826171875
+Matrix 5 - mse: 0.017183389514684677, mae: 0.05340484157204628, max_ae: 0.9760682582855225, mape: 310.13031005859375
+Matrix 6 - mse: 5.426741154224146e-07, mae: 0.0005686755175702274, max_ae: 0.0018377508968114853, mape: 1.5742377042770386
+--------------------------------------------------
+ITERATION:  23 0
+tensor(0.4996)
+init. error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0872, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5366) tensor(-0.0223)
+tensor(0.5012)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1380, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5480) tensor(-0.0029)
+tensor(0.5004)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1593, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5424) tensor(0.0015)
+Epoch 1, Min Loss: 0.0032318777128650823, Max Loss: 0.003263812448302528,Mean Loss: 0.0032485900324886645
+Epoch 2, Min Loss: 0.0032333495905617284, Max Loss: 0.003268798450767571,Mean Loss: 0.0032536285261846216
+Epoch 3, Min Loss: 0.00323132183228491, Max Loss: 0.0032751215831353796,Mean Loss: 0.0032525487056397568
+Epoch 4, Min Loss: 0.0032377427968018576, Max Loss: 0.003264806675590276,Mean Loss: 0.003250446143083499
+Epoch 5, Min Loss: 0.003234562048252549, Max Loss: 0.0032762794335268472,Mean Loss: 0.003258604858088844
+Epoch 6, Min Loss: 0.003233748644898537, Max Loss: 0.0032723306331385125,Mean Loss: 0.003250020528164973
+Epoch 7, Min Loss: 0.0032374395203961003, Max Loss: 0.0032570792630778624,Mean Loss: 0.003247580814996038
+Epoch 8, Min Loss: 0.0032324357538690124, Max Loss: 0.003286171483236458,Mean Loss: 0.0032567049159707108
+Epoch 9, Min Loss: 0.003224225252948065, Max Loss: 0.0032573524686699646,Mean Loss: 0.0032435261626481103
+Epoch 10, Min Loss: 0.0032274576223087514, Max Loss: 0.0032699852417987433,Mean Loss: 0.003255946315751155
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009882083979784583
+total mae: 0.03183404305295838
+total max_ae: 0.9743741750717163
+total mape: 112.48444289722661
+Matrix 1 - mse: 0.00704362103715539, mae: 0.02271878719329834, max_ae: 0.726701021194458, mape: 45.994083404541016
+Matrix 2 - mse: 0.013348279520869255, mae: 0.04132184013724327, max_ae: 0.8135973811149597, mape: 184.2998046875
+Matrix 3 - mse: 0.012156793847680092, mae: 0.09410106390714645, max_ae: 0.20270439982414246, mape: 150.91983032226562
+Matrix 4 - mse: 0.012136866338551044, mae: 0.0941377729177475, max_ae: 0.2032678723335266, mape: 804.9395141601562
+Matrix 5 - mse: 0.008024396374821663, mae: 0.019449271261692047, max_ae: 0.9743741750717163, mape: 28.446956634521484
+Matrix 6 - mse: 4.5404732418319327e-07, mae: 0.0006021731533110142, max_ae: 0.0012660995125770569, mape: 1.5606030225753784
+--------------------------------------------------
+ITERATION:  24 0
+tensor(0.5010)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0747, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5305) tensor(0.0005)
+tensor(0.4998)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1466, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5385) tensor(0.0059)
+tensor(0.4992)
+init. error: tensor(-0.0016, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1605, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5466) tensor(-0.0004)
+Epoch 1, Min Loss: 0.00322759407651661, Max Loss: 0.003259710029203485,Mean Loss: 0.0032433829877473825
+Epoch 2, Min Loss: 0.003205296944331418, Max Loss: 0.003256164693601902,Mean Loss: 0.003240338017815136
+Epoch 3, Min Loss: 0.003209647803723944, Max Loss: 0.003275636471228742,Mean Loss: 0.003242407998242969
+Epoch 4, Min Loss: 0.0032309041439208515, Max Loss: 0.0032588440301070756,Mean Loss: 0.003242675210124902
+Epoch 5, Min Loss: 0.003224991120065168, Max Loss: 0.0032701046961371586,Mean Loss: 0.0032474828411629486
+Epoch 6, Min Loss: 0.0032260630688457884, Max Loss: 0.0032540405651205564,Mean Loss: 0.003240035896970421
+Epoch 7, Min Loss: 0.003230400531884235, Max Loss: 0.0032582990602235745,Mean Loss: 0.0032458458636565025
+Epoch 8, Min Loss: 0.0032263837949530337, Max Loss: 0.003255598904466991,Mean Loss: 0.0032403457682296335
+Epoch 9, Min Loss: 0.003224025079089921, Max Loss: 0.0032584010943016743,Mean Loss: 0.0032442467741816117
+Epoch 10, Min Loss: 0.0032239136634181157, Max Loss: 0.003263034358219543,Mean Loss: 0.0032403556274203443
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.015797036797821757
+total mae: 0.05912066182966345
+total max_ae: 0.8232221603393555
+total mape: 188.06309940822445
+Matrix 1 - mse: 0.009300598874688148, mae: 0.03881451487541199, max_ae: 0.6333815455436707, mape: 99.92546081542969
+Matrix 2 - mse: 0.02418372593820095, mae: 0.08429206162691116, max_ae: 0.8232221603393555, mape: 229.9766845703125
+Matrix 3 - mse: 0.016391942277550697, mae: 0.10848261415958405, max_ae: 0.2279844582080841, mape: 150.78170776367188
+Matrix 4 - mse: 0.018009379506111145, mae: 0.11497585475444794, max_ae: 0.24737723171710968, mape: 1740.886962890625
+Matrix 5 - mse: 0.010787774808704853, mae: 0.03707164525985718, max_ae: 0.7131376266479492, mape: 172.60687255859375
+Matrix 6 - mse: 3.5978285950477584e-07, mae: 0.00044933194294571877, max_ae: 0.001491360366344452, mape: 1.2845510244369507
+--------------------------------------------------
+ITERATION:  25 0
+tensor(0.4995)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0727, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(-0.0347)
+tensor(0.4985)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1270, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5430) tensor(-0.0184)
+tensor(0.5000)
+init. error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1437, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5447) tensor(-0.0019)
+Epoch 1, Min Loss: 0.0032263802701228902, Max Loss: 0.003252782831899771,Mean Loss: 0.003239113405581354
+Epoch 2, Min Loss: 0.00324063155308488, Max Loss: 0.003273522211505328,Mean Loss: 0.00325803674951256
+Epoch 3, Min Loss: 0.0032238547895201883, Max Loss: 0.003276687356195897,Mean Loss: 0.003248156525833918
+Epoch 4, Min Loss: 0.0032392065556515175, Max Loss: 0.003273872914370893,Mean Loss: 0.0032559506245293107
+Epoch 5, Min Loss: 0.003252655228361318, Max Loss: 0.003317886967408306,Mean Loss: 0.0032762576085115696
+Epoch 6, Min Loss: 0.003233710997730991, Max Loss: 0.003272778145481478,Mean Loss: 0.0032558587478086994
+Epoch 7, Min Loss: 0.0032370094670953796, Max Loss: 0.0032682394799518778,Mean Loss: 0.003252744234789227
+Epoch 8, Min Loss: 0.0032434105323625386, Max Loss: 0.0032717246732157407,Mean Loss: 0.0032570402831104267
+Epoch 9, Min Loss: 0.0032364123877949833, Max Loss: 0.0032626988655815505,Mean Loss: 0.0032524981402434197
+Epoch 10, Min Loss: 0.00322992517521723, Max Loss: 0.003270174029648493,Mean Loss: 0.0032520206703160713
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009534214629160613
+total mae: 0.03469725825231184
+total max_ae: 0.76917564868927
+total mape: 153.66277947371034
+Matrix 1 - mse: 0.008673596195876598, mae: 0.026249537244439125, max_ae: 0.7540066242218018, mape: 55.057037353515625
+Matrix 2 - mse: 0.012479123659431934, mae: 0.04551912099123001, max_ae: 0.76917564868927, mape: 196.96835327148438
+Matrix 3 - mse: 0.014603224582970142, mae: 0.10238496959209442, max_ae: 0.20743106305599213, mape: 140.3916778564453
+Matrix 4 - mse: 0.01985296420753002, mae: 0.10877958685159683, max_ae: 0.45401835441589355, mape: 1519.4117431640625
+Matrix 5 - mse: 0.0024999165907502174, mae: 0.015094954520463943, max_ae: 0.31832659244537354, mape: 178.6863555908203
+Matrix 6 - mse: 4.304667129417794e-07, mae: 0.0004727395426016301, max_ae: 0.001651691272854805, mape: 1.597983479499817
+--------------------------------------------------
+ITERATION:  26 0
+tensor(0.5018)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1772, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5289) tensor(-0.0059)
+tensor(0.5003)
+init. error: tensor(-0.0019, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2947, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5358) tensor(-0.0164)
+tensor(0.5003)
+init. error: tensor(-0.0028, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3815, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5316) tensor(-0.0056)
+Epoch 1, Min Loss: 0.0026175525260454654, Max Loss: 0.0026457828628263205,Mean Loss: 0.0026366485666763093
+Epoch 2, Min Loss: 0.002602212881839441, Max Loss: 0.002632168011448621,Mean Loss: 0.0026169797446454765
+Epoch 3, Min Loss: 0.0026045175076846467, Max Loss: 0.0026259580216986588,Mean Loss: 0.0026148664198657736
+Epoch 4, Min Loss: 0.0025976767256371707, Max Loss: 0.0026281203658130633,Mean Loss: 0.0026117849640009613
+Epoch 5, Min Loss: 0.002612416435893929, Max Loss: 0.0026349092548814687,Mean Loss: 0.0026227025107497964
+Epoch 6, Min Loss: 0.0026020387682716612, Max Loss: 0.0026335303354563977,Mean Loss: 0.002617441466347904
+Epoch 7, Min Loss: 0.0026113125846539604, Max Loss: 0.0026293771728013895,Mean Loss: 0.002618901839786151
+Epoch 8, Min Loss: 0.0025970777016149165, Max Loss: 0.0026399436919828036,Mean Loss: 0.002609919946629226
+Epoch 9, Min Loss: 0.0026077918807488666, Max Loss: 0.002629440740114119,Mean Loss: 0.0026186272610579722
+Epoch 10, Min Loss: 0.0026090300442038945, Max Loss: 0.0026254837510079725,Mean Loss: 0.0026188216411989003
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02011377134409996
+total mae: 0.06781792062477772
+total max_ae: 0.8225837349891663
+total mape: 151.85595898095093
+Matrix 1 - mse: 0.01124307420104742, mae: 0.04387510567903519, max_ae: 0.6336071491241455, mape: 99.52965545654297
+Matrix 2 - mse: 0.02908630296587944, mae: 0.09181219339370728, max_ae: 0.8225837349891663, mape: 188.00897216796875
+Matrix 3 - mse: 0.018514087423682213, mae: 0.11142271757125854, max_ae: 0.3008492887020111, mape: 151.147705078125
+Matrix 4 - mse: 0.022122956812381744, mae: 0.11305774003267288, max_ae: 0.5023858547210693, mape: 916.6741333007812
+Matrix 5 - mse: 0.020506029948592186, mae: 0.06120242923498154, max_ae: 0.7104368209838867, mape: 126.12642669677734
+Matrix 6 - mse: 1.1561809287741198e-07, mae: 0.0002525706950109452, max_ae: 0.0008357763290405273, mape: 0.7615060210227966
+--------------------------------------------------
+ITERATION:  27 0
+tensor(0.5001)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0857, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5348) tensor(-0.0196)
+tensor(0.5005)
+init. error: tensor(-0.0014, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1671, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5382) tensor(-0.0113)
+tensor(0.5006)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2342, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5256) tensor(0.0065)
+Epoch 1, Min Loss: 0.0021109093798261187, Max Loss: 0.002136091888386708,Mean Loss: 0.002124665396778007
+Epoch 2, Min Loss: 0.002097104677420345, Max Loss: 0.0021197272847757825,Mean Loss: 0.0021092636524765347
+Epoch 3, Min Loss: 0.002098639771408078, Max Loss: 0.0021228318816782464,Mean Loss: 0.0021079408225534286
+Epoch 4, Min Loss: 0.0021001831699655024, Max Loss: 0.002116553202664578,Mean Loss: 0.0021063544692134324
+Epoch 5, Min Loss: 0.002095626698546671, Max Loss: 0.0021202944605627685,Mean Loss: 0.0021072598308010796
+Epoch 6, Min Loss: 0.0020933219821497634, Max Loss: 0.0021224922857369334,Mean Loss: 0.0021091114271773207
+Epoch 7, Min Loss: 0.002080257839158421, Max Loss: 0.002115854307687579,Mean Loss: 0.0021052934485668346
+Epoch 8, Min Loss: 0.0021030860526550657, Max Loss: 0.002120725152105525,Mean Loss: 0.0021093905084390205
+Epoch 9, Min Loss: 0.002091464279945395, Max Loss: 0.0021207884012726815,Mean Loss: 0.0021076354887578884
+Epoch 10, Min Loss: 0.002087561623140909, Max Loss: 0.0021156140444583854,Mean Loss: 0.0021078245585093008
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02017429003017315
+total mae: 0.07030780457666722
+total max_ae: 1.0387526750564575
+total mape: 229.16904394504544
+Matrix 1 - mse: 0.011548304930329323, mae: 0.04805615544319153, max_ae: 0.6316219568252563, mape: 97.33199310302734
+Matrix 2 - mse: 0.029939904808998108, mae: 0.09781669825315475, max_ae: 0.9513216614723206, mape: 327.45538330078125
+Matrix 3 - mse: 0.012152176350355148, mae: 0.08177831023931503, max_ae: 0.2344994843006134, mape: 76.31846618652344
+Matrix 4 - mse: 0.017293332144618034, mae: 0.10820484906435013, max_ae: 0.24276185035705566, mape: 1668.4014892578125
+Matrix 5 - mse: 0.018794143572449684, mae: 0.05315469205379486, max_ae: 1.0387526750564575, mape: 202.63925170898438
+Matrix 6 - mse: 5.196450203470704e-08, mae: 0.00019768765196204185, max_ae: 0.00044392794370651245, mape: 0.5094056129455566
+--------------------------------------------------
+ITERATION:  28 0
+tensor(0.4975)
+init. error: tensor(-0.0010, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0484, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5358) tensor(-0.0137)
+tensor(0.5010)
+init. error: tensor(-0.0009, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0951, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5464) tensor(-0.0137)
+tensor(0.5008)
+init. error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1238, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5426) tensor(0.0056)
+Epoch 1, Min Loss: 0.00171183474172226, Max Loss: 0.0017242924934036065,Mean Loss: 0.0017179837851895481
+Epoch 2, Min Loss: 0.0016967025211550497, Max Loss: 0.0017078784521824437,Mean Loss: 0.0017029743611721674
+Epoch 3, Min Loss: 0.0017011807390114064, Max Loss: 0.0017130555660929846,Mean Loss: 0.0017059997636162492
+Epoch 4, Min Loss: 0.0016983872370360843, Max Loss: 0.001715368071326236,Mean Loss: 0.0017070264358918252
+Epoch 5, Min Loss: 0.0017085508557285218, Max Loss: 0.0017171214343640175,Mean Loss: 0.001712934930952308
+Epoch 6, Min Loss: 0.0017001175321874637, Max Loss: 0.00171754893630544,Mean Loss: 0.001707622845992492
+Epoch 7, Min Loss: 0.001705719666082829, Max Loss: 0.0017116339088692999,Mean Loss: 0.0017084748822005342
+Epoch 8, Min Loss: 0.0016997755821825471, Max Loss: 0.001713866389983169,Mean Loss: 0.0017065725139258781
+Epoch 9, Min Loss: 0.0017017866225897758, Max Loss: 0.0017181746933449334,Mean Loss: 0.0017105943360365412
+Epoch 10, Min Loss: 0.0016985753442701806, Max Loss: 0.001707567599495074,Mean Loss: 0.0017040816569496044
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020165645889949686
+total mae: 0.07022869361558678
+total max_ae: 1.0408835411071777
+total mape: 229.2731356800163
+Matrix 1 - mse: 0.011529871262609959, mae: 0.04795132577419281, max_ae: 0.6332308053970337, mape: 97.11376953125
+Matrix 2 - mse: 0.029932808130979538, mae: 0.09775342792272568, max_ae: 0.9519760608673096, mape: 327.6601257324219
+Matrix 3 - mse: 0.01216087769716978, mae: 0.08177762478590012, max_ae: 0.23458361625671387, mape: 76.1282730102539
+Matrix 4 - mse: 0.0172882080078125, mae: 0.10820139199495316, max_ae: 0.24312527477741241, mape: 1667.5299072265625
+Matrix 5 - mse: 0.018806181848049164, mae: 0.053085945546627045, max_ae: 1.0408835411071777, mape: 203.49334716796875
+Matrix 6 - mse: 4.541355025367011e-08, mae: 0.00017134919471573085, max_ae: 0.00041767582297325134, mape: 0.5475295186042786
+--------------------------------------------------
+ITERATION:  29 0
+tensor(0.4995)
+init. error: tensor(-0.0008, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0358, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5373) tensor(-0.0135)
+tensor(0.4998)
+init. error: tensor(-0.0007, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0644, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5461) tensor(-0.0121)
+tensor(0.4998)
+init. error: tensor(-0.0010, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0733, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5436) tensor(-0.0110)
+Epoch 1, Min Loss: 0.0013929396697529672, Max Loss: 0.001406743940077178,Mean Loss: 0.0014006945057816107
+Epoch 2, Min Loss: 0.001385045845939256, Max Loss: 0.0013940971240223644,Mean Loss: 0.0013893589778826492
+Epoch 3, Min Loss: 0.001381681029740849, Max Loss: 0.0013979841550816926,Mean Loss: 0.0013903494939977732
+Epoch 4, Min Loss: 0.001387030055988868, Max Loss: 0.0013948632141845654,Mean Loss: 0.0013903694700929767
+Epoch 5, Min Loss: 0.001386245284283124, Max Loss: 0.0014008651545872957,Mean Loss: 0.0013926155607698523
+Epoch 6, Min Loss: 0.0013802361850918006, Max Loss: 0.0013992816285707081,Mean Loss: 0.0013914216800528833
+Epoch 7, Min Loss: 0.0013871532520831362, Max Loss: 0.0014002059256758772,Mean Loss: 0.0013929148288825334
+Epoch 8, Min Loss: 0.0013829313184301085, Max Loss: 0.0013947506942242204,Mean Loss: 0.0013884785864981854
+Epoch 9, Min Loss: 0.0013879086555948295, Max Loss: 0.0013963945672712914,Mean Loss: 0.0013927502149140745
+Epoch 10, Min Loss: 0.001387033798179791, Max Loss: 0.0013963955176915794,Mean Loss: 0.0013921876908167142
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020168499722761874
+total mae: 0.07019146072679242
+total max_ae: 1.0398192405700684
+total mape: 229.0961236888961
+Matrix 1 - mse: 0.011530166491866112, mae: 0.04787908121943474, max_ae: 0.6318328380584717, mape: 97.06250762939453
+Matrix 2 - mse: 0.029940742999315262, mae: 0.09775277972221375, max_ae: 0.9515374898910522, mape: 327.5017395019531
+Matrix 3 - mse: 0.012167488224804401, mae: 0.08179011195898056, max_ae: 0.23421776294708252, mape: 76.09713745117188
+Matrix 4 - mse: 0.01728632301092148, mae: 0.10817603766918182, max_ae: 0.24314624071121216, mape: 1664.6024169921875
+Matrix 5 - mse: 0.01880216971039772, mae: 0.05303815007209778, max_ae: 1.0398192405700684, mape: 203.1752471923828
+Matrix 6 - mse: 2.5226990274518357e-08, mae: 0.00013370699889492244, max_ae: 0.0002916306257247925, mape: 0.29407015442848206
+--------------------------------------------------
+ITERATION:  30 0
+tensor(0.5020)
+init. error: tensor(-0.0006, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0245, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5382) tensor(-0.0046)
+tensor(0.5004)
+init. error: tensor(-0.0006, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0409, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5416) tensor(-0.0116)
+tensor(0.5001)
+init. error: tensor(-0.0007, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0512, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5381) tensor(-0.0100)
+Epoch 1, Min Loss: 0.00114444438475919, Max Loss: 0.0011528966308800347,Mean Loss: 0.001149079173645449
+Epoch 2, Min Loss: 0.0011389301170413174, Max Loss: 0.001146367982628611,Mean Loss: 0.0011430569526517784
+Epoch 3, Min Loss: 0.0011369946398785441, Max Loss: 0.0011475713681426383,Mean Loss: 0.0011430214023294015
+Epoch 4, Min Loss: 0.0011372092258522916, Max Loss: 0.0011492702093323624,Mean Loss: 0.0011439894244379357
+Epoch 5, Min Loss: 0.0011406475831687954, Max Loss: 0.0011465522788232534,Mean Loss: 0.0011438025966094066
+Epoch 6, Min Loss: 0.001139888379999399, Max Loss: 0.001148047847997858,Mean Loss: 0.0011430889051765474
+Epoch 7, Min Loss: 0.001137594830450264, Max Loss: 0.0011451843999634715,Mean Loss: 0.001142536015066655
+Epoch 8, Min Loss: 0.0011405147232608655, Max Loss: 0.0011462827142667954,Mean Loss: 0.0011434845994592424
+Epoch 9, Min Loss: 0.0011398626254513135, Max Loss: 0.001147482798244216,Mean Loss: 0.001144359805973177
+Epoch 10, Min Loss: 0.0011370296272532224, Max Loss: 0.0011467501328924288,Mean Loss: 0.0011421568522348967
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01911483271248961
+total mae: 0.06017378198961915
+total max_ae: 1.0398741960525513
+total mape: 194.08338688496139
+Matrix 1 - mse: 0.010476676747202873, mae: 0.0406557135283947, max_ae: 0.5817781090736389, mape: 106.9089584350586
+Matrix 2 - mse: 0.029653243720531464, mae: 0.08548044413328171, max_ae: 0.951903223991394, mape: 282.94952392578125
+Matrix 3 - mse: 0.019903728738427162, mae: 0.1061723604798317, max_ae: 0.42949000000953674, mape: 128.11114501953125
+Matrix 4 - mse: 0.02220194786787033, mae: 0.11815372854471207, max_ae: 0.35802793502807617, mape: 1664.8919677734375
+Matrix 5 - mse: 0.014089185744524002, mae: 0.0357133187353611, max_ae: 1.0398741960525513, mape: 55.785770416259766
+Matrix 6 - mse: 1.3122416042676832e-08, mae: 0.00010083727829623967, max_ae: 0.00020061060786247253, mape: 0.24396561086177826
+--------------------------------------------------
+ITERATION:  31 0
+tensor(0.5003)
+init. error: tensor(-0.0005, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0178, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5321) tensor(-0.0109)
+tensor(0.4989)
+init. error: tensor(-0.0005, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0291, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5482) tensor(-0.0008)
+tensor(0.5007)
+init. error: tensor(-0.0006, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0396, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5426) tensor(0.0132)
+Epoch 1, Min Loss: 0.0009512547486387533, Max Loss: 0.0009566754736733654,Mean Loss: 0.0009536375684281222
+Epoch 2, Min Loss: 0.0009426073205887462, Max Loss: 0.0009536530967577305,Mean Loss: 0.0009498015552670163
+Epoch 3, Min Loss: 0.0009495993663085428, Max Loss: 0.000955619073091304,Mean Loss: 0.0009520845582682315
+Epoch 4, Min Loss: 0.0009448189315252702, Max Loss: 0.0009526907032702728,Mean Loss: 0.0009490461700314591
+Epoch 5, Min Loss: 0.0009477260335218909, Max Loss: 0.0009537002873359531,Mean Loss: 0.0009495829465921906
+Epoch 6, Min Loss: 0.0009456984272689985, Max Loss: 0.0009519073594221589,Mean Loss: 0.0009495988832324172
+Epoch 7, Min Loss: 0.0009478497533371935, Max Loss: 0.0009537776428995632,Mean Loss: 0.0009503360985392824
+Epoch 8, Min Loss: 0.000945452467293454, Max Loss: 0.000951848278041015,Mean Loss: 0.0009495271714985695
+Epoch 9, Min Loss: 0.0009471011647434882, Max Loss: 0.0009548415114437641,Mean Loss: 0.0009497938540090416
+Epoch 10, Min Loss: 0.0009464885951581479, Max Loss: 0.0009542988222461246,Mean Loss: 0.0009504578540473551
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009532949557100236
+total mae: 0.034280943903242905
+total max_ae: 0.7675429582595825
+total mape: 152.7716051209932
+Matrix 1 - mse: 0.008669042959809303, mae: 0.02574668638408184, max_ae: 0.7532720565795898, mape: 54.249080657958984
+Matrix 2 - mse: 0.012481043115258217, mae: 0.04517744109034538, max_ae: 0.7675429582595825, mape: 195.77870178222656
+Matrix 3 - mse: 0.01455732248723507, mae: 0.10225183516740799, max_ae: 0.20783132314682007, mape: 140.04812622070312
+Matrix 4 - mse: 0.019882747903466225, mae: 0.10884791612625122, max_ae: 0.4542624354362488, mape: 1523.6212158203125
+Matrix 5 - mse: 0.0025002697948366404, mae: 0.014635171741247177, max_ae: 0.3185211420059204, mape: 177.85321044921875
+Matrix 6 - mse: 4.429844491227186e-09, mae: 5.7102741266135126e-05, max_ae: 0.00011587515473365784, mape: 0.1434721201658249
+--------------------------------------------------
+ITERATION:  32 0
+tensor(0.4998)
+init. error: tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0124, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5291) tensor(-0.0054)
+tensor(0.4998)
+init. error: tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0173, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5420) tensor(-0.0144)
+tensor(0.5001)
+init. error: tensor(-0.0005, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0228, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5373) tensor(-0.0015)
+Epoch 1, Min Loss: 0.0007998792957123423, Max Loss: 0.0008042211191880801,Mean Loss: 0.0008019583953860676
+Epoch 2, Min Loss: 0.0007989160181068547, Max Loss: 0.0008047269740995465,Mean Loss: 0.0008012220608851437
+Epoch 3, Min Loss: 0.0007977571819496867, Max Loss: 0.0008025988837939085,Mean Loss: 0.0008008054632739892
+Epoch 4, Min Loss: 0.0007971495264548009, Max Loss: 0.0008014370461743117,Mean Loss: 0.0007994783035056038
+Epoch 5, Min Loss: 0.0007974519627820081, Max Loss: 0.0008034865533859153,Mean Loss: 0.0008001775626563422
+Epoch 6, Min Loss: 0.000796076440201461, Max Loss: 0.0008023653412846622,Mean Loss: 0.0008001032460421836
+Epoch 7, Min Loss: 0.0007983515044042104, Max Loss: 0.000803106400369543,Mean Loss: 0.0008000450492513163
+Epoch 8, Min Loss: 0.0007964104545478401, Max Loss: 0.0008007470747785434,Mean Loss: 0.0007987337958066346
+Epoch 9, Min Loss: 0.0007973297350682145, Max Loss: 0.000801461034760336,Mean Loss: 0.0007998321323776664
+Epoch 10, Min Loss: 0.0007970922723630079, Max Loss: 0.0008017723807376535,Mean Loss: 0.0007998193967024281
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018596553654517702
+total mae: 0.06853669910772452
+total max_ae: 0.976870059967041
+total mape: 226.4915769850074
+Matrix 1 - mse: 0.011196664534509182, mae: 0.04705137014389038, max_ae: 0.6019935011863708, mape: 110.8241958618164
+Matrix 2 - mse: 0.02689988724887371, mae: 0.09352242201566696, max_ae: 0.8145166635513306, mape: 278.44696044921875
+Matrix 3 - mse: 0.017290977761149406, mae: 0.11262155324220657, max_ae: 0.24591708183288574, mape: 198.92530822753906
+Matrix 4 - mse: 0.015088829211890697, mae: 0.1046026274561882, max_ae: 0.24583420157432556, mape: 1286.845458984375
+Matrix 5 - mse: 0.0172124020755291, mae: 0.05316627398133278, max_ae: 0.976870059967041, mape: 309.68939208984375
+Matrix 6 - mse: 5.0566586473621555e-09, mae: 5.545197200262919e-05, max_ae: 0.00013484805822372437, mape: 0.1673271209001541
+--------------------------------------------------
+ITERATION:  33 0
+tensor(0.4993)
+init. error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0098, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5316) tensor(-0.0107)
+tensor(0.5007)
+init. error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0129, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5416) tensor(-0.0023)
+tensor(0.5001)
+init. error: tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0161, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5341) tensor(0.0034)
+Epoch 1, Min Loss: 0.0006845480726168464, Max Loss: 0.0006879764084428199,Mean Loss: 0.0006865359171900472
+Epoch 2, Min Loss: 0.0006835450384660132, Max Loss: 0.0006866169814222012,Mean Loss: 0.0006846938312137518
+Epoch 3, Min Loss: 0.0006816749783625657, Max Loss: 0.0006867819445910285,Mean Loss: 0.0006838049088078098
+Epoch 4, Min Loss: 0.0006830993770028041, Max Loss: 0.0006854057698015348,Mean Loss: 0.0006841793506066004
+Epoch 5, Min Loss: 0.0006825418597012425, Max Loss: 0.0006871294225202278,Mean Loss: 0.0006840151073425853
+Epoch 6, Min Loss: 0.0006826310846026494, Max Loss: 0.0006877380743029114,Mean Loss: 0.0006846399912763464
+Epoch 7, Min Loss: 0.0006832286644850094, Max Loss: 0.000686067540410453,Mean Loss: 0.0006844808248708458
+Epoch 8, Min Loss: 0.0006807341422617621, Max Loss: 0.0006843467627367184,Mean Loss: 0.0006825111770431719
+Epoch 9, Min Loss: 0.0006824688283971085, Max Loss: 0.0006885180257422154,Mean Loss: 0.0006846231655396424
+Epoch 10, Min Loss: 0.0006831267374807347, Max Loss: 0.0006866393585825505,Mean Loss: 0.0006849148954159529
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.014238238466536091
+total mae: 0.04317467836439298
+total max_ae: 1.196555495262146
+total mape: 116.76765361113732
+Matrix 1 - mse: 0.007906132377684116, mae: 0.0304501261562109, max_ae: 0.5003873705863953, mape: 74.00434112548828
+Matrix 2 - mse: 0.022738158702850342, mae: 0.05946774408221245, max_ae: 1.196555495262146, mape: 157.83609008789062
+Matrix 3 - mse: 0.014807489700615406, mae: 0.09312478452920914, max_ae: 0.31585413217544556, mape: 119.73422241210938
+Matrix 4 - mse: 0.01886032149195671, mae: 0.0979875773191452, max_ae: 0.40876322984695435, mape: 1029.6463623046875
+Matrix 5 - mse: 0.008157729171216488, mae: 0.024246498942375183, max_ae: 1.0262722969055176, mape: 34.09536361694336
+Matrix 6 - mse: 4.380269480463994e-09, mae: 5.576312469202094e-05, max_ae: 0.00011716783046722412, mape: 0.10287578403949738
+--------------------------------------------------
+ITERATION:  34 0
+tensor(0.5011)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0062, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5361) tensor(-0.0062)
+tensor(0.5005)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0089, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5404) tensor(-0.0077)
+tensor(0.5007)
+init. error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0108, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5324) tensor(0.0136)
+Epoch 1, Min Loss: 0.0005941542938733422, Max Loss: 0.0005979940065655022,Mean Loss: 0.0005962132973292747
+Epoch 2, Min Loss: 0.0005934903783127046, Max Loss: 0.0005966120532405279,Mean Loss: 0.0005951949882945426
+Epoch 3, Min Loss: 0.0005932159842114696, Max Loss: 0.000595888866421191,Mean Loss: 0.0005947139935459829
+Epoch 4, Min Loss: 0.0005949747938280505, Max Loss: 0.0005977744763682325,Mean Loss: 0.0005961700169118438
+Epoch 5, Min Loss: 0.0005934554808292319, Max Loss: 0.0005959335493448581,Mean Loss: 0.0005943408172159682
+Epoch 6, Min Loss: 0.0005932926202149431, Max Loss: 0.0005968680234074513,Mean Loss: 0.0005952155694845929
+Epoch 7, Min Loss: 0.0005927901739392332, Max Loss: 0.0005959914632531767,Mean Loss: 0.0005948110205568277
+Epoch 8, Min Loss: 0.0005937317744484417, Max Loss: 0.0005962193978218932,Mean Loss: 0.0005946930267832481
+Epoch 9, Min Loss: 0.0005926711873493579, Max Loss: 0.0005959754124812296,Mean Loss: 0.0005938689691274291
+Epoch 10, Min Loss: 0.0005933467157748312, Max Loss: 0.0005962863194862289,Mean Loss: 0.0005947652052133946
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.016290396656200058
+total mae: 0.04928732881966741
+total max_ae: 1.0403833389282227
+total mape: 170.50352164483246
+Matrix 1 - mse: 0.008390942588448524, mae: 0.03064041957259178, max_ae: 0.6013710498809814, mape: 63.09002685546875
+Matrix 2 - mse: 0.02457268349826336, mae: 0.06937114894390106, max_ae: 0.9513078927993774, mape: 267.7457275390625
+Matrix 3 - mse: 0.012930819764733315, mae: 0.09653075039386749, max_ae: 0.26479098200798035, mape: 161.4083251953125
+Matrix 4 - mse: 0.014931204728782177, mae: 0.10340901464223862, max_ae: 0.2647569179534912, mape: 1662.861083984375
+Matrix 5 - mse: 0.01627214066684246, mae: 0.03688618168234825, max_ae: 1.0403833389282227, mape: 56.74250793457031
+Matrix 6 - mse: 3.3306606361804825e-09, mae: 4.325769987190142e-05, max_ae: 0.00011978112161159515, mape: 0.1057322770357132
+--------------------------------------------------
+ITERATION:  35 0
+tensor(0.5001)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0043, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5324) tensor(-0.0121)
+tensor(0.5003)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0060, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5362) tensor(-0.0046)
+tensor(0.4999)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0088, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5260) tensor(0.0113)
+Epoch 1, Min Loss: 0.0005270587712751227, Max Loss: 0.000528926907272163,Mean Loss: 0.0005280456398488886
+Epoch 2, Min Loss: 0.0005251141713227742, Max Loss: 0.0005269224291856923,Mean Loss: 0.0005257668563434759
+Epoch 3, Min Loss: 0.0005260749669024124, Max Loss: 0.0005275586368401525,Mean Loss: 0.0005269174973183517
+Epoch 4, Min Loss: 0.0005251587281423601, Max Loss: 0.0005273010741743918,Mean Loss: 0.0005264144447737328
+Epoch 5, Min Loss: 0.0005250131678908124, Max Loss: 0.0005261964290032681,Mean Loss: 0.0005257259226702981
+Epoch 6, Min Loss: 0.0005251760277572116, Max Loss: 0.0005271542159643057,Mean Loss: 0.0005261785323266788
+Epoch 7, Min Loss: 0.0005245031057929992, Max Loss: 0.0005264017737998046,Mean Loss: 0.0005256306599513498
+Epoch 8, Min Loss: 0.0005257143066561666, Max Loss: 0.0005276542437920323,Mean Loss: 0.0005265746585668172
+Epoch 9, Min Loss: 0.0005255666000500628, Max Loss: 0.0005268393149805404,Mean Loss: 0.0005261933079162059
+Epoch 10, Min Loss: 0.0005248950976472649, Max Loss: 0.000527198834523861,Mean Loss: 0.0005260675780886879
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009887976139542655
+total mae: 0.03137320040724199
+total max_ae: 0.9769632816314697
+total mape: 111.10525946582248
+Matrix 1 - mse: 0.007043323013931513, mae: 0.02220933511853218, max_ae: 0.7260632514953613, mape: 44.883487701416016
+Matrix 2 - mse: 0.013353078626096249, mae: 0.0408451072871685, max_ae: 0.8145514726638794, mape: 182.83218383789062
+Matrix 3 - mse: 0.01215581689029932, mae: 0.09406033903360367, max_ae: 0.20293810963630676, mape: 150.989501953125
+Matrix 4 - mse: 0.012141901068389416, mae: 0.09419325739145279, max_ae: 0.2030395269393921, mape: 804.5897827148438
+Matrix 5 - mse: 0.008051681332290173, mae: 0.019078491255640984, max_ae: 0.9769632816314697, mape: 26.316730499267578
+Matrix 6 - mse: 4.78777018031451e-09, mae: 5.4461601393995807e-05, max_ae: 0.00015179254114627838, mape: 0.14685706794261932
+--------------------------------------------------
+ITERATION:  36 0
+tensor(0.4995)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0037, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5277) tensor(-0.0107)
+tensor(0.5002)
+init. error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0046, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5373) tensor(-0.0091)
+tensor(0.5011)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0054, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5293) tensor(0.0017)
+Epoch 1, Min Loss: 0.00047375578893735183, Max Loss: 0.0004753322403938501,Mean Loss: 0.00047429332593566396
+Epoch 2, Min Loss: 0.00047258644744215, Max Loss: 0.0004739738520994046,Mean Loss: 0.00047317904592328373
+Epoch 3, Min Loss: 0.0004723593493976771, Max Loss: 0.00047351902315128893,Mean Loss: 0.00047311095517622886
+Epoch 4, Min Loss: 0.0004732682907825982, Max Loss: 0.0004744008640075061,Mean Loss: 0.00047374192125319864
+Epoch 5, Min Loss: 0.000473688168378238, Max Loss: 0.00047486956511926415,Mean Loss: 0.000474233921880998
+Epoch 6, Min Loss: 0.0004726892399941337, Max Loss: 0.00047431304910181135,Mean Loss: 0.0004733972864574775
+Epoch 7, Min Loss: 0.000472715322576124, Max Loss: 0.0004743690662740232,Mean Loss: 0.00047365428087131416
+Epoch 8, Min Loss: 0.0004726925946858119, Max Loss: 0.0004741151111787036,Mean Loss: 0.0004735734326026513
+Epoch 9, Min Loss: 0.00047264060651071446, Max Loss: 0.00047447758789790804,Mean Loss: 0.00047345467622104926
+Epoch 10, Min Loss: 0.00047282234734068954, Max Loss: 0.0004740371234472783,Mean Loss: 0.00047343938942952306
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018596028361770166
+total mae: 0.06850232205294314
+total max_ae: 0.9767820835113525
+total mape: 226.54701509258965
+Matrix 1 - mse: 0.011197896674275398, mae: 0.047011297196149826, max_ae: 0.6019698977470398, mape: 110.73857879638672
+Matrix 2 - mse: 0.026896901428699493, mae: 0.09349283576011658, max_ae: 0.8143947124481201, mape: 278.7406921386719
+Matrix 3 - mse: 0.017291167750954628, mae: 0.11264470964670181, max_ae: 0.24590134620666504, mape: 198.99176025390625
+Matrix 4 - mse: 0.015094081871211529, mae: 0.10460733622312546, max_ae: 0.24585282802581787, mape: 1287.2757568359375
+Matrix 5 - mse: 0.01721317507326603, mae: 0.05312424525618553, max_ae: 0.9767820835113525, mape: 309.4385986328125
+Matrix 6 - mse: 2.1593546950526843e-09, mae: 3.5603996366262436e-05, max_ae: 9.87853854894638e-05, mape: 0.09444067627191544
+--------------------------------------------------
+ITERATION:  37 0
+tensor(0.4978)
+init. error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0030, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5241) tensor(-0.0167)
+tensor(0.4999)
+init. error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0030, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5344) tensor(-0.0024)
+tensor(0.5007)
+init. error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0042, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5210) tensor(0.0164)
+Epoch 1, Min Loss: 0.0004334932766836627, Max Loss: 0.0004340673530879367,Mean Loss: 0.00043386684248723496
+Epoch 2, Min Loss: 0.00043239244772142604, Max Loss: 0.0004331689473993186,Mean Loss: 0.00043289746033774504
+Epoch 3, Min Loss: 0.00043279066826796956, Max Loss: 0.0004335814430030624,Mean Loss: 0.00043324338973075313
+Epoch 4, Min Loss: 0.00043235784578335857, Max Loss: 0.0004335526693843918,Mean Loss: 0.0004329508376427828
+Epoch 5, Min Loss: 0.0004326030962783664, Max Loss: 0.00043350830514793685,Mean Loss: 0.00043298741582126167
+Epoch 6, Min Loss: 0.00043190688004838277, Max Loss: 0.0004328853888886614,Mean Loss: 0.00043233564247356393
+Epoch 7, Min Loss: 0.0004328053289636043, Max Loss: 0.0004334341025451621,Mean Loss: 0.0004331562585352798
+Epoch 8, Min Loss: 0.0004325142847193465, Max Loss: 0.00043355696391293995,Mean Loss: 0.0004330290650285897
+Epoch 9, Min Loss: 0.0004331204608617352, Max Loss: 0.0004337434200091216,Mean Loss: 0.0004334351575930412
+Epoch 10, Min Loss: 0.0004326253414223748, Max Loss: 0.0004333999444456568,Mean Loss: 0.0004331015381150838
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020109751637600533
+total mae: 0.0674956242116937
+total max_ae: 0.8229023218154907
+total mape: 151.1554277628629
+Matrix 1 - mse: 0.01122481469064951, mae: 0.043467018753290176, max_ae: 0.6319199800491333, mape: 98.8738021850586
+Matrix 2 - mse: 0.029088569805026054, mae: 0.09152937680482864, max_ae: 0.8229023218154907, mape: 187.40298461914062
+Matrix 3 - mse: 0.01852000690996647, mae: 0.11137942224740982, max_ae: 0.30095162987709045, mape: 150.7212677001953
+Matrix 4 - mse: 0.022127194330096245, mae: 0.11311163008213043, max_ae: 0.5019429922103882, mape: 913.5017700195312
+Matrix 5 - mse: 0.02052231878042221, mae: 0.060940735042095184, max_ae: 0.7111652493476868, mape: 125.25538635253906
+Matrix 6 - mse: 1.339574007275246e-09, mae: 2.9227696359157562e-05, max_ae: 7.320195436477661e-05, mape: 0.07367850095033646
+--------------------------------------------------
+ITERATION:  38 0
+tensor(0.5006)
+init. error: tensor(-9.2995e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0024, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5291) tensor(-0.0125)
+tensor(0.5010)
+init. error: tensor(-8.5513e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0027, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5366) tensor(-0.0066)
+tensor(0.4993)
+init. error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0029, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5267) tensor(0.0048)
+Epoch 1, Min Loss: 0.0004012573144534334, Max Loss: 0.0004022793706525701,Mean Loss: 0.00040185560370444034
+Epoch 2, Min Loss: 0.0004014874508268847, Max Loss: 0.0004022593088763462,Mean Loss: 0.00040192775023374536
+Epoch 3, Min Loss: 0.00040155140394577797, Max Loss: 0.000402123394285836,Mean Loss: 0.0004017215421484554
+Epoch 4, Min Loss: 0.00040140920855527855, Max Loss: 0.00040200347293816856,Mean Loss: 0.0004016935902983164
+Epoch 5, Min Loss: 0.0004015250272476269, Max Loss: 0.0004021445472142795,Mean Loss: 0.00040180865871236577
+Epoch 6, Min Loss: 0.00040165156938918055, Max Loss: 0.00040211490949965286,Mean Loss: 0.0004018897632068554
+Epoch 7, Min Loss: 0.0004011451247693243, Max Loss: 0.00040174846559795765,Mean Loss: 0.000401421845908736
+Epoch 8, Min Loss: 0.000401332015790252, Max Loss: 0.000401812864459341,Mean Loss: 0.000401496845295731
+Epoch 9, Min Loss: 0.0004013388689252569, Max Loss: 0.0004018643719298172,Mean Loss: 0.000401642085126162
+Epoch 10, Min Loss: 0.000400982992729176, Max Loss: 0.0004017756196471153,Mean Loss: 0.0004013955043269121
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01629132956005381
+total mae: 0.04925946023533181
+total max_ae: 1.0402352809906006
+total mape: 170.390287907146
+Matrix 1 - mse: 0.008391098119318485, mae: 0.03060489520430565, max_ae: 0.6018428802490234, mape: 63.02893829345703
+Matrix 2 - mse: 0.02457544021308422, mae: 0.06935306638479233, max_ae: 0.9512103796005249, mape: 267.5613098144531
+Matrix 3 - mse: 0.012930722907185555, mae: 0.09653075039386749, max_ae: 0.26474907994270325, mape: 161.4150390625
+Matrix 4 - mse: 0.014932079240679741, mae: 0.1034092977643013, max_ae: 0.26479560136795044, mape: 1662.8192138671875
+Matrix 5 - mse: 0.016270287334918976, mae: 0.03684653714299202, max_ae: 1.0402352809906006, mape: 56.66109848022461
+Matrix 6 - mse: 5.136822633922122e-10, mae: 2.1152756744413637e-05, max_ae: 3.320910036563873e-05, mape: 0.059503864496946335
+--------------------------------------------------
+ITERATION:  39 0
+tensor(0.5006)
+init. error: tensor(-7.4315e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0017, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5295) tensor(-0.0075)
+tensor(0.5008)
+init. error: tensor(-6.7817e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0018, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5359) tensor(-0.0075)
+tensor(0.4994)
+init. error: tensor(-8.1342e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5243) tensor(0.0012)
+Epoch 1, Min Loss: 0.00037700397923128535, Max Loss: 0.0003774526479931323,Mean Loss: 0.00037723258538757134
+Epoch 2, Min Loss: 0.0003767556195586673, Max Loss: 0.0003774103240021931,Mean Loss: 0.0003770859710169823
+Epoch 3, Min Loss: 0.0003772169374041604, Max Loss: 0.0003775895507960829,Mean Loss: 0.0003774366004460811
+Epoch 4, Min Loss: 0.00037711274121991463, Max Loss: 0.000377631656487643,Mean Loss: 0.00037738686945390585
+Epoch 5, Min Loss: 0.0003768782929274967, Max Loss: 0.0003772519447120927,Mean Loss: 0.0003771333744330854
+Epoch 6, Min Loss: 0.00037679376586664424, Max Loss: 0.0003773402843763235,Mean Loss: 0.0003770496769953922
+Epoch 7, Min Loss: 0.00037719144167779755, Max Loss: 0.00037768615482690007,Mean Loss: 0.00037742973854159396
+Epoch 8, Min Loss: 0.0003770128809365845, Max Loss: 0.0003772074080126353,Mean Loss: 0.0003771064759371439
+Epoch 9, Min Loss: 0.000376952493975854, Max Loss: 0.00037734453667674146,Mean Loss: 0.0003771802237585503
+Epoch 10, Min Loss: 0.0003769482514811008, Max Loss: 0.00037751227592551067,Mean Loss: 0.0003771757854705179
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02011126086886523
+total mae: 0.0674894218549109
+total max_ae: 0.8229278326034546
+total mape: 151.1082534219684
+Matrix 1 - mse: 0.011226309463381767, mae: 0.04346080496907234, max_ae: 0.6319565773010254, mape: 98.85880279541016
+Matrix 2 - mse: 0.029089823365211487, mae: 0.09152307361364365, max_ae: 0.8229278326034546, mape: 187.31704711914062
+Matrix 3 - mse: 0.01852406933903694, mae: 0.11138657480478287, max_ae: 0.30093052983283997, mape: 150.7301788330078
+Matrix 4 - mse: 0.022126777097582817, mae: 0.11311124265193939, max_ae: 0.5019454956054688, mape: 913.5338745117188
+Matrix 5 - mse: 0.02052457630634308, mae: 0.06093331798911095, max_ae: 0.7113903760910034, mape: 125.21331024169922
+Matrix 6 - mse: 2.531979903519499e-10, mae: 1.2374203834042419e-05, max_ae: 3.5062432289123535e-05, mape: 0.021120980381965637
+--------------------------------------------------
+ITERATION:  40 0
+tensor(0.4995)
+init. error: tensor(-6.2932e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0013, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5253) tensor(-0.0118)
+tensor(0.4999)
+init. error: tensor(-5.6651e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5297) tensor(-0.0195)
+tensor(0.5001)
+init. error: tensor(-6.6297e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0015, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5252) tensor(0.0013)
+Epoch 1, Min Loss: 0.0003579971298931354, Max Loss: 0.0003582985522867634,Mean Loss: 0.00035813292402368444
+Epoch 2, Min Loss: 0.0003578539938997244, Max Loss: 0.00035811438635020035,Mean Loss: 0.00035801418878419626
+Epoch 3, Min Loss: 0.00035769510792900156, Max Loss: 0.0003579911009734263,Mean Loss: 0.00035784441513278867
+Epoch 4, Min Loss: 0.0003578806011971725, Max Loss: 0.00035822697480123833,Mean Loss: 0.0003580137632046616
+Epoch 5, Min Loss: 0.0003578209210289318, Max Loss: 0.0003580243099450104,Mean Loss: 0.00035788758712834473
+Epoch 6, Min Loss: 0.00035799785653208287, Max Loss: 0.000358238296630249,Mean Loss: 0.0003581099422842061
+Epoch 7, Min Loss: 0.0003575458644778145, Max Loss: 0.0003579303936639691,Mean Loss: 0.00035777868839850476
+Epoch 8, Min Loss: 0.0003574850294593021, Max Loss: 0.00035782806649350133,Mean Loss: 0.00035764118230546897
+Epoch 9, Min Loss: 0.0003577784765998082, Max Loss: 0.00035808477874151165,Mean Loss: 0.000357917667570438
+Epoch 10, Min Loss: 0.0003577649989331614, Max Loss: 0.0003579595931254656,Mean Loss: 0.0003578521165388107
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020170882376777197
+total mae: 0.07007936352490211
+total max_ae: 1.0404001474380493
+total mape: 228.7064280849857
+Matrix 1 - mse: 0.011528901755809784, mae: 0.04774725064635277, max_ae: 0.6318992376327515, mape: 96.7186279296875
+Matrix 2 - mse: 0.02994656004011631, mae: 0.09765701740980148, max_ae: 0.9513442516326904, mape: 326.884521484375
+Matrix 3 - mse: 0.01217170525342226, mae: 0.08184926211833954, max_ae: 0.23455199599266052, mape: 76.23636627197266
+Matrix 4 - mse: 0.017280733212828636, mae: 0.10815580934286118, max_ae: 0.24297407269477844, mape: 1666.5067138671875
+Matrix 5 - mse: 0.0188058502972126, mae: 0.05290951207280159, max_ae: 1.0404001474380493, mape: 203.00750732421875
+Matrix 6 - mse: 2.6602356428817586e-10, mae: 1.4881882634654175e-05, max_ae: 2.329796552658081e-05, mape: 0.032112810760736465
+--------------------------------------------------
+ITERATION:  41 0
+tensor(0.5006)
+init. error: tensor(-4.7546e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0009, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5270) tensor(-0.0047)
+tensor(0.4996)
+init. error: tensor(-4.3451e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0009, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5310) tensor(-0.0081)
+tensor(0.5005)
+init. error: tensor(-5.2381e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0009, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5246) tensor(0.0061)
+Epoch 1, Min Loss: 0.0003427299603691144, Max Loss: 0.0003429718213389451,Mean Loss: 0.00034282873646389507
+Epoch 2, Min Loss: 0.0003425121410794255, Max Loss: 0.0003426613500629073,Mean Loss: 0.0003425947852823964
+Epoch 3, Min Loss: 0.0003424122650550373, Max Loss: 0.00034265199634689135,Mean Loss: 0.00034252867624235295
+Epoch 4, Min Loss: 0.0003423996556887002, Max Loss: 0.00034259604317190927,Mean Loss: 0.0003424787940155919
+Epoch 5, Min Loss: 0.000342292388171774, Max Loss: 0.00034251362546051044,Mean Loss: 0.00034241700494366735
+Epoch 6, Min Loss: 0.0003423870043639389, Max Loss: 0.00034256501035444096,Mean Loss: 0.00034247804669930725
+Epoch 7, Min Loss: 0.0003424917087839102, Max Loss: 0.00034260417264548383,Mean Loss: 0.0003425396581589352
+Epoch 8, Min Loss: 0.0003424680096125872, Max Loss: 0.00034261292732878,Mean Loss: 0.000342531672884936
+Epoch 9, Min Loss: 0.00034241146647595214, Max Loss: 0.00034261797155108424,Mean Loss: 0.00034252256166783594
+Epoch 10, Min Loss: 0.00034238380519613544, Max Loss: 0.0003426086493948217,Mean Loss: 0.0003425036710037161
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.019112558452784437
+total mae: 0.06005668820318928
+total max_ae: 1.0403614044189453
+total mape: 193.84388075010654
+Matrix 1 - mse: 0.010476465336978436, mae: 0.040517114102840424, max_ae: 0.5819894075393677, mape: 106.579833984375
+Matrix 2 - mse: 0.02964690513908863, mae: 0.08537159115076065, max_ae: 0.9513015747070312, mape: 282.6864318847656
+Matrix 3 - mse: 0.019886106252670288, mae: 0.10612834244966507, max_ae: 0.429373562335968, mape: 128.12510681152344
+Matrix 4 - mse: 0.02220868691802025, mae: 0.1181647852063179, max_ae: 0.3578910827636719, mape: 1667.0528564453125
+Matrix 5 - mse: 0.014093073084950447, mae: 0.03561193868517876, max_ae: 1.0403614044189453, mape: 55.59607696533203
+Matrix 6 - mse: 6.147110598320182e-10, mae: 2.0419713109731674e-05, max_ae: 4.8745423555374146e-05, mape: 0.05571404844522476
+--------------------------------------------------
+ITERATION:  42 0
+tensor(0.4983)
+init. error: tensor(-3.5905e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0007, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5289) tensor(-0.0129)
+tensor(0.5001)
+init. error: tensor(-3.4216e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0007, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5306) tensor(-0.0107)
+tensor(0.4994)
+init. error: tensor(-4.0906e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0007, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5225) tensor(-0.0006)
+Epoch 1, Min Loss: 0.0003301772967566026, Max Loss: 0.00033032483713914376,Mean Loss: 0.00033026203416683706
+Epoch 2, Min Loss: 0.00033034982175442624, Max Loss: 0.0003304460971195426,Mean Loss: 0.00033040079952317044
+Epoch 3, Min Loss: 0.000330188401651132, Max Loss: 0.00033036803551705717,Mean Loss: 0.0003302560566296251
+Epoch 4, Min Loss: 0.0003302211238780359, Max Loss: 0.00033037840139527367,Mean Loss: 0.0003302924038107119
+Epoch 5, Min Loss: 0.0003302796804522535, Max Loss: 0.000330419400174999,Mean Loss: 0.0003303451924290058
+Epoch 6, Min Loss: 0.0003300569929295539, Max Loss: 0.0003302031199795338,Mean Loss: 0.0003301366851270202
+Epoch 7, Min Loss: 0.0003302226421575635, Max Loss: 0.00033040139263778044,Mean Loss: 0.00033031866516767064
+Epoch 8, Min Loss: 0.0003300905257479664, Max Loss: 0.00033019426490196583,Mean Loss: 0.0003301403346313707
+Epoch 9, Min Loss: 0.0003300299049776587, Max Loss: 0.00033014252472991475,Mean Loss: 0.00033009738501195716
+Epoch 10, Min Loss: 0.0003303169213688084, Max Loss: 0.0003304334717261371,Mean Loss: 0.0003303759159831864
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018595140356639596
+total mae: 0.06848105966564084
+total max_ae: 0.976769208908081
+total mape: 226.4573647841391
+Matrix 1 - mse: 0.011198163963854313, mae: 0.046989794820547104, max_ae: 0.601813554763794, mape: 110.69895935058594
+Matrix 2 - mse: 0.026895280927419662, mae: 0.09347245842218399, max_ae: 0.814344048500061, mape: 278.5635986328125
+Matrix 3 - mse: 0.017291001975536346, mae: 0.11263740807771683, max_ae: 0.2458842247724533, mape: 198.94351196289062
+Matrix 4 - mse: 0.015092402696609497, mae: 0.10460584610700607, max_ae: 0.24588318169116974, mape: 1287.1959228515625
+Matrix 5 - mse: 0.017211075872182846, mae: 0.05309758335351944, max_ae: 0.976769208908081, mape: 309.4466857910156
+Matrix 6 - mse: 6.219411097241334e-10, mae: 2.045789733529091e-05, max_ae: 4.502385854721069e-05, mape: 0.05797905847430229
+--------------------------------------------------
+ITERATION:  43 0
+tensor(0.5009)
+init. error: tensor(-3.1473e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0006, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5261) tensor(-0.0055)
+tensor(0.5008)
+init. error: tensor(-2.8217e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0005, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5280) tensor(-0.0069)
+tensor(0.5004)
+init. error: tensor(-3.4273e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0005, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5225) tensor(0.0037)
+Epoch 1, Min Loss: 0.0003202502212143559, Max Loss: 0.0003202975846231387,Mean Loss: 0.00032027768960769847
+Epoch 2, Min Loss: 0.0003201863893048482, Max Loss: 0.00032027261213102515,Mean Loss: 0.00032021594357799856
+Epoch 3, Min Loss: 0.000320123568274739, Max Loss: 0.0003201829870257482,Mean Loss: 0.00032015982715092396
+Epoch 4, Min Loss: 0.00032033759487127335, Max Loss: 0.0003204408902035125,Mean Loss: 0.0003203749034432903
+Epoch 5, Min Loss: 0.0003202612737860196, Max Loss: 0.0003203381357404845,Mean Loss: 0.00032027632352518357
+Epoch 6, Min Loss: 0.0003201413784030576, Max Loss: 0.00032023373653919667,Mean Loss: 0.0003201881133567891
+Epoch 7, Min Loss: 0.00032023365894007336, Max Loss: 0.0003203045541007888,Mean Loss: 0.00032026221567824114
+Epoch 8, Min Loss: 0.00032034684194839566, Max Loss: 0.0003204184674861458,Mean Loss: 0.0003203847848593655
+Epoch 9, Min Loss: 0.0003202773483221527, Max Loss: 0.0003203431405230953,Mean Loss: 0.00032030473215309373
+Epoch 10, Min Loss: 0.00032038254671137644, Max Loss: 0.0003204384389890459,Mean Loss: 0.00032041462080220607
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.018594982436567237
+total mae: 0.06847961318835834
+total max_ae: 0.9767582416534424
+total mape: 226.42680567828404
+Matrix 1 - mse: 0.011198301799595356, mae: 0.04698866233229637, max_ae: 0.6018872261047363, mape: 110.68234252929688
+Matrix 2 - mse: 0.02689463458955288, mae: 0.09347028285264969, max_ae: 0.8143485188484192, mape: 278.49847412109375
+Matrix 3 - mse: 0.0172903873026371, mae: 0.11263532191514969, max_ae: 0.24587967991828918, mape: 198.92897033691406
+Matrix 4 - mse: 0.015093359164893627, mae: 0.10460963100194931, max_ae: 0.24588677287101746, mape: 1287.26123046875
+Matrix 5 - mse: 0.017211388796567917, mae: 0.05309711769223213, max_ae: 0.9767582416534424, mape: 309.46246337890625
+Matrix 6 - mse: 2.35456765196318e-10, mae: 1.1608470231294632e-05, max_ae: 3.466382622718811e-05, mape: 0.033282604068517685
+--------------------------------------------------
+ITERATION:  44 0
+tensor(0.5006)
+init. error: tensor(-2.4001e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5238) tensor(-0.0108)
+tensor(0.5000)
+init. error: tensor(-2.1816e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5263) tensor(-0.0050)
+tensor(0.4996)
+init. error: tensor(-2.5622e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5221) tensor(0.0048)
+Epoch 1, Min Loss: 0.00031218187503411225, Max Loss: 0.0003122659594420523,Mean Loss: 0.00031222756206633243
+Epoch 2, Min Loss: 0.0003120672510596134, Max Loss: 0.00031210295618493036,Mean Loss: 0.00031208404527265316
+Epoch 3, Min Loss: 0.0003122557514091936, Max Loss: 0.000312309960812672,Mean Loss: 0.0003122735349632265
+Epoch 4, Min Loss: 0.0003122094098838123, Max Loss: 0.0003122926436442405,Mean Loss: 0.00031223801782903594
+Epoch 5, Min Loss: 0.0003120716438756189, Max Loss: 0.00031213637962289645,Mean Loss: 0.0003121036041197046
+Epoch 6, Min Loss: 0.00031200424578572527, Max Loss: 0.0003120805846836437,Mean Loss: 0.00031204812256369204
+Epoch 7, Min Loss: 0.00031223532234610294, Max Loss: 0.0003122954796106708,Mean Loss: 0.00031227547764497044
+Epoch 8, Min Loss: 0.00031208542512159665, Max Loss: 0.0003122029678697117,Mean Loss: 0.00031214627450634356
+Epoch 9, Min Loss: 0.0003121632768977609, Max Loss: 0.00031223594513597687,Mean Loss: 0.00031220626277034464
+Epoch 10, Min Loss: 0.0003121650693851463, Max Loss: 0.00031224627003937115,Mean Loss: 0.0003122084221061363
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02017105130304606
+total mae: 0.0700741343651757
+total max_ae: 1.0403294563293457
+total mape: 228.71481492338447
+Matrix 1 - mse: 0.011528758332133293, mae: 0.047740161418914795, max_ae: 0.6319652795791626, mape: 96.68927001953125
+Matrix 2 - mse: 0.029947424307465553, mae: 0.09765515476465225, max_ae: 0.9513593912124634, mape: 326.96209716796875
+Matrix 3 - mse: 0.012172560207545757, mae: 0.08185716718435287, max_ae: 0.2345583438873291, mape: 76.2724838256836
+Matrix 4 - mse: 0.01727817766368389, mae: 0.10814560204744339, max_ae: 0.2429729551076889, mape: 1666.46240234375
+Matrix 5 - mse: 0.018805157393217087, mae: 0.052899181842803955, max_ae: 1.0403294563293457, mape: 202.93080139160156
+Matrix 6 - mse: 2.1432554342393217e-10, mae: 1.1254101991653442e-05, max_ae: 2.633035182952881e-05, mape: 0.028418133035302162
+--------------------------------------------------
+ITERATION:  45 0
+tensor(0.5000)
+init. error: tensor(-2.1685e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5248) tensor(-0.0048)
+tensor(0.4988)
+init. error: tensor(-2.0340e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5243) tensor(-0.0010)
+tensor(0.4996)
+init. error: tensor(-2.2374e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5194) tensor(0.0032)
+Epoch 1, Min Loss: 0.00030556521864427016, Max Loss: 0.0003056163772921245,Mean Loss: 0.00030558832548416564
+Epoch 2, Min Loss: 0.00030544785058908563, Max Loss: 0.00030549107283666126,Mean Loss: 0.000305469665920756
+Epoch 3, Min Loss: 0.0003055161459208949, Max Loss: 0.0003055407235823088,Mean Loss: 0.00030552930901396445
+Epoch 4, Min Loss: 0.0003054055764153416, Max Loss: 0.00030546784214018275,Mean Loss: 0.0003054422817636691
+Epoch 5, Min Loss: 0.0003054450226140357, Max Loss: 0.00030549295317537195,Mean Loss: 0.00030546437216475987
+Epoch 6, Min Loss: 0.00030555140072620655, Max Loss: 0.00030561979348331126,Mean Loss: 0.0003055863186563594
+Epoch 7, Min Loss: 0.0003054511555399635, Max Loss: 0.00030549506015199696,Mean Loss: 0.0003054691767984633
+Epoch 8, Min Loss: 0.0003054267835510933, Max Loss: 0.00030545210388307413,Mean Loss: 0.0003054374975130118
+Epoch 9, Min Loss: 0.00030545464517821444, Max Loss: 0.0003055417573838095,Mean Loss: 0.00030549491558372343
+Epoch 10, Min Loss: 0.00030555522758652834, Max Loss: 0.0003056013237040133,Mean Loss: 0.00030557499758147497
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.019112186185739337
+total mae: 0.06005000111976855
+total max_ae: 1.0403603315353394
+total mape: 193.83218332494502
+Matrix 1 - mse: 0.010476320050656796, mae: 0.04051148146390915, max_ae: 0.5820096731185913, mape: 106.60188293457031
+Matrix 2 - mse: 0.029645975679159164, mae: 0.0853641927242279, max_ae: 0.9512974619865417, mape: 282.66015625
+Matrix 3 - mse: 0.019885241985321045, mae: 0.10612960159778595, max_ae: 0.429363876581192, mape: 128.119384765625
+Matrix 4 - mse: 0.022209657356142998, mae: 0.11817193031311035, max_ae: 0.35786867141723633, mape: 1667.130615234375
+Matrix 5 - mse: 0.014093524776399136, mae: 0.03560229763388634, max_ae: 1.0403603315353394, mape: 55.521934509277344
+Matrix 6 - mse: 9.464352912491591e-11, mae: 8.350424650416244e-06, max_ae: 1.7950311303138733e-05, mape: 0.022100308910012245
+--------------------------------------------------
+ITERATION:  46 0
+tensor(0.4989)
+init. error: tensor(-1.9110e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5265) tensor(-0.0062)
+tensor(0.5004)
+init. error: tensor(-1.6733e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5264) tensor(-0.0086)
+tensor(0.5008)
+init. error: tensor(-1.9192e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5224) tensor(0.0032)
+Epoch 1, Min Loss: 0.0002999641339736278, Max Loss: 0.0002999931284928681,Mean Loss: 0.00029997560254513294
+Epoch 2, Min Loss: 0.0002999330169770045, Max Loss: 0.0002999537994649153,Mean Loss: 0.00029994432585733207
+Epoch 3, Min Loss: 0.0003000275678803712, Max Loss: 0.0003000562912900601,Mean Loss: 0.00030004089137533304
+Epoch 4, Min Loss: 0.0002999547492880463, Max Loss: 0.00029997181635326,Mean Loss: 0.00029996402049880237
+Epoch 5, Min Loss: 0.0002999453189311886, Max Loss: 0.00030000562993613635,Mean Loss: 0.00029997833401537494
+Epoch 6, Min Loss: 0.0002999838367612731, Max Loss: 0.00030001067700881844,Mean Loss: 0.00029999644357959105
+Epoch 7, Min Loss: 0.0002998354319687868, Max Loss: 0.00029986488918789546,Mean Loss: 0.0002998477963695902
+Epoch 8, Min Loss: 0.0002999944277542773, Max Loss: 0.00030000974186292364,Mean Loss: 0.00030000067929614904
+Epoch 9, Min Loss: 0.0002999775320695421, Max Loss: 0.0003000137873291831,Mean Loss: 0.00029999570100164855
+Epoch 10, Min Loss: 0.00029995017958273345, Max Loss: 0.0002999809009625784,Mean Loss: 0.0002999671265869161
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009886962027201768
+total mae: 0.031326386690248766
+total max_ae: 0.9767481088638306
+total mape: 110.94012186578946
+Matrix 1 - mse: 0.007042285054922104, mae: 0.02215948887169361, max_ae: 0.7261440753936768, mape: 44.79609680175781
+Matrix 2 - mse: 0.013352644629776478, mae: 0.040798548609018326, max_ae: 0.8143779039382935, mape: 182.60260009765625
+Matrix 3 - mse: 0.012156544253230095, mae: 0.09407379478216171, max_ae: 0.20298051834106445, mape: 151.03680419921875
+Matrix 4 - mse: 0.012139529921114445, mae: 0.09417302906513214, max_ae: 0.20299336314201355, mape: 804.1239013671875
+Matrix 5 - mse: 0.008049036376178265, mae: 0.01903054304420948, max_ae: 0.9767481088638306, mape: 26.121259689331055
+Matrix 6 - mse: 2.5097088296455183e-10, mae: 1.3889000001654495e-05, max_ae: 2.5294721126556396e-05, mape: 0.036346595734357834
+--------------------------------------------------
+ITERATION:  47 0
+tensor(0.5008)
+init. error: tensor(-1.3094e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5261) tensor(-0.0088)
+tensor(0.4997)
+init. error: tensor(-1.2099e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5236) tensor(-0.0040)
+tensor(0.4998)
+init. error: tensor(-1.4690e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5186) tensor(-0.0022)
+Epoch 1, Min Loss: 0.0002953270641691946, Max Loss: 0.00029535068643020304,Mean Loss: 0.0002953391038172596
+Epoch 2, Min Loss: 0.0002952788537140073, Max Loss: 0.00029530085173129755,Mean Loss: 0.00029528778690572703
+Epoch 3, Min Loss: 0.00029534779416586746, Max Loss: 0.00029536632415696953,Mean Loss: 0.00029535668589312017
+Epoch 4, Min Loss: 0.0002953446554422672, Max Loss: 0.00029536268095826967,Mean Loss: 0.00029535192481952436
+Epoch 5, Min Loss: 0.0002953087487463128, Max Loss: 0.00029533169794994314,Mean Loss: 0.0002953220820095636
+Epoch 6, Min Loss: 0.00029540424013717575, Max Loss: 0.00029543819911322474,Mean Loss: 0.00029541909380549625
+Epoch 7, Min Loss: 0.00029536418781596856, Max Loss: 0.00029538759782755713,Mean Loss: 0.00029537465245533986
+Epoch 8, Min Loss: 0.000295334457878363, Max Loss: 0.00029535854688040735,Mean Loss: 0.00029534736664517196
+Epoch 9, Min Loss: 0.00029536485368562707, Max Loss: 0.0002953868801169875,Mean Loss: 0.0002953792027509621
+Epoch 10, Min Loss: 0.00029533844419028744, Max Loss: 0.00029536479224766287,Mean Loss: 0.00029535069815433864
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.01911225697007005
+total mae: 0.06004716283685548
+total max_ae: 1.0403352975845337
+total mape: 193.81738960138028
+Matrix 1 - mse: 0.010476263239979744, mae: 0.04050856828689575, max_ae: 0.5820209383964539, mape: 106.59383392333984
+Matrix 2 - mse: 0.029646366834640503, mae: 0.08536133170127869, max_ae: 0.951346755027771, mape: 282.642578125
+Matrix 3 - mse: 0.0198857132345438, mae: 0.10612805187702179, max_ae: 0.4293658435344696, mape: 128.12428283691406
+Matrix 4 - mse: 0.022209862247109413, mae: 0.11817248910665512, max_ae: 0.35787439346313477, mape: 1667.0762939453125
+Matrix 5 - mse: 0.0140930050984025, mae: 0.035599175840616226, max_ae: 1.0403352975845337, mape: 55.49753952026367
+Matrix 6 - mse: 7.97849702971476e-11, mae: 8.029863238334656e-06, max_ae: 1.582503318786621e-05, mape: 0.02090388350188732
+--------------------------------------------------
+ITERATION:  48 0
+tensor(0.5012)
+init. error: tensor(-1.3093e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5246) tensor(0.0003)
+tensor(0.5012)
+init. error: tensor(-1.1131e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5242) tensor(-0.0047)
+tensor(0.4995)
+init. error: tensor(-1.3182e-05, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5174) tensor(0.0012)
+Epoch 1, Min Loss: 0.00029145972126230405, Max Loss: 0.0002914767464752536,Mean Loss: 0.00029146731233959197
+Epoch 2, Min Loss: 0.0002914931579009424, Max Loss: 0.00029151611576421356,Mean Loss: 0.0002915070209312177
+Epoch 3, Min Loss: 0.0002914917066211708, Max Loss: 0.0002915067786247274,Mean Loss: 0.00029150127510268054
+Epoch 4, Min Loss: 0.0002914997370606947, Max Loss: 0.00029151534051449676,Mean Loss: 0.00029150669031902457
+Epoch 5, Min Loss: 0.0002914504364762233, Max Loss: 0.0002914656712812023,Mean Loss: 0.0002914590343337584
+Epoch 6, Min Loss: 0.0002914814135415465, Max Loss: 0.00029149685528491323,Mean Loss: 0.0002914895772125617
+Epoch 7, Min Loss: 0.00029146729384185873, Max Loss: 0.00029148010915666504,Mean Loss: 0.0002914731905346559
+Epoch 8, Min Loss: 0.0002914679311947465, Max Loss: 0.0002914847550892599,Mean Loss: 0.0002914789485765818
+Epoch 9, Min Loss: 0.00029146750735336825, Max Loss: 0.00029149203986738383,Mean Loss: 0.0002914820275151412
+Epoch 10, Min Loss: 0.0002914987592971662, Max Loss: 0.00029151319424079085,Mean Loss: 0.00029150524211971155
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.015790374551029124
+total mae: 0.05874491092343129
+total max_ae: 0.8229687213897705
+total mape: 187.02680261039185
+Matrix 1 - mse: 0.009287555702030659, mae: 0.03834910690784454, max_ae: 0.6319661140441895, mape: 98.76085662841797
+Matrix 2 - mse: 0.0241770651191473, mae: 0.08400081843137741, max_ae: 0.8229687213897705, mape: 229.0409698486328
+Matrix 3 - mse: 0.016407055780291557, mae: 0.10854151099920273, max_ae: 0.22812160849571228, mape: 151.07876586914062
+Matrix 4 - mse: 0.017999105155467987, mae: 0.11495169997215271, max_ae: 0.24669840931892395, mape: 1740.8182373046875
+Matrix 5 - mse: 0.010796934366226196, mae: 0.03663402050733566, max_ae: 0.7112194299697876, mape: 171.42628479003906
+Matrix 6 - mse: 8.687184305244955e-11, mae: 8.02166778157698e-06, max_ae: 1.7277896404266357e-05, mape: 0.018496191129088402
+--------------------------------------------------
+ITERATION:  49 0
+tensor(0.5011)
+init. error: tensor(-9.8005e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0002, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5224) tensor(-0.0147)
+tensor(0.4992)
+init. error: tensor(-8.5206e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5191) tensor(-0.0067)
+tensor(0.4995)
+init. error: tensor(-9.6364e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5155) tensor(0.0008)
+Epoch 1, Min Loss: 0.00028826342532073683, Max Loss: 0.00028827483628488513,Mean Loss: 0.0002882699710175342
+Epoch 2, Min Loss: 0.0002882418467495394, Max Loss: 0.00028825205155007206,Mean Loss: 0.0002882472675878301
+Epoch 3, Min Loss: 0.00028825406298295197, Max Loss: 0.0002882645454643938,Mean Loss: 0.0002882581496490822
+Epoch 4, Min Loss: 0.0002882041666954676, Max Loss: 0.00028821597273196044,Mean Loss: 0.00028821170973664914
+Epoch 5, Min Loss: 0.000288239974021486, Max Loss: 0.00028825288329988014,Mean Loss: 0.00028824645597568275
+Epoch 6, Min Loss: 0.0002882169899985041, Max Loss: 0.0002882266098383234,Mean Loss: 0.00028822350512730093
+Epoch 7, Min Loss: 0.0002882353084228509, Max Loss: 0.00028825391030551297,Mean Loss: 0.00028824395569981457
+Epoch 8, Min Loss: 0.0002882501730769502, Max Loss: 0.0002882656614889135,Mean Loss: 0.0002882562817901281
+Epoch 9, Min Loss: 0.00028822110444431714, Max Loss: 0.000288234432974083,Mean Loss: 0.0002882264831708762
+Epoch 10, Min Loss: 0.00028823673196280844, Max Loss: 0.00028824604095284136,Mean Loss: 0.00028823995775751807
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.02017123360419352
+total mae: 0.07007025501349223
+total max_ae: 1.040357232093811
+total mape: 228.68638255451822
+Matrix 1 - mse: 0.011529121547937393, mae: 0.047735847532749176, max_ae: 0.6319478750228882, mape: 96.66810607910156
+Matrix 2 - mse: 0.02994714491069317, mae: 0.09765135496854782, max_ae: 0.9513334035873413, mape: 326.9270935058594
+Matrix 3 - mse: 0.012172029353678226, mae: 0.08184996992349625, max_ae: 0.2345564365386963, mape: 76.25627899169922
+Matrix 4 - mse: 0.017279300838708878, mae: 0.10814929753541946, max_ae: 0.2429957538843155, mape: 1666.4002685546875
+Matrix 5 - mse: 0.018806111067533493, mae: 0.052895840257406235, max_ae: 1.040357232093811, mape: 202.90188598632812
+Matrix 6 - mse: 9.489788815875144e-11, mae: 8.773617992119398e-06, max_ae: 1.4644116163253784e-05, mape: 0.018542809411883354
+--------------------------------------------------
+ITERATION:  50 0
+tensor(0.4999)
+init. error: tensor(-8.7433e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5233) tensor(-0.0074)
+tensor(0.4994)
+init. error: tensor(-7.8629e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5214) tensor(-0.0059)
+tensor(0.5002)
+init. error: tensor(-8.9157e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0001, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5180) tensor(-0.0015)
+Epoch 1, Min Loss: 0.00028548953985763515, Max Loss: 0.0002854997244273691,Mean Loss: 0.0002854957025709643
+Epoch 2, Min Loss: 0.00028549316878260974, Max Loss: 0.0002855041800611367,Mean Loss: 0.00028549722137334626
+Epoch 3, Min Loss: 0.0002854981011393888, Max Loss: 0.0002855068633391816,Mean Loss: 0.0002855014573345832
+Epoch 4, Min Loss: 0.00028548542795925623, Max Loss: 0.00028549296656069757,Mean Loss: 0.0002854900704255266
+Epoch 5, Min Loss: 0.0002854791831447763, Max Loss: 0.00028548670870931096,Mean Loss: 0.00028548257739674065
+Epoch 6, Min Loss: 0.000285510240678684, Max Loss: 0.000285520015874639,Mean Loss: 0.0002855152688209087
+Epoch 7, Min Loss: 0.00028547378289996183, Max Loss: 0.0002854795407335366,Mean Loss: 0.00028547663246375373
+Epoch 8, Min Loss: 0.00028548821634733504, Max Loss: 0.0002854984558446915,Mean Loss: 0.00028549234383852377
+Epoch 9, Min Loss: 0.00028548540272619395, Max Loss: 0.00028549103532982627,Mean Loss: 0.000285488725999012
+Epoch 10, Min Loss: 0.00028549871245164767, Max Loss: 0.0002855089960379704,Mean Loss: 0.00028550446633930746
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020111138886925055
+total mae: 0.06747321516534269
+total max_ae: 0.8229461908340454
+total mape: 151.06162566210503
+Matrix 1 - mse: 0.011225701309740543, mae: 0.04344138130545616, max_ae: 0.6319611072540283, mape: 98.81752014160156
+Matrix 2 - mse: 0.02909058891236782, mae: 0.09150998294353485, max_ae: 0.8229461908340454, mape: 187.2779998779297
+Matrix 3 - mse: 0.01852215826511383, mae: 0.11137772351503372, max_ae: 0.300908625125885, mape: 150.7131805419922
+Matrix 4 - mse: 0.022130532190203667, mae: 0.11312083154916763, max_ae: 0.502013087272644, mape: 913.447998046875
+Matrix 5 - mse: 0.02052311599254608, mae: 0.060913726687431335, max_ae: 0.7111806869506836, mape: 125.13002014160156
+Matrix 6 - mse: 4.920626059390365e-11, mae: 5.897600203752518e-06, max_ae: 1.3101845979690552e-05, mape: 0.01429235190153122
+--------------------------------------------------
+ITERATION:  51 0
+tensor(0.5010)
+init. error: tensor(-5.7037e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-8.8134e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5174) tensor(-0.0075)
+tensor(0.4995)
+init. error: tensor(-4.7061e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-5.5982e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5138) tensor(-0.0026)
+tensor(0.5003)
+init. error: tensor(-5.7335e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-7.2004e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5119) tensor(0.0022)
+Epoch 1, Min Loss: 0.0002831308886664921, Max Loss: 0.0002831382165624643,Mean Loss: 0.0002831348136662517
+Epoch 2, Min Loss: 0.00028312299095484896, Max Loss: 0.0002831307423177142,Mean Loss: 0.00028312548862606437
+Epoch 3, Min Loss: 0.0002831344002637985, Max Loss: 0.0002831409271904035,Mean Loss: 0.0002831371340813029
+Epoch 4, Min Loss: 0.00028312389343167335, Max Loss: 0.0002831295513563029,Mean Loss: 0.00028312640863443166
+Epoch 5, Min Loss: 0.0002831533706679438, Max Loss: 0.00028316156979385113,Mean Loss: 0.00028315684673452647
+Epoch 6, Min Loss: 0.00028315437414018496, Max Loss: 0.0002831627554092667,Mean Loss: 0.00028315946832093846
+Epoch 7, Min Loss: 0.00028314520592877783, Max Loss: 0.00028315119278452146,Mean Loss: 0.0002831496946530828
+Epoch 8, Min Loss: 0.0002831463619542589, Max Loss: 0.0002831529700594208,Mean Loss: 0.0002831501343620025
+Epoch 9, Min Loss: 0.00028313331949176846, Max Loss: 0.0002831391798702361,Mean Loss: 0.00028313593891581815
+Epoch 10, Min Loss: 0.00028313384686968915, Max Loss: 0.0002831396960855286,Mean Loss: 0.0002831369462382029
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009689029590388167
+total mae: 0.035719440474837647
+total max_ae: 0.7979146242141724
+total mape: 129.87013835585293
+Matrix 1 - mse: 0.00916131492704153, mae: 0.02799786999821663, max_ae: 0.7979146242141724, mape: 73.58000183105469
+Matrix 2 - mse: 0.010261503048241138, mae: 0.04257107153534889, max_ae: 0.46434664726257324, mape: 133.9986114501953
+Matrix 3 - mse: 0.014755296520888805, mae: 0.10573656857013702, max_ae: 0.26528599858283997, mape: 177.22491455078125
+Matrix 4 - mse: 0.015411635860800743, mae: 0.10910727828741074, max_ae: 0.24180413782596588, mape: 1570.21826171875
+Matrix 5 - mse: 0.00883085560053587, mae: 0.025090385228395462, max_ae: 0.7202945351600647, mape: 131.7904052734375
+Matrix 6 - mse: 9.482542355498946e-12, mae: 2.2317283310258063e-06, max_ae: 7.507391273975372e-06, mape: 0.008885607123374939
+--------------------------------------------------
+ITERATION:  52 0
+tensor(0.4995)
+init. error: tensor(-5.0994e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-6.5010e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5157) tensor(-0.0037)
+tensor(0.4996)
+init. error: tensor(-4.5502e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-5.5675e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5125) tensor(-0.0038)
+tensor(0.5008)
+init. error: tensor(-5.4763e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-7.1618e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5108) tensor(0.0051)
+Epoch 1, Min Loss: 0.0002811124884923302, Max Loss: 0.0002811162388485749,Mean Loss: 0.0002811145739304535
+Epoch 2, Min Loss: 0.0002811280113228237, Max Loss: 0.0002811332435403219,Mean Loss: 0.00028113089135906364
+Epoch 3, Min Loss: 0.0002811160905060516, Max Loss: 0.0002811216395107325,Mean Loss: 0.00028111824104336123
+Epoch 4, Min Loss: 0.0002811008986908813, Max Loss: 0.0002811046303304962,Mean Loss: 0.000281103495176958
+Epoch 5, Min Loss: 0.0002811148596644577, Max Loss: 0.00028112087093566847,Mean Loss: 0.0002811175773595511
+Epoch 6, Min Loss: 0.0002811043675197878, Max Loss: 0.00028110855533652055,Mean Loss: 0.00028110579441220174
+Epoch 7, Min Loss: 0.00028109616837501027, Max Loss: 0.0002811016263578628,Mean Loss: 0.0002810996432623042
+Epoch 8, Min Loss: 0.0002811216216665647, Max Loss: 0.0002811277934227648,Mean Loss: 0.000281124738682709
+Epoch 9, Min Loss: 0.00028110014537993303, Max Loss: 0.0002811072066486996,Mean Loss: 0.0002811045319792268
+Epoch 10, Min Loss: 0.00028108759394836257, Max Loss: 0.00028109197309805837,Mean Loss: 0.0002810896828241964
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.009688971449662544
+total mae: 0.035718509198001964
+total max_ae: 0.7979171872138977
+total mape: 129.86130188260705
+Matrix 1 - mse: 0.009161337278783321, mae: 0.027996396645903587, max_ae: 0.7979171872138977, mape: 73.57431030273438
+Matrix 2 - mse: 0.010261374525725842, mae: 0.0425705648958683, max_ae: 0.46437931060791016, mape: 133.99037170410156
+Matrix 3 - mse: 0.014756020158529282, mae: 0.10573819279670715, max_ae: 0.2652908265590668, mape: 177.22926330566406
+Matrix 4 - mse: 0.015411893837153912, mae: 0.10910824686288834, max_ae: 0.2418246865272522, mape: 1570.145751953125
+Matrix 5 - mse: 0.008830654434859753, mae: 0.025089148432016373, max_ae: 0.7202757596969604, mape: 131.7754669189453
+Matrix 6 - mse: 6.17779369327387e-11, mae: 6.590131761186058e-06, max_ae: 1.6205012798309326e-05, mape: 0.019098300486803055
+--------------------------------------------------
+ITERATION:  53 0
+tensor(0.4997)
+init. error: tensor(-3.8382e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-5.4670e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5123) tensor(-0.0042)
+tensor(0.5004)
+init. error: tensor(-3.6370e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-5.2044e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5118) tensor(-0.0032)
+tensor(0.4992)
+init. error: tensor(-4.3807e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-6.5610e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5091) tensor(0.0005)
+Epoch 1, Min Loss: 0.00027934104959650497, Max Loss: 0.00027934400440182656,Mean Loss: 0.00027934259866189547
+Epoch 2, Min Loss: 0.00027931938952020145, Max Loss: 0.00027932341243707857,Mean Loss: 0.00027932196461001216
+Epoch 3, Min Loss: 0.00027931532842460325, Max Loss: 0.00027931829475056713,Mean Loss: 0.0002793174329976873
+Epoch 4, Min Loss: 0.0002793136264309034, Max Loss: 0.00027931651354026104,Mean Loss: 0.00027931536207670947
+Epoch 5, Min Loss: 0.0002793222932199559, Max Loss: 0.0002793248750866961,Mean Loss: 0.00027932325432495644
+Epoch 6, Min Loss: 0.0002793010857343143, Max Loss: 0.0002793040208359857,Mean Loss: 0.0002793027351457576
+Epoch 7, Min Loss: 0.0002793286354139445, Max Loss: 0.00027933399125243646,Mean Loss: 0.00027933200358350494
+Epoch 8, Min Loss: 0.0002793268646292644, Max Loss: 0.0002793308260838296,Mean Loss: 0.00027932831574021405
+Epoch 9, Min Loss: 0.00027932136073599085, Max Loss: 0.0002793268433128922,Mean Loss: 0.00027932425053007836
+Epoch 10, Min Loss: 0.00027932490548385045, Max Loss: 0.00027932819261932584,Mean Loss: 0.00027932603645235165
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.015790264247842238
+total mae: 0.05874224989057023
+total max_ae: 0.822948694229126
+total mape: 187.00859704376234
+Matrix 1 - mse: 0.009287531487643719, mae: 0.03834686428308487, max_ae: 0.6319361329078674, mape: 98.75093841552734
+Matrix 2 - mse: 0.024176863953471184, mae: 0.08399781584739685, max_ae: 0.822948694229126, mape: 229.01473999023438
+Matrix 3 - mse: 0.016407955437898636, mae: 0.10854096710681915, max_ae: 0.22815124690532684, mape: 151.0764617919922
+Matrix 4 - mse: 0.01799805834889412, mae: 0.11494921147823334, max_ae: 0.24670332670211792, mape: 1740.68115234375
+Matrix 5 - mse: 0.010796823538839817, mae: 0.03663096949458122, max_ae: 0.7111847400665283, mape: 171.41729736328125
+Matrix 6 - mse: 2.208102277412305e-11, mae: 4.147365871176589e-06, max_ae: 8.087605237960815e-06, mape: 0.010317926295101643
+--------------------------------------------------
+ITERATION:  54 0
+tensor(0.5003)
+init. error: tensor(-2.9564e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-3.5935e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5118) tensor(-0.0035)
+tensor(0.4995)
+init. error: tensor(-2.6648e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-3.1441e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5085) tensor(-0.0044)
+tensor(0.5006)
+init. error: tensor(-3.2402e-06, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-3.9463e-05, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5077) tensor(-0.0020)
+Epoch 1, Min Loss: 0.0002777871595154579, Max Loss: 0.0002777891300818421,Mean Loss: 0.0002777879009392436
+Epoch 2, Min Loss: 0.00027777031299756476, Max Loss: 0.0002777741939905881,Mean Loss: 0.00027777203301420565
+Epoch 3, Min Loss: 0.00027777206192160036, Max Loss: 0.0002777748767890496,Mean Loss: 0.0002777734850244742
+Epoch 4, Min Loss: 0.0002777727609374689, Max Loss: 0.00027777617551348735,Mean Loss: 0.00027777470385735966
+Epoch 5, Min Loss: 0.00027776584989626276, Max Loss: 0.00027776770938521523,Mean Loss: 0.0002777666253204745
+Epoch 6, Min Loss: 0.00027777485013731244, Max Loss: 0.0002777774052016965,Mean Loss: 0.00027777605817532456
+Epoch 7, Min Loss: 0.0002777377815583456, Max Loss: 0.00027773914612649187,Mean Loss: 0.0002777385441463882
+Epoch 8, Min Loss: 0.000277788888817187, Max Loss: 0.00027779023551403854,Mean Loss: 0.0002777894917068292
+Epoch 9, Min Loss: 0.00027777987483542185, Max Loss: 0.00027778234692269095,Mean Loss: 0.00027778157083867684
+Epoch 10, Min Loss: 0.00027777315559738387, Max Loss: 0.00027777469654278824,Mean Loss: 0.000277773843704278
+--------------------------------------------------
+NEW REDISTRIBUTION
+total mse: 0.020171261210676767
+total mae: 0.07006849047203345
+total max_ae: 1.040347933769226
+total mape: 228.68901178236493
+Matrix 1 - mse: 0.011528952978551388, mae: 0.04773370176553726, max_ae: 0.6319389343261719, mape: 96.6693344116211
+Matrix 2 - mse: 0.029947474598884583, mae: 0.09765040874481201, max_ae: 0.9513159990310669, mape: 326.9396057128906
+Matrix 3 - mse: 0.012172547169029713, mae: 0.08185284584760666, max_ae: 0.23455315828323364, mape: 76.26744842529297
+Matrix 4 - mse: 0.017279187217354774, mae: 0.10814950615167618, max_ae: 0.24297960102558136, mape: 1666.3170166015625
+Matrix 5 - mse: 0.01880580559372902, mae: 0.0528922975063324, max_ae: 1.040347933769226, mape: 202.888916015625
+Matrix 6 - mse: 2.40319986133386e-11, mae: 3.8011930882930756e-06, max_ae: 1.0404735803604126e-05, mape: 0.009643230587244034
+--------------------------------------------------
+0.0002777739270503915
+0.00027777315559738387
+0.0002777736000346351
+0.0002777737313387539
+0.0002777740226053935
+0.0002777737709893898
+0.00027777344473612
+0.0002777741988869177
+0.00027777469654278824
+0.0002777738892610064
+(0.009886938265123836, 0.03132085597615537, 0.976740837097168, 117.09217522530004, [(0.00704226503148675, 0.022153330966830254, 0.7261353731155396, 59.39152145385742), (0.01335259061306715, 0.04079362377524376, 0.8143794536590576, 208.93238830566406), (0.012156338430941105, 0.0940714105963707, 0.20298027992248535, 104.25289154052734), (0.012139133177697659, 0.09417405724525452, 0.20297019183635712, 146.8068084716797), (0.008049140684306622, 0.01902426965534687, 0.976740837097168, 23.99536895751953), (2.3650992622692435e-11, 3.756023943424225e-06, 1.0192394256591797e-05, 0.009598865173757076)])
+(0.02017126125738887, 0.07006849022290222, 1.040347933769226, 204.77198618766826, [(0.011528952978551388, 0.04773370176553726, 0.6319389343261719, 123.27693939208984), (0.029947474598884583, 0.09765040874481201, 0.9513159990310669, 294.01593017578125), (0.012172548100352287, 0.08185283839702606, 0.23455315828323364, 134.12164306640625), (0.017279189079999924, 0.10814949870109558, 0.24297960102558136, 289.6254577636719), (0.01880580559372902, 0.0528922975063324, 1.040347933769226, 188.9676513671875), (2.40319986133386e-11, 3.8011930882930756e-06, 1.0404735803604126e-05, 0.009645577520132065)])
+(0.019112333421926534, 0.060043886762264194, 1.0403468608856201, 167.00608431348965, [(0.010476418770849705, 0.040504585951566696, 0.5819723606109619, 121.32276153564453), (0.029646318405866623, 0.08535885065793991, 0.9513195753097534, 244.2853546142578), (0.01988622173666954, 0.10613031685352325, 0.4293646812438965, 485.029052734375), (0.022207418456673622, 0.1181650385260582, 0.3578612208366394, 154.45355224609375), (0.014093421399593353, 0.03559555485844612, 1.0403468608856201, 53.95454025268555), (2.482352171040425e-11, 3.762356982406345e-06, 1.158192753791809e-05, 0.009654789231717587)])
+(0.014237136769927569, 0.04310912122344647, 1.196357011795044, 111.7476558646298, [(0.007905852049589157, 0.03037545643746853, 0.5003842115402222, 73.611572265625), (0.022736432030797005, 0.059407200664281845, 1.196357011795044, 157.29595947265625), (0.014806524850428104, 0.09312646836042404, 0.31584081053733826, 563.1165771484375), (0.018861372023820877, 0.09798283874988556, 0.4088085889816284, 271.8520202636719), (0.008155813440680504, 0.024179136380553246, 1.0259511470794678, 33.836753845214844), (2.0987855550713697e-11, 3.667920964289806e-06, 9.821727871894836e-06, 0.009828584268689156)])
+(0.009533981139770142, 0.03417333621286486, 0.7673162817955017, 124.60698013294142, [(0.008669069968163967, 0.025630300864577293, 0.7529698610305786, 53.81885528564453), (0.012483470141887665, 0.04506964609026909, 0.7673162817955017, 172.20208740234375), (0.014553828164935112, 0.10223957151174545, 0.2077622413635254, 210.16932678222656), (0.01988809183239937, 0.10886640846729279, 0.4542528986930847, 168.09417724609375), (0.0025002651382237673, 0.01452857069671154, 0.31835806369781494, 181.0923309326172), (2.6349037535178255e-11, 3.993883638031548e-06, 1.1974945664405823e-05, 0.010909554548561573)])
+(0.015790303922002626, 0.05874189105645881, 0.8229509592056274, 169.82924398251245, [(0.009287543594837189, 0.03834596276283264, 0.6319484710693359, 98.61539459228516), (0.02417689934372902, 0.08399789780378342, 0.8229509592056274, 228.2109375), (0.01640763133764267, 0.10853966325521469, 0.2281479388475418, 196.5830841064453), (0.017998207360506058, 0.11494941264390945, 0.2467002421617508, 521.4425048828125), (0.010796982795000076, 0.03663092479109764, 0.7111969590187073, 173.98756408691406), (2.46347386934076e-11, 3.7972815789544256e-06, 1.078285276889801e-05, 0.009876377880573273)])
+(0.016292299378645386, 0.04923484226165178, 1.0403482913970947, 138.9086243055582, [(0.008390995673835278, 0.030578291043639183, 0.6017078757286072, 79.92345428466797), (0.024577071890234947, 0.06932798773050308, 0.9513181447982788, 211.54544067382812), (0.012929754331707954, 0.09652718901634216, 0.26476216316223145, 285.6381530761719), (0.014933385886251926, 0.10341496020555496, 0.26476725935935974, 563.5756225585938), (0.016272597014904022, 0.03682336583733559, 1.0403482913970947, 48.505001068115234), (2.7118113310464764e-11, 3.948994162783492e-06, 1.1865049600601196e-05, 0.010789739899337292)])
+(0.020111019459520384, 0.06747131014793582, 0.8229544162750244, 140.6353655586383, [(0.011225622147321701, 0.04343929514288902, 0.6319483518600464, 95.65096282958984), (0.029090311378240585, 0.09150833636522293, 0.8229544162750244, 193.31349182128906), (0.018521912395954132, 0.11137686669826508, 0.300912082195282, 153.87901306152344), (0.022130297496914864, 0.11312372982501984, 0.5019835233688354, 199.08343505859375), (0.020523345097899437, 0.06091102957725525, 0.7111988067626953, 116.94607543945312), (2.5224003441515208e-11, 3.6735088997374987e-06, 1.1418014764785767e-05, 0.010042142122983932)])
+(0.018595267239156242, 0.06847342283026069, 0.9767541885375977, 216.46435894094634, [(0.011198494583368301, 0.046981677412986755, 0.6019033193588257, 102.77540588378906), (0.026895318180322647, 0.09346625208854675, 0.8143337965011597, 303.12188720703125), (0.01728970929980278, 0.11263308674097061, 0.2458769530057907, 154.9582977294922), (0.015093035995960236, 0.10461027175188065, 0.24589209258556366, 170.9221954345703), (0.017210980877280235, 0.05308607220649719, 0.9767541885375977, 310.58770751953125), (2.3112995892193844e-11, 3.774929837163654e-06, 1.0376796126365662e-05, 0.009063015691936016)])
+(0.00968888453381379, 0.035717695011867286, 0.7979062795639038, 273.88447596666055, [(0.009161309339106083, 0.027995429933071136, 0.7979062795639038, 73.46321105957031), (0.010261285118758678, 0.0425700806081295, 0.4643458425998688, 133.6209259033203), (0.014755669049918652, 0.1057373508810997, 0.26529043912887573, 11290.3583984375), (0.01541250292211771, 0.10911053419113159, 0.24183253943920135, 323.7032775878906), (0.008830363862216473, 0.025087611749768257, 0.7202773690223694, 130.95391845703125), (2.4683050742213553e-11, 3.605056690503261e-06, 1.1594966053962708e-05, 0.009403144009411335)])
