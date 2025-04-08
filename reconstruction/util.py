@@ -24,12 +24,12 @@ device = 0
 # https://discuss.pytorch.org/t/tensors-of-the-same-index-must-be-on-the-same-device-and-the-same-dtype-except-step-tensors-that-can-be-cpu-and-float32-notwithstanding/190335
 #torch.set_default_dtype(torch.float64)
 
-def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False,return_nets=False,old_redist=False):
+def evaluate(original, reconstruction,return_blackbox=False,tanh=False,cnn=False,return_nets=False,old_redist=False,model_type='fnn'):
     if cnn:
         return align_cnn.bruteforce_cnn_evaluate(original,reconstruction,tanh)
     else:
         #return evaluate_.evaluate_reconstruction_old(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets)
-        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets,old_redist=old_redist)
+        return evaluate_.evaluate_reconstruction(original, reconstruction,return_blackbox=return_blackbox,tanh=tanh,return_nets=return_nets,old_redist=old_redist, model_type=model_type)
 
 
 
@@ -173,12 +173,12 @@ class Population(nn.Module):
             self.subs = original
         #print(torch.tensor(ratios).mean())
     
-    def evaluate(self,net,tanh=False):
+    def evaluate(self,net,tanh=False, model_type='fnn'):
         # print(evaluate(net,self.subs[self.best],tanh=tanh))
         # return
         print("-"*50)
         print("NEW REDISTRIBUTION")
-        mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=False)
+        mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=False, model_type=model_type)
         print("total mse:", mse)
         print("total mae:", mae)
         print("total max_ae:", max_ae)

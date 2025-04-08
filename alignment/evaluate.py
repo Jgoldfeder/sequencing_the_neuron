@@ -1,5 +1,6 @@
 import torch
 import copy
+import sys
 from recon_evals import e_mae, e_layers_mae, e_max_ae, e_mse
 from standardize_align_new import Standardizer, SingleTransformerEncoderStandardizer
 
@@ -34,9 +35,10 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     reconstruction = reconstruction.cuda()
 
     #standardize network
+    print("model_type: ", model_type, file=sys.stderr)
     if model_type == 'trans':
-        std_reconstruction = SingleTransformerEncoderStandardizer(reconstruction, old_redist)
-        std_target = SingleTransformerEncoderStandardizer(original, old_redist)
+        std_reconstruction = SingleTransformerEncoderStandardizer(reconstruction.encoder_layer)
+        std_target = SingleTransformerEncoderStandardizer(original.encoder_layer)
     else:
         std_reconstruction = Standardizer(reconstruction, old_redist)
         std_target = Standardizer(original, old_redist)
