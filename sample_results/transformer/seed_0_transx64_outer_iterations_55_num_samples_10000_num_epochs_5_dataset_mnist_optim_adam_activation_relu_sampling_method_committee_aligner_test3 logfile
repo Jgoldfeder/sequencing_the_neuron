@@ -1,0 +1,1312 @@
+Log file for:seed_0_transx64_outer_iterations_55_num_samples_10000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_test3
+seed: 0
+layer_dim: ['trans', '64']
+outer_iterations: 55
+given_num_samples: 10000
+num_epochs: 5
+dataset: mnist
+optim: adam
+activation: relu
+device cuda:0
+Transformer model
+Epoch 1, Loss: 2.066385089111328
+Accuracy on MNIST: 0.1094
+Epoch 2, Loss: 2.0347230896631876
+Accuracy on MNIST: 0.1059
+Epoch 3, Loss: 2.029139280573527
+Accuracy on MNIST: 0.1235
+Epoch 4, Loss: 2.025473746236165
+Accuracy on MNIST: 0.1681
+Epoch 5, Loss: 2.0230601004282636
+Accuracy on MNIST: 0.1520
+base_TransformerEncoder(
+  (encoder_layer): TransformerEncoderLayer(
+    (self_attn): MultiheadAttention(
+      (out_proj): NonDynamicallyQuantizableLinear(in_features=28, out_features=28, bias=True)
+    )
+    (linear1): Linear(in_features=28, out_features=64, bias=True)
+    (dropout): Dropout(p=0, inplace=False)
+    (linear2): Linear(in_features=64, out_features=28, bias=True)
+    (norm1): LayerNorm((28,), eps=1e-05, elementwise_affine=True)
+    (norm2): LayerNorm((28,), eps=1e-05, elementwise_affine=True)
+    (dropout1): Dropout(p=0, inplace=False)
+    (dropout2): Dropout(p=0, inplace=False)
+  )
+  (linear): Linear(in_features=28, out_features=10, bias=True)
+)
+weight mean magnitude per layer
+ITERATION:  0 0
+tensor(0.4994)
+init. error: tensor(-0.4906, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.6954, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5221) tensor(-0.0109)
+tensor(0.4999)
+init. error: tensor(-0.4906, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.7870, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6288) tensor(-0.0115)
+tensor(0.5004)
+init. error: tensor(-0.4903, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.8067, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6717) tensor(-0.0142)
+Epoch 1, Min Loss: 0.7091505992927669, Max Loss: 0.7779213024510278,Mean Loss: 0.747773162137579
+Epoch 2, Min Loss: 0.3117781040477164, Max Loss: 0.34301845766144035,Mean Loss: 0.3238741761096466
+Epoch 3, Min Loss: 0.25186324965806656, Max Loss: 0.2844788794532234,Mean Loss: 0.26286647829376625
+Epoch 4, Min Loss: 0.2208131660281876, Max Loss: 0.24709170449663093,Mean Loss: 0.22887096441822288
+Epoch 5, Min Loss: 0.19620203953466298, Max Loss: 0.21670674284299216,Mean Loss: 0.20119512544737922
+Epoch 6, Min Loss: 0.17667818087854503, Max Loss: 0.19544446854679673,Mean Loss: 0.18242375687868506
+Epoch 7, Min Loss: 0.1594143877794713, Max Loss: 0.17506082475553325,Mean Loss: 0.16465421851586412
+Epoch 8, Min Loss: 0.14437294944568915, Max Loss: 0.16218055030445994,Mean Loss: 0.1515343263929273
+Epoch 9, Min Loss: 0.13073336130674976, Max Loss: 0.1483778891923987,Mean Loss: 0.139838038927611
+Epoch 10, Min Loss: 0.12091183340475883, Max Loss: 0.13783674089261044,Mean Loss: 0.12923982962965966
+ITERATION:  1 0
+tensor(0.4990)
+init. error: tensor(-0.0286, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4435, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7064) tensor(-0.0767)
+tensor(0.4999)
+init. error: tensor(-0.0315, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5398, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8724) tensor(0.0017)
+tensor(0.5006)
+init. error: tensor(-0.0334, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5628, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8902) tensor(0.0051)
+Epoch 1, Min Loss: 0.16118955138906743, Max Loss: 0.19810754702713504,Mean Loss: 0.17588725883818274
+Epoch 2, Min Loss: 0.12316770181528428, Max Loss: 0.1486939268198403,Mean Loss: 0.1310721170766361
+Epoch 3, Min Loss: 0.10850000995322594, Max Loss: 0.12781442167623988,Mean Loss: 0.11471566930413246
+Epoch 4, Min Loss: 0.09859598718536725, Max Loss: 0.11538381251336643,Mean Loss: 0.10450429071514111
+Epoch 5, Min Loss: 0.09189156806037861, Max Loss: 0.10570320936868775,Mean Loss: 0.09661103684525445
+Epoch 6, Min Loss: 0.08645892604810637, Max Loss: 0.10040467750257666,Mean Loss: 0.09118142334873197
+Epoch 7, Min Loss: 0.08078396388288564, Max Loss: 0.09428326197484005,Mean Loss: 0.08620846736590441
+Epoch 8, Min Loss: 0.0792255773437473, Max Loss: 0.08856527797830929,Mean Loss: 0.08353259760722423
+Epoch 9, Min Loss: 0.07496423267249791, Max Loss: 0.08588247420559139,Mean Loss: 0.07940737681943663
+Epoch 10, Min Loss: 0.07286110180635122, Max Loss: 0.08240645622494835,Mean Loss: 0.07659943288649027
+ITERATION:  2 0
+tensor(0.5007)
+init. error: tensor(-0.0204, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4087, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5868) tensor(0.0387)
+tensor(0.4994)
+init. error: tensor(-0.0219, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5108, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8589) tensor(0.0275)
+tensor(0.5001)
+init. error: tensor(-0.0226, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.5451, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8958) tensor(0.0281)
+Epoch 1, Min Loss: 0.10320775520512324, Max Loss: 0.1275570071007632,Mean Loss: 0.11403712855361181
+Epoch 2, Min Loss: 0.0861294815937678, Max Loss: 0.10370086073749679,Mean Loss: 0.09463951146615204
+Epoch 3, Min Loss: 0.07967522380409864, Max Loss: 0.09378621934712687,Mean Loss: 0.0862437221005496
+Epoch 4, Min Loss: 0.07527517715964137, Max Loss: 0.08751586464701322,Mean Loss: 0.08115997441301617
+Epoch 5, Min Loss: 0.07088897309662924, Max Loss: 0.0831867758860568,Mean Loss: 0.07687871631250603
+Epoch 6, Min Loss: 0.06795064965066527, Max Loss: 0.07866807303976912,Mean Loss: 0.07351770494997753
+Epoch 7, Min Loss: 0.06529252135238064, Max Loss: 0.07630592083189056,Mean Loss: 0.07064226581891882
+Epoch 8, Min Loss: 0.06275353734754811, Max Loss: 0.07242690182373493,Mean Loss: 0.06778840815750606
+Epoch 9, Min Loss: 0.06089069271452316, Max Loss: 0.0707485356725721,Mean Loss: 0.06590679349212705
+Epoch 10, Min Loss: 0.05888918538888296, Max Loss: 0.06875603023586394,Mean Loss: 0.06386288147624034
+ITERATION:  3 0
+tensor(0.4998)
+init. error: tensor(-0.0172, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3353, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5660) tensor(0.0186)
+tensor(0.5004)
+init. error: tensor(-0.0175, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4527, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7889) tensor(0.0092)
+tensor(0.4999)
+init. error: tensor(-0.0180, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4869, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8487) tensor(0.0104)
+Epoch 1, Min Loss: 0.07057570598664738, Max Loss: 0.08632855574999537,Mean Loss: 0.07938665934380086
+Epoch 2, Min Loss: 0.06445359471771452, Max Loss: 0.07766641586545914,Mean Loss: 0.07155200056849963
+Epoch 3, Min Loss: 0.06249736525000088, Max Loss: 0.07397389498258394,Mean Loss: 0.06819249649251265
+Epoch 4, Min Loss: 0.05827091579872464, Max Loss: 0.07088136320549344,Mean Loss: 0.06467479738805976
+Epoch 5, Min Loss: 0.057007795832459886, Max Loss: 0.0677951728895543,Mean Loss: 0.06233454733495673
+Epoch 6, Min Loss: 0.0551836533324113, Max Loss: 0.06517507450448143,Mean Loss: 0.06006329462286971
+Epoch 7, Min Loss: 0.05294243356301671, Max Loss: 0.062497749487085946,Mean Loss: 0.05802107933967833
+Epoch 8, Min Loss: 0.05173097986077505, Max Loss: 0.060820865843977244,Mean Loss: 0.056550757242810154
+Epoch 9, Min Loss: 0.050294436502551276, Max Loss: 0.05866803244229347,Mean Loss: 0.0550030143038621
+Epoch 10, Min Loss: 0.04914357579416699, Max Loss: 0.05765918984063088,Mean Loss: 0.053660644179298764
+ITERATION:  4 0
+tensor(0.4983)
+init. error: tensor(-0.0143, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2642, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5538) tensor(-0.0042)
+tensor(0.4998)
+init. error: tensor(-0.0148, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3717, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7965) tensor(0.0274)
+tensor(0.5002)
+init. error: tensor(-0.0148, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4269, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8604) tensor(0.0207)
+Epoch 1, Min Loss: 0.05645009252520008, Max Loss: 0.0672421434055303,Mean Loss: 0.06221813483983657
+Epoch 2, Min Loss: 0.05471612995552046, Max Loss: 0.06343276936172226,Mean Loss: 0.05909531578971381
+Epoch 3, Min Loss: 0.050832831658631485, Max Loss: 0.060626540806988115,Mean Loss: 0.056242451483132574
+Epoch 4, Min Loss: 0.04982802311655219, Max Loss: 0.05953470982478472,Mean Loss: 0.05461605252655408
+Epoch 5, Min Loss: 0.04767046001462536, Max Loss: 0.056434769325583944,Mean Loss: 0.05261392384464201
+Epoch 6, Min Loss: 0.04691764970165476, Max Loss: 0.055315511903083356,Mean Loss: 0.05129689319537948
+Epoch 7, Min Loss: 0.04500194861726603, Max Loss: 0.05408462919010461,Mean Loss: 0.04995029183962494
+Epoch 8, Min Loss: 0.04462606081165582, Max Loss: 0.052115935746950046,Mean Loss: 0.048647098694442184
+Epoch 9, Min Loss: 0.04341984709426192, Max Loss: 0.051179415814142495,Mean Loss: 0.04760241867505185
+Epoch 10, Min Loss: 0.04299093345440829, Max Loss: 0.0500563956114627,Mean Loss: 0.046756351394602505
+ITERATION:  5 0
+tensor(0.5027)
+init. error: tensor(-0.0115, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1881, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5501) tensor(-0.0322)
+tensor(0.4989)
+init. error: tensor(-0.0116, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3085, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8335) tensor(-0.0027)
+tensor(0.5004)
+init. error: tensor(-0.0117, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3877, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.9056) tensor(-0.0100)
+Epoch 1, Min Loss: 0.04894399629103024, Max Loss: 0.05690933116998389,Mean Loss: 0.05333104061354307
+Epoch 2, Min Loss: 0.04694305557259329, Max Loss: 0.054449773984793136,Mean Loss: 0.05097852018790324
+Epoch 3, Min Loss: 0.04490355971306879, Max Loss: 0.05220575200397751,Mean Loss: 0.049093584747957324
+Epoch 4, Min Loss: 0.043511348671720795, Max Loss: 0.05075546479813612,Mean Loss: 0.047563565903266145
+Epoch 5, Min Loss: 0.042378581775601505, Max Loss: 0.05001716861489472,Mean Loss: 0.04665376594262455
+Epoch 6, Min Loss: 0.04147825700936803, Max Loss: 0.04857457265843125,Mean Loss: 0.04556267571629612
+Epoch 7, Min Loss: 0.04112403207080886, Max Loss: 0.0473941874368049,Mean Loss: 0.044398648287476125
+Epoch 8, Min Loss: 0.039995672268251195, Max Loss: 0.04650836292409087,Mean Loss: 0.043426583173848884
+Epoch 9, Min Loss: 0.03999996680426243, Max Loss: 0.046146051495508024,Mean Loss: 0.04290436678299099
+Epoch 10, Min Loss: 0.03852677733623551, Max Loss: 0.045216419249614836,Mean Loss: 0.04203130054602008
+ITERATION:  6 0
+tensor(0.4998)
+init. error: tensor(-0.0089, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1663, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5447) tensor(-0.0146)
+tensor(0.5008)
+init. error: tensor(-0.0090, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2911, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8244) tensor(-0.0115)
+tensor(0.5001)
+init. error: tensor(-0.0090, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3677, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8976) tensor(-0.0133)
+Epoch 1, Min Loss: 0.04326458249193615, Max Loss: 0.0507686866756074,Mean Loss: 0.047281267368090504
+Epoch 2, Min Loss: 0.04220516368651759, Max Loss: 0.05009237811213634,Mean Loss: 0.045822899830688754
+Epoch 3, Min Loss: 0.04038408019992172, Max Loss: 0.04791897028101055,Mean Loss: 0.04472120112598703
+Epoch 4, Min Loss: 0.0400007759680622, Max Loss: 0.04732153497174898,Mean Loss: 0.043803387857932856
+Epoch 5, Min Loss: 0.03932488182447647, Max Loss: 0.04662634025858834,Mean Loss: 0.04294796469969122
+Epoch 6, Min Loss: 0.03888539550910773, Max Loss: 0.046136220282652775,Mean Loss: 0.04257153006463917
+Epoch 7, Min Loss: 0.03830514076371119, Max Loss: 0.04498468513154376,Mean Loss: 0.042072880174116464
+Epoch 8, Min Loss: 0.03744626507325902, Max Loss: 0.04454980850328296,Mean Loss: 0.0412083612205308
+Epoch 9, Min Loss: 0.037516531702436386, Max Loss: 0.04438796231628333,Mean Loss: 0.04130797117256402
+Epoch 10, Min Loss: 0.037163946987935535, Max Loss: 0.04354415281602811,Mean Loss: 0.04053198947165779
+ITERATION:  7 0
+tensor(0.4998)
+init. error: tensor(-0.0074, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1410, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5274) tensor(-0.0097)
+tensor(0.5008)
+init. error: tensor(-0.0075, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3171, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8093) tensor(-0.0110)
+tensor(0.5009)
+init. error: tensor(-0.0075, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3863, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8656) tensor(-0.0219)
+Epoch 1, Min Loss: 0.04043912598818683, Max Loss: 0.04743356681599666,Mean Loss: 0.0441451202985939
+Epoch 2, Min Loss: 0.040117165091576756, Max Loss: 0.046115040339446335,Mean Loss: 0.04338073562177126
+Epoch 3, Min Loss: 0.03897845341662091, Max Loss: 0.045279369916784704,Mean Loss: 0.04264133035174112
+Epoch 4, Min Loss: 0.03860294242557346, Max Loss: 0.044583048912112795,Mean Loss: 0.04205576621732739
+Epoch 5, Min Loss: 0.03818276850729468, Max Loss: 0.044017837102119435,Mean Loss: 0.04192055310947045
+Epoch 6, Min Loss: 0.03735609297036079, Max Loss: 0.044203212921414076,Mean Loss: 0.04121242036665693
+Epoch 7, Min Loss: 0.037082877648813115, Max Loss: 0.043407974990479874,Mean Loss: 0.04090252949201177
+Epoch 8, Min Loss: 0.037627870825964485, Max Loss: 0.042805083904064824,Mean Loss: 0.04047846511285603
+Epoch 9, Min Loss: 0.036640118988768525, Max Loss: 0.04214860666751196,Mean Loss: 0.04020460175507757
+Epoch 10, Min Loss: 0.036387568571422085, Max Loss: 0.04199421699894102,Mean Loss: 0.039885809420766916
+ITERATION:  8 0
+tensor(0.5000)
+init. error: tensor(-0.0062, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1152, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5204) tensor(-0.0096)
+tensor(0.5001)
+init. error: tensor(-0.0062, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2972, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8327) tensor(-0.0015)
+tensor(0.4997)
+init. error: tensor(-0.0063, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3716, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8998) tensor(-0.0106)
+Epoch 1, Min Loss: 0.04085817808377827, Max Loss: 0.04657490701275937,Mean Loss: 0.04419973755744121
+Epoch 2, Min Loss: 0.039844117548765864, Max Loss: 0.044954278964734244,Mean Loss: 0.04319788244916192
+Epoch 3, Min Loss: 0.039319423977153524, Max Loss: 0.044410042063141544,Mean Loss: 0.042760075752669616
+Epoch 4, Min Loss: 0.03916305180982495, Max Loss: 0.04386977472785094,Mean Loss: 0.04245009498076236
+Epoch 5, Min Loss: 0.038935969925835624, Max Loss: 0.04359753139264195,Mean Loss: 0.04227309696772631
+Epoch 6, Min Loss: 0.039021393799401345, Max Loss: 0.043076690075033945,Mean Loss: 0.04193412085691243
+Epoch 7, Min Loss: 0.03848326127077882, Max Loss: 0.04296521722002233,Mean Loss: 0.04160842045309379
+Epoch 8, Min Loss: 0.038371553332776046, Max Loss: 0.04246626540437235,Mean Loss: 0.04136421780821914
+Epoch 9, Min Loss: 0.038933786023276074, Max Loss: 0.042778162975260554,Mean Loss: 0.04144038636792214
+Epoch 10, Min Loss: 0.03809011162172818, Max Loss: 0.04227289481630139,Mean Loss: 0.04107354915337571
+ITERATION:  9 0
+tensor(0.5015)
+init. error: tensor(-0.0054, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1013, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5239) tensor(-0.0514)
+tensor(0.5002)
+init. error: tensor(-0.0055, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3096, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8426) tensor(-0.0547)
+tensor(0.4989)
+init. error: tensor(-0.0055, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3814, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.9114) tensor(-0.0499)
+Epoch 1, Min Loss: 0.04231572249906654, Max Loss: 0.04705471414382811,Mean Loss: 0.04564281998613747
+Epoch 2, Min Loss: 0.04238942774110218, Max Loss: 0.046404380720027866,Mean Loss: 0.04506722612289824
+Epoch 3, Min Loss: 0.041709984860848044, Max Loss: 0.04549452242599669,Mean Loss: 0.044430382539533644
+Epoch 4, Min Loss: 0.04154957999804772, Max Loss: 0.045373938915868064,Mean Loss: 0.04419258110306081
+Epoch 5, Min Loss: 0.04107654899225533, Max Loss: 0.04488367343732985,Mean Loss: 0.0437434368396932
+Epoch 6, Min Loss: 0.0406815001186778, Max Loss: 0.04452695666145091,Mean Loss: 0.04352711198463712
+Epoch 7, Min Loss: 0.040130673849415203, Max Loss: 0.04482363219614382,Mean Loss: 0.043606807107859955
+Epoch 8, Min Loss: 0.040920095025807963, Max Loss: 0.044657552881240084,Mean Loss: 0.0434208038002538
+Epoch 9, Min Loss: 0.04067480262478345, Max Loss: 0.04439399855765651,Mean Loss: 0.04359558890425002
+Epoch 10, Min Loss: 0.04020621906133371, Max Loss: 0.04411319505047448,Mean Loss: 0.04311697353510184
+ITERATION:  10 0
+tensor(0.5002)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1171, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5268) tensor(-0.0179)
+tensor(0.5013)
+init. error: tensor(-0.0051, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3298, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8504) tensor(-0.0113)
+tensor(0.5010)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4005, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8968) tensor(-0.0147)
+Epoch 1, Min Loss: 0.04326982662280747, Max Loss: 0.047127646256701176,Mean Loss: 0.04599477870110747
+Epoch 2, Min Loss: 0.04289510056947582, Max Loss: 0.04639913795924768,Mean Loss: 0.0451646601558424
+Epoch 3, Min Loss: 0.042886666644204506, Max Loss: 0.046362631507520756,Mean Loss: 0.04524761291434956
+Epoch 4, Min Loss: 0.0428157972537509, Max Loss: 0.04657542726736728,Mean Loss: 0.04504476183577594
+Epoch 5, Min Loss: 0.04196319928334358, Max Loss: 0.04618400738776838,Mean Loss: 0.04486399516052243
+Epoch 6, Min Loss: 0.042155610732777474, Max Loss: 0.0464169831057355,Mean Loss: 0.044951632122415076
+Epoch 7, Min Loss: 0.04215439161530217, Max Loss: 0.046969177402581906,Mean Loss: 0.04489214729569618
+Epoch 8, Min Loss: 0.04212281836086449, Max Loss: 0.046336276515124154,Mean Loss: 0.044588660095947065
+Epoch 9, Min Loss: 0.04229101177811207, Max Loss: 0.045806244534897886,Mean Loss: 0.04456873044834562
+Epoch 10, Min Loss: 0.04194053609581809, Max Loss: 0.046129386339868815,Mean Loss: 0.04470851719844546
+ITERATION:  11 0
+tensor(0.4998)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0987, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5311) tensor(0.0030)
+tensor(0.5012)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2971, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8209) tensor(0.0171)
+tensor(0.4997)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3667, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8744) tensor(0.0101)
+Epoch 1, Min Loss: 0.043431351193414326, Max Loss: 0.04707811604808377,Mean Loss: 0.04625503756978705
+Epoch 2, Min Loss: 0.042923135192979515, Max Loss: 0.047255586852598244,Mean Loss: 0.04580072836218456
+Epoch 3, Min Loss: 0.04275539948449285, Max Loss: 0.04661040664655459,Mean Loss: 0.04556196330569455
+Epoch 4, Min Loss: 0.0422908946717033, Max Loss: 0.046498244086774394,Mean Loss: 0.04551375346323743
+Epoch 5, Min Loss: 0.042053004056294634, Max Loss: 0.046124776557516366,Mean Loss: 0.04522730931719017
+Epoch 6, Min Loss: 0.04166200189108348, Max Loss: 0.046293335037426955,Mean Loss: 0.04508389750886332
+Epoch 7, Min Loss: 0.04235358453128602, Max Loss: 0.046504995717217744,Mean Loss: 0.045189751650745305
+Epoch 8, Min Loss: 0.042041396256040336, Max Loss: 0.045885504853214444,Mean Loss: 0.04485435210886442
+Epoch 9, Min Loss: 0.04188005742840112, Max Loss: 0.04590166841571133,Mean Loss: 0.04484169992625205
+Epoch 10, Min Loss: 0.04229291249562503, Max Loss: 0.045892168324405014,Mean Loss: 0.044921411387027266
+ITERATION:  12 0
+tensor(0.5004)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1159, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5302) tensor(-0.0141)
+tensor(0.4998)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3112, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8066) tensor(-0.0137)
+tensor(0.5005)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3698, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8645) tensor(-0.0141)
+Epoch 1, Min Loss: 0.043244906945654076, Max Loss: 0.047476281991618574,Mean Loss: 0.04626841301990411
+Epoch 2, Min Loss: 0.04331395275993392, Max Loss: 0.04708198422058728,Mean Loss: 0.04618938383660046
+Epoch 3, Min Loss: 0.042996005972915106, Max Loss: 0.04696587218391098,Mean Loss: 0.04590745373494417
+Epoch 4, Min Loss: 0.042390374686557986, Max Loss: 0.04693280141013093,Mean Loss: 0.04568539035626511
+Epoch 5, Min Loss: 0.04248433536506508, Max Loss: 0.046411979199921016,Mean Loss: 0.04558344813248723
+Epoch 6, Min Loss: 0.042186589508647995, Max Loss: 0.04620052899546269,Mean Loss: 0.04532798485337751
+Epoch 7, Min Loss: 0.04236996405910895, Max Loss: 0.04662197383968645,Mean Loss: 0.04549546802476884
+Epoch 8, Min Loss: 0.042500682858312495, Max Loss: 0.04604076240999274,Mean Loss: 0.04504592708983223
+Epoch 9, Min Loss: 0.04224743680513831, Max Loss: 0.04612093154000322,Mean Loss: 0.0451516741793328
+Epoch 10, Min Loss: 0.041823347430628606, Max Loss: 0.04580325008559544,Mean Loss: 0.044998338146844
+ITERATION:  13 0
+tensor(0.4990)
+init. error: tensor(-0.0055, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1473, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5060) tensor(-0.0019)
+tensor(0.4993)
+init. error: tensor(-0.0054, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3078, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7910) tensor(0.0067)
+tensor(0.4997)
+init. error: tensor(-0.0054, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3650, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8432) tensor(0.0064)
+Epoch 1, Min Loss: 0.043148965749158164, Max Loss: 0.047448283173654175,Mean Loss: 0.04636664777466832
+Epoch 2, Min Loss: 0.042820575462492634, Max Loss: 0.0472516067070912,Mean Loss: 0.046038244528755476
+Epoch 3, Min Loss: 0.04304739778954961, Max Loss: 0.046984615574960836,Mean Loss: 0.04594449202185624
+Epoch 4, Min Loss: 0.04320923490747469, Max Loss: 0.04681621525249525,Mean Loss: 0.045706140949437604
+Epoch 5, Min Loss: 0.04338104414102966, Max Loss: 0.04683268697906847,Mean Loss: 0.04578116579449068
+Epoch 6, Min Loss: 0.04296129120165083, Max Loss: 0.04673117977741374,Mean Loss: 0.04576270392989595
+Epoch 7, Min Loss: 0.04292680581682893, Max Loss: 0.04679229349646394,Mean Loss: 0.0455491187511922
+Epoch 8, Min Loss: 0.04238639106659312, Max Loss: 0.04663333671516207,Mean Loss: 0.04536178719371421
+Epoch 9, Min Loss: 0.04282815786393266, Max Loss: 0.04657107650485213,Mean Loss: 0.04542729228377751
+Epoch 10, Min Loss: 0.04250596332189427, Max Loss: 0.046316554860029044,Mean Loss: 0.045221640949209795
+ITERATION:  14 0
+tensor(0.4991)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0941, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5317) tensor(0.0122)
+tensor(0.4999)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2816, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8537) tensor(0.0383)
+tensor(0.4983)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3531, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8983) tensor(0.0321)
+Epoch 1, Min Loss: 0.04336413076403094, Max Loss: 0.0474070992720935,Mean Loss: 0.04629216338194215
+Epoch 2, Min Loss: 0.04347890626975769, Max Loss: 0.04714656063694529,Mean Loss: 0.04618571339610199
+Epoch 3, Min Loss: 0.043453446417119596, Max Loss: 0.04712954270260413,Mean Loss: 0.04608384657298665
+Epoch 4, Min Loss: 0.04383690767974703, Max Loss: 0.04718471201452707,Mean Loss: 0.04603866500127347
+Epoch 5, Min Loss: 0.0428566707334682, Max Loss: 0.04700372953091741,Mean Loss: 0.04606707340022208
+Epoch 6, Min Loss: 0.043029655920752884, Max Loss: 0.04684809488002195,Mean Loss: 0.04578022007788361
+Epoch 7, Min Loss: 0.04265433605617422, Max Loss: 0.046559804031039445,Mean Loss: 0.045597207581168656
+Epoch 8, Min Loss: 0.04284398676787852, Max Loss: 0.046766481882331214,Mean Loss: 0.04563315598594258
+Epoch 9, Min Loss: 0.04305245097050124, Max Loss: 0.0464982517787715,Mean Loss: 0.04545700393318622
+Epoch 10, Min Loss: 0.042714385050591094, Max Loss: 0.04646651052376803,Mean Loss: 0.045299691172397655
+ITERATION:  15 0
+tensor(0.5010)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1198, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5211) tensor(0.0054)
+tensor(0.4999)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2713, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8221) tensor(0.0067)
+tensor(0.5004)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3402, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8814) tensor(-0.0062)
+Epoch 1, Min Loss: 0.04327631587360641, Max Loss: 0.04715024092369419,Mean Loss: 0.04606957171234391
+Epoch 2, Min Loss: 0.043415597602010345, Max Loss: 0.04665990439887575,Mean Loss: 0.04578579831823742
+Epoch 3, Min Loss: 0.04287513579836757, Max Loss: 0.04674098528564262,Mean Loss: 0.04588536358729517
+Epoch 4, Min Loss: 0.04328711045910415, Max Loss: 0.04647007207427141,Mean Loss: 0.04564388565031245
+Epoch 5, Min Loss: 0.04308953664625148, Max Loss: 0.04658523076426068,Mean Loss: 0.04565634242594719
+Epoch 6, Min Loss: 0.043404601232932626, Max Loss: 0.046300362021350364,Mean Loss: 0.045559963202334755
+Epoch 7, Min Loss: 0.042651724719481886, Max Loss: 0.046470794350289994,Mean Loss: 0.045503268690763425
+Epoch 8, Min Loss: 0.043054011509680065, Max Loss: 0.04642805410065144,Mean Loss: 0.04542377149532858
+Epoch 9, Min Loss: 0.04230670251404877, Max Loss: 0.04586831517190003,Mean Loss: 0.04508609303982734
+Epoch 10, Min Loss: 0.04283754461460548, Max Loss: 0.04643827317495474,Mean Loss: 0.045488601065219215
+ITERATION:  16 0
+tensor(0.5011)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1035, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5337) tensor(-0.0021)
+tensor(0.5001)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2558, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8465) tensor(0.0058)
+tensor(0.4998)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3365, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8961) tensor(-0.0040)
+Epoch 1, Min Loss: 0.042811044603249825, Max Loss: 0.04663310660101176,Mean Loss: 0.04555299953032675
+Epoch 2, Min Loss: 0.042821096292815324, Max Loss: 0.04647671726607263,Mean Loss: 0.04547936593058349
+Epoch 3, Min Loss: 0.04286529515443147, Max Loss: 0.046426051330631435,Mean Loss: 0.04549791451054433
+Epoch 4, Min Loss: 0.0427307651102812, Max Loss: 0.046327150284548826,Mean Loss: 0.04534379468545418
+Epoch 5, Min Loss: 0.0427556978938071, Max Loss: 0.04642821417839748,Mean Loss: 0.04537684589405765
+Epoch 6, Min Loss: 0.04251378192443701, Max Loss: 0.04688224409467928,Mean Loss: 0.04544049074580407
+Epoch 7, Min Loss: 0.04240760447680277, Max Loss: 0.04625901888615884,Mean Loss: 0.045232436018018365
+Epoch 8, Min Loss: 0.042824391606407476, Max Loss: 0.04645241765716051,Mean Loss: 0.04524016273975305
+Epoch 9, Min Loss: 0.04236653938530709, Max Loss: 0.04598604068524457,Mean Loss: 0.04512864504264565
+Epoch 10, Min Loss: 0.04208601632928426, Max Loss: 0.045996218998240204,Mean Loss: 0.0449730952136482
+ITERATION:  17 0
+tensor(0.5001)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0804, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5298) tensor(0.0031)
+tensor(0.5008)
+init. error: tensor(-0.0051, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2302, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8266) tensor(0.0053)
+tensor(0.5004)
+init. error: tensor(-0.0051, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3100, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8978) tensor(-0.0016)
+Epoch 1, Min Loss: 0.04237764941127316, Max Loss: 0.046445895578148266,Mean Loss: 0.045421406559582586
+Epoch 2, Min Loss: 0.04241309556633488, Max Loss: 0.04631580647899271,Mean Loss: 0.0452504260120642
+Epoch 3, Min Loss: 0.04222973132030754, Max Loss: 0.046216767825392774,Mean Loss: 0.04518981706443711
+Epoch 4, Min Loss: 0.04262629465491914, Max Loss: 0.04631112556038762,Mean Loss: 0.04515093019273193
+Epoch 5, Min Loss: 0.04237476810971811, Max Loss: 0.04614873289235873,Mean Loss: 0.045056234155970216
+Epoch 6, Min Loss: 0.042373174886194714, Max Loss: 0.045938105892334415,Mean Loss: 0.04493812735138862
+Epoch 7, Min Loss: 0.04209193269051638, Max Loss: 0.046094220117073405,Mean Loss: 0.04489829101187375
+Epoch 8, Min Loss: 0.04195118914990452, Max Loss: 0.045652012212973755,Mean Loss: 0.04480205529595129
+Epoch 9, Min Loss: 0.0418612144062694, Max Loss: 0.04567636982236632,Mean Loss: 0.04447490464738426
+Epoch 10, Min Loss: 0.04213570383746063, Max Loss: 0.04575805069233987,Mean Loss: 0.044663160992488425
+ITERATION:  18 0
+tensor(0.4997)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0861, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5392) tensor(0.0098)
+tensor(0.5004)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2211, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8191) tensor(0.0164)
+tensor(0.4999)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2930, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8922) tensor(0.0067)
+Epoch 1, Min Loss: 0.04232273948338096, Max Loss: 0.046238097192261754,Mean Loss: 0.04492473699842338
+Epoch 2, Min Loss: 0.04243332193631315, Max Loss: 0.046034784267596926,Mean Loss: 0.04493322897413965
+Epoch 3, Min Loss: 0.04200134539995531, Max Loss: 0.04606764274665001,Mean Loss: 0.04481614488079792
+Epoch 4, Min Loss: 0.04193437472487539, Max Loss: 0.0458804405385296,Mean Loss: 0.04458434416639684
+Epoch 5, Min Loss: 0.04198474441764732, Max Loss: 0.04574825822278506,Mean Loss: 0.04454934856255448
+Epoch 6, Min Loss: 0.041696861851019694, Max Loss: 0.04572047986441389,Mean Loss: 0.04447822649878534
+Epoch 7, Min Loss: 0.04192242607449241, Max Loss: 0.04579870453612371,Mean Loss: 0.044465465405548264
+Epoch 8, Min Loss: 0.04166918628557463, Max Loss: 0.0459266373969188,Mean Loss: 0.04430409450516707
+Epoch 9, Min Loss: 0.04146752582881788, Max Loss: 0.04525830739927211,Mean Loss: 0.044077944191868855
+Epoch 10, Min Loss: 0.04162806943372544, Max Loss: 0.0458476171499551,Mean Loss: 0.04427767171997966
+ITERATION:  19 0
+tensor(0.4993)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0741, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5426) tensor(-0.0010)
+tensor(0.5003)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2212, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8251) tensor(0.0076)
+tensor(0.5000)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3025, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8919) tensor(-0.0006)
+Epoch 1, Min Loss: 0.04215916776725747, Max Loss: 0.04572591217030948,Mean Loss: 0.04445204266543028
+Epoch 2, Min Loss: 0.04177303840921654, Max Loss: 0.0455023350142853,Mean Loss: 0.04431430481872399
+Epoch 3, Min Loss: 0.04181090879634795, Max Loss: 0.045507908111732505,Mean Loss: 0.04415602128802586
+Epoch 4, Min Loss: 0.041908078237662544, Max Loss: 0.04555042473907968,Mean Loss: 0.04408616470941655
+Epoch 5, Min Loss: 0.04169130967411565, Max Loss: 0.04541785099799253,Mean Loss: 0.044062917567765716
+Epoch 6, Min Loss: 0.04157925072475858, Max Loss: 0.045140042501815754,Mean Loss: 0.043888019158261196
+Epoch 7, Min Loss: 0.041753454461588894, Max Loss: 0.04518014515415835,Mean Loss: 0.043962020664735056
+Epoch 8, Min Loss: 0.04153850343571743, Max Loss: 0.04524414725387165,Mean Loss: 0.043933901653737686
+Epoch 9, Min Loss: 0.041244571194915494, Max Loss: 0.04539661383421964,Mean Loss: 0.0438069096230142
+Epoch 10, Min Loss: 0.04122428029182147, Max Loss: 0.04533696459440642,Mean Loss: 0.04371068726096515
+ITERATION:  20 0
+tensor(0.5018)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0868, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5274) tensor(-0.0022)
+tensor(0.4995)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2527, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8356) tensor(0.0044)
+tensor(0.5003)
+init. error: tensor(-0.0051, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3245, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.9020) tensor(-0.0067)
+Epoch 1, Min Loss: 0.04184130782353431, Max Loss: 0.045405074891604204,Mean Loss: 0.04413515779602362
+Epoch 2, Min Loss: 0.04191229989131292, Max Loss: 0.04528353886654978,Mean Loss: 0.04406220851435413
+Epoch 3, Min Loss: 0.04132576371128242, Max Loss: 0.045346315778760124,Mean Loss: 0.044004459545642846
+Epoch 4, Min Loss: 0.04171565271366903, Max Loss: 0.04530850245454448,Mean Loss: 0.04383795972973663
+Epoch 5, Min Loss: 0.04169022981395251, Max Loss: 0.045465065433094955,Mean Loss: 0.043898780743882634
+Epoch 6, Min Loss: 0.0417776175869412, Max Loss: 0.04523802493482665,Mean Loss: 0.043833759863049895
+Epoch 7, Min Loss: 0.04129196899800603, Max Loss: 0.04507625353052114,Mean Loss: 0.043553715092422285
+Epoch 8, Min Loss: 0.041327468580966455, Max Loss: 0.04531890061036397,Mean Loss: 0.043731253912773424
+Epoch 9, Min Loss: 0.04168822532911296, Max Loss: 0.045483360693566975,Mean Loss: 0.04376756380301362
+Epoch 10, Min Loss: 0.041610136844381224, Max Loss: 0.0449078550924349,Mean Loss: 0.043682825144739014
+ITERATION:  21 0
+tensor(0.5000)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0826, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5199) tensor(0.0318)
+tensor(0.5009)
+init. error: tensor(-0.0050, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2513, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7982) tensor(0.0142)
+tensor(0.5002)
+init. error: tensor(-0.0049, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3225, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8706) tensor(0.0164)
+Epoch 1, Min Loss: 0.04175508373816253, Max Loss: 0.045634791763188395,Mean Loss: 0.04414699947046481
+Epoch 2, Min Loss: 0.041875394238912136, Max Loss: 0.04524628006771354,Mean Loss: 0.04409861061386135
+Epoch 3, Min Loss: 0.04201803268207028, Max Loss: 0.04531928323157275,Mean Loss: 0.043947689204979004
+Epoch 4, Min Loss: 0.04211429356575151, Max Loss: 0.04536888387364104,Mean Loss: 0.04397595934667357
+Epoch 5, Min Loss: 0.04174047538933711, Max Loss: 0.04523063110812866,Mean Loss: 0.04383248673170077
+Epoch 6, Min Loss: 0.04157350245384264, Max Loss: 0.04549924956353998,Mean Loss: 0.04393238529482767
+Epoch 7, Min Loss: 0.041283887853805865, Max Loss: 0.04528821682868446,Mean Loss: 0.04379415900173959
+Epoch 8, Min Loss: 0.041676322669505966, Max Loss: 0.04525119754192682,Mean Loss: 0.04378936025024179
+Epoch 9, Min Loss: 0.041738514225537725, Max Loss: 0.045080525332486444,Mean Loss: 0.043734444206154674
+Epoch 10, Min Loss: 0.04161276161202585, Max Loss: 0.04494486707238315,Mean Loss: 0.04368697051056393
+ITERATION:  22 0
+tensor(0.5009)
+init. error: tensor(-0.0053, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1050, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5147) tensor(0.0169)
+tensor(0.4999)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2428, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7614) tensor(0.0057)
+tensor(0.4999)
+init. error: tensor(-0.0052, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3038, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8191) tensor(-0.0005)
+Epoch 1, Min Loss: 0.04137441797703339, Max Loss: 0.0451438997477774,Mean Loss: 0.04375747054557196
+Epoch 2, Min Loss: 0.041581233275632394, Max Loss: 0.0450259323398239,Mean Loss: 0.04363292896597708
+Epoch 3, Min Loss: 0.041507752710703553, Max Loss: 0.0453509491633543,Mean Loss: 0.04364836531503123
+Epoch 4, Min Loss: 0.041543549361017326, Max Loss: 0.044916114593147566,Mean Loss: 0.0435633760095928
+Epoch 5, Min Loss: 0.04123244295700033, Max Loss: 0.044779607767014284,Mean Loss: 0.043529819756534846
+Epoch 6, Min Loss: 0.04134525476012153, Max Loss: 0.045028364223634855,Mean Loss: 0.04364152564130761
+Epoch 7, Min Loss: 0.041378875976686484, Max Loss: 0.04482677649306501,Mean Loss: 0.043486921878663216
+Epoch 8, Min Loss: 0.04117441340725357, Max Loss: 0.04458459647777648,Mean Loss: 0.04339818843196234
+Epoch 9, Min Loss: 0.04122225310224324, Max Loss: 0.04460635546721315,Mean Loss: 0.04322575444493466
+Epoch 10, Min Loss: 0.04115615394920044, Max Loss: 0.04479906635030349,Mean Loss: 0.04329486254236775
+ITERATION:  23 0
+tensor(0.4989)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0812, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5358) tensor(0.0215)
+tensor(0.5001)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2192, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8146) tensor(0.0227)
+tensor(0.4997)
+init. error: tensor(-0.0047, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2887, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8855) tensor(0.0080)
+Epoch 1, Min Loss: 0.041555595581730206, Max Loss: 0.04502657612264156,Mean Loss: 0.04343564608891805
+Epoch 2, Min Loss: 0.041599447641770045, Max Loss: 0.04493280583222707,Mean Loss: 0.04330146908511718
+Epoch 3, Min Loss: 0.04155074632167816, Max Loss: 0.044524503402908644,Mean Loss: 0.043287789766887824
+Epoch 4, Min Loss: 0.04155231453180313, Max Loss: 0.044694740122556684,Mean Loss: 0.04321692279279232
+Epoch 5, Min Loss: 0.041229859317839145, Max Loss: 0.04448982208271821,Mean Loss: 0.043184061888704696
+Epoch 6, Min Loss: 0.0413065408051014, Max Loss: 0.044479898165663084,Mean Loss: 0.04310781179000934
+Epoch 7, Min Loss: 0.04123100184450547, Max Loss: 0.0448761971026659,Mean Loss: 0.04298493499591947
+Epoch 8, Min Loss: 0.041014934231837594, Max Loss: 0.04462131543556849,Mean Loss: 0.04292497730950514
+Epoch 9, Min Loss: 0.04139903939217329, Max Loss: 0.04470330296854178,Mean Loss: 0.04310053194875519
+Epoch 10, Min Loss: 0.041308303634822366, Max Loss: 0.04451970870991548,Mean Loss: 0.04298144412900011
+ITERATION:  24 0
+tensor(0.4993)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0785, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5214) tensor(0.0110)
+tensor(0.4997)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2463, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8065) tensor(0.0158)
+tensor(0.5000)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3172, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8716) tensor(0.0090)
+Epoch 1, Min Loss: 0.04131417919982261, Max Loss: 0.04464688701426379,Mean Loss: 0.04324098334796021
+Epoch 2, Min Loss: 0.04138209714081675, Max Loss: 0.04464805369964942,Mean Loss: 0.04320409456816351
+Epoch 3, Min Loss: 0.04160433453619786, Max Loss: 0.0449806188747737,Mean Loss: 0.04324986015127459
+Epoch 4, Min Loss: 0.04151359506054408, Max Loss: 0.04460586887282161,Mean Loss: 0.043039383504328
+Epoch 5, Min Loss: 0.041375998321766125, Max Loss: 0.04474087377377827,Mean Loss: 0.04312254962312507
+Epoch 6, Min Loss: 0.04126085910785903, Max Loss: 0.04437845321996848,Mean Loss: 0.04303707128449801
+Epoch 7, Min Loss: 0.04143984745892267, Max Loss: 0.04490542399119519,Mean Loss: 0.04312284464542064
+Epoch 8, Min Loss: 0.041363139169961136, Max Loss: 0.044760681901468535,Mean Loss: 0.04311397472044565
+Epoch 9, Min Loss: 0.04115340242489478, Max Loss: 0.04452473315359291,Mean Loss: 0.04294321362245819
+Epoch 10, Min Loss: 0.04136449419471296, Max Loss: 0.044225761393171914,Mean Loss: 0.042945146952797233
+ITERATION:  25 0
+tensor(0.4995)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0718, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5223) tensor(0.0046)
+tensor(0.5001)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2107, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8089) tensor(-0.0020)
+tensor(0.4995)
+init. error: tensor(-0.0048, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2824, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8738) tensor(-0.0120)
+Epoch 1, Min Loss: 0.041518275623256475, Max Loss: 0.04482959637980663,Mean Loss: 0.043083881684180605
+Epoch 2, Min Loss: 0.04234936155082114, Max Loss: 0.045780517502469004,Mean Loss: 0.043976812046515726
+Epoch 3, Min Loss: 0.04339134541634129, Max Loss: 0.04563777856144142,Mean Loss: 0.044565757652657655
+Epoch 4, Min Loss: 0.041956750240594504, Max Loss: 0.044920474847626665,Mean Loss: 0.043311898142324654
+Epoch 5, Min Loss: 0.04268731803962029, Max Loss: 0.045929747704149114,Mean Loss: 0.04421887591237618
+Epoch 6, Min Loss: 0.04195674547363318, Max Loss: 0.0450314866880737,Mean Loss: 0.04346287216315359
+Epoch 7, Min Loss: 0.043387875712733996, Max Loss: 0.04560523099314528,Mean Loss: 0.04462171169116932
+Epoch 8, Min Loss: 0.04301820200480587, Max Loss: 0.044986806715579454,Mean Loss: 0.044097525910076006
+Epoch 9, Min Loss: 0.042525254244913394, Max Loss: 0.045299975160278574,Mean Loss: 0.04425103971652224
+Epoch 10, Min Loss: 0.04282723067258736, Max Loss: 0.0466581856403335,Mean Loss: 0.04478947296372322
+ITERATION:  26 0
+tensor(0.4999)
+init. error: tensor(-0.0110, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3080, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5464) tensor(0.0144)
+tensor(0.4985)
+init. error: tensor(-0.0108, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3980, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6925) tensor(0.0042)
+tensor(0.5003)
+init. error: tensor(-0.0106, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.4208, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7330) tensor(-0.0018)
+Epoch 1, Min Loss: 0.03540989988797457, Max Loss: 0.03880064346594736,Mean Loss: 0.03726148038465798
+Epoch 2, Min Loss: 0.03456709374035144, Max Loss: 0.037679439021193306,Mean Loss: 0.03636191438095975
+Epoch 3, Min Loss: 0.03448309549430357, Max Loss: 0.0378295678154135,Mean Loss: 0.03626683704060269
+Epoch 4, Min Loss: 0.03439258202067294, Max Loss: 0.03766654880636259,Mean Loss: 0.035980353766089226
+Epoch 5, Min Loss: 0.03476869638137886, Max Loss: 0.03810028563638105,Mean Loss: 0.036306723172178444
+Epoch 6, Min Loss: 0.034331286855211314, Max Loss: 0.037358362449925735,Mean Loss: 0.03585319275598246
+Epoch 7, Min Loss: 0.034524574293754995, Max Loss: 0.03736936373752542,Mean Loss: 0.03610447289066735
+Epoch 8, Min Loss: 0.034229837152507214, Max Loss: 0.037221046527106824,Mean Loss: 0.03574305111224847
+Epoch 9, Min Loss: 0.034170731419263495, Max Loss: 0.037332606058705343,Mean Loss: 0.03592274434036385
+Epoch 10, Min Loss: 0.03431249413926818, Max Loss: 0.03678758024717822,Mean Loss: 0.035657967761763956
+ITERATION:  27 0
+tensor(0.5000)
+init. error: tensor(-0.0065, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0770, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.4964) tensor(-0.0261)
+tensor(0.5011)
+init. error: tensor(-0.0063, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.2446, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7681) tensor(-0.0406)
+tensor(0.4991)
+init. error: tensor(-0.0064, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.3072, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.8268) tensor(-0.0391)
+Epoch 1, Min Loss: 0.028713783051512422, Max Loss: 0.03152742888735922,Mean Loss: 0.03028310883590381
+Epoch 2, Min Loss: 0.028359002136459498, Max Loss: 0.03127734990424762,Mean Loss: 0.030013135481693837
+Epoch 3, Min Loss: 0.02826354970185928, Max Loss: 0.03101907568052411,Mean Loss: 0.029889889572997957
+Epoch 4, Min Loss: 0.028437164413942593, Max Loss: 0.03099272620936507,Mean Loss: 0.029809892011049405
+Epoch 5, Min Loss: 0.028369141412158943, Max Loss: 0.030899017307158883,Mean Loss: 0.02965649084260339
+Epoch 6, Min Loss: 0.028314497878511338, Max Loss: 0.031025139000011633,Mean Loss: 0.029714139429257
+Epoch 7, Min Loss: 0.02821215484759103, Max Loss: 0.030975056107508947,Mean Loss: 0.029708995851794408
+Epoch 8, Min Loss: 0.028695654971142338, Max Loss: 0.031048675961622363,Mean Loss: 0.02992735593643499
+Epoch 9, Min Loss: 0.02829744365176858, Max Loss: 0.030501747875129933,Mean Loss: 0.029597573815908745
+Epoch 10, Min Loss: 0.028230437112878582, Max Loss: 0.030631728631499558,Mean Loss: 0.029606655690368244
+ITERATION:  28 0
+tensor(0.4995)
+init. error: tensor(-0.0037, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0728, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5260) tensor(0.0385)
+tensor(0.5004)
+init. error: tensor(-0.0037, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1462, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7018) tensor(0.0200)
+tensor(0.4991)
+init. error: tensor(-0.0037, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1857, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.7427) tensor(0.0118)
+Epoch 1, Min Loss: 0.023537868382146408, Max Loss: 0.026372667970759975,Mean Loss: 0.025222589959418385
+Epoch 2, Min Loss: 0.02323163205444011, Max Loss: 0.026204958769149512,Mean Loss: 0.02495290281302813
+Epoch 3, Min Loss: 0.023181818464665792, Max Loss: 0.026079208636081513,Mean Loss: 0.024927341816716908
+Epoch 4, Min Loss: 0.023006472284486764, Max Loss: 0.02606940166359501,Mean Loss: 0.02485325571886269
+Epoch 5, Min Loss: 0.023096168464266514, Max Loss: 0.026043603321984146,Mean Loss: 0.024808894943017214
+Epoch 6, Min Loss: 0.02305561850936443, Max Loss: 0.026366739975686004,Mean Loss: 0.02487540890436416
+Epoch 7, Min Loss: 0.023019701160730325, Max Loss: 0.026156624321245985,Mean Loss: 0.024785525831714193
+Epoch 8, Min Loss: 0.022851448262609687, Max Loss: 0.02588849783935822,Mean Loss: 0.024723213585791697
+Epoch 9, Min Loss: 0.02278891615561379, Max Loss: 0.02609679687602324,Mean Loss: 0.024746147643099663
+Epoch 10, Min Loss: 0.022944703186916375, Max Loss: 0.0261402957915859,Mean Loss: 0.02480508660609346
+ITERATION:  29 0
+tensor(0.5000)
+init. error: tensor(-0.0035, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0687, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5345) tensor(-0.0117)
+tensor(0.4989)
+init. error: tensor(-0.0035, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1049, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6481) tensor(-0.0126)
+tensor(0.4994)
+init. error: tensor(-0.0035, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.1239, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6776) tensor(-0.0132)
+Epoch 1, Min Loss: 0.019119576555982436, Max Loss: 0.022724898499480346,Mean Loss: 0.02121428392141921
+Epoch 2, Min Loss: 0.01886157987588494, Max Loss: 0.02244511913930567,Mean Loss: 0.021027248573488692
+Epoch 3, Min Loss: 0.01881498881720502, Max Loss: 0.022457110566521367,Mean Loss: 0.021016462897950942
+Epoch 4, Min Loss: 0.018779885922602275, Max Loss: 0.022249270306355484,Mean Loss: 0.02095305566963377
+Epoch 5, Min Loss: 0.018818675475480877, Max Loss: 0.022499811074967225,Mean Loss: 0.021017502311486923
+Epoch 6, Min Loss: 0.018734425375395266, Max Loss: 0.022385653013876385,Mean Loss: 0.020921005529668323
+Epoch 7, Min Loss: 0.018573962818737518, Max Loss: 0.022359897484979057,Mean Loss: 0.02083934286396112
+Epoch 8, Min Loss: 0.01874215065863679, Max Loss: 0.02234586858359711,Mean Loss: 0.02086594591075229
+Epoch 9, Min Loss: 0.018633667398474392, Max Loss: 0.02227337659874142,Mean Loss: 0.020867307548401666
+Epoch 10, Min Loss: 0.01874470913751751, Max Loss: 0.022327883188904146,Mean Loss: 0.020909225150747484
+ITERATION:  30 0
+tensor(0.5002)
+init. error: tensor(-0.0032, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0549, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5362) tensor(0.0171)
+tensor(0.4994)
+init. error: tensor(-0.0032, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0736, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6190) tensor(0.0100)
+tensor(0.4999)
+init. error: tensor(-0.0033, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0853, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6456) tensor(0.0051)
+Epoch 1, Min Loss: 0.015776500466630084, Max Loss: 0.019721155437155205,Mean Loss: 0.018200463416510517
+Epoch 2, Min Loss: 0.015643451715552127, Max Loss: 0.019596615219534846,Mean Loss: 0.018054924148446866
+Epoch 3, Min Loss: 0.015636136835070615, Max Loss: 0.019562935094708706,Mean Loss: 0.017978505059218393
+Epoch 4, Min Loss: 0.0156989270652546, Max Loss: 0.01960177186695189,Mean Loss: 0.018009993176878104
+Epoch 5, Min Loss: 0.015603417962314653, Max Loss: 0.019514265787947568,Mean Loss: 0.01795966496136694
+Epoch 6, Min Loss: 0.015532121807067862, Max Loss: 0.01956465330609603,Mean Loss: 0.017903188241010982
+Epoch 7, Min Loss: 0.015532323351381931, Max Loss: 0.019505791088317216,Mean Loss: 0.017776586647585753
+Epoch 8, Min Loss: 0.01547883184574446, Max Loss: 0.019556191875891322,Mean Loss: 0.01780578830195268
+Epoch 9, Min Loss: 0.01541121456777468, Max Loss: 0.019408732168560865,Mean Loss: 0.01776577413032944
+Epoch 10, Min Loss: 0.015434171927427387, Max Loss: 0.019565647472581355,Mean Loss: 0.017753212188778556
+ITERATION:  31 0
+tensor(0.4998)
+init. error: tensor(-0.0027, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0482, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5366) tensor(-0.0038)
+tensor(0.5004)
+init. error: tensor(-0.0027, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0579, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5926) tensor(-0.0081)
+tensor(0.4992)
+init. error: tensor(-0.0028, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0632, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.6042) tensor(-0.0098)
+Epoch 1, Min Loss: 0.01301077057586627, Max Loss: 0.017558546851111426,Mean Loss: 0.015668879602000946
+Epoch 2, Min Loss: 0.013060431521338263, Max Loss: 0.017546041669111122,Mean Loss: 0.015568559841296787
+Epoch 3, Min Loss: 0.012975219331925912, Max Loss: 0.01740070345285211,Mean Loss: 0.015538046627062008
+Epoch 4, Min Loss: 0.013004386202163465, Max Loss: 0.017515929387532454,Mean Loss: 0.015503689112755162
+Epoch 5, Min Loss: 0.013040592058857294, Max Loss: 0.017458495839188497,Mean Loss: 0.015453170473444655
+Epoch 6, Min Loss: 0.012928084586281701, Max Loss: 0.017362863782400206,Mean Loss: 0.015436933369492645
+Epoch 7, Min Loss: 0.012992088505023008, Max Loss: 0.01734422880420677,Mean Loss: 0.015401602913807936
+Epoch 8, Min Loss: 0.012925694699955286, Max Loss: 0.017450748144728627,Mean Loss: 0.015386207190157621
+Epoch 9, Min Loss: 0.012971425262413067, Max Loss: 0.017234095544974914,Mean Loss: 0.01533986741643798
+Epoch 10, Min Loss: 0.01294884044263098, Max Loss: 0.017236581810345823,Mean Loss: 0.01532262828449334
+ITERATION:  32 0
+tensor(0.5000)
+init. error: tensor(-0.0026, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0484, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5266) tensor(0.0106)
+tensor(0.4987)
+init. error: tensor(-0.0026, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0601, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5732) tensor(-0.0024)
+tensor(0.5004)
+init. error: tensor(-0.0026, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0642, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5900) tensor(-0.0033)
+Epoch 1, Min Loss: 0.011124681783912255, Max Loss: 0.01593476277234596,Mean Loss: 0.013711456745797984
+Epoch 2, Min Loss: 0.011047274479101045, Max Loss: 0.015791099710938658,Mean Loss: 0.013634336843126446
+Epoch 3, Min Loss: 0.011011957114223073, Max Loss: 0.015776666702500493,Mean Loss: 0.013551301909412092
+Epoch 4, Min Loss: 0.01101750838696639, Max Loss: 0.01571975842573095,Mean Loss: 0.01352608562734108
+Epoch 5, Min Loss: 0.01099724998885347, Max Loss: 0.015755334994286413,Mean Loss: 0.013508049228748436
+Epoch 6, Min Loss: 0.010988289743929004, Max Loss: 0.015745859294985384,Mean Loss: 0.013496737394359165
+Epoch 7, Min Loss: 0.010905112721957266, Max Loss: 0.01571567286592872,Mean Loss: 0.013462322924444959
+Epoch 8, Min Loss: 0.01101388690357869, Max Loss: 0.015662344272587767,Mean Loss: 0.013464455984662786
+Epoch 9, Min Loss: 0.0109086207747676, Max Loss: 0.015526115210986761,Mean Loss: 0.013439884902476223
+Epoch 10, Min Loss: 0.010931776561810411, Max Loss: 0.015508808131697912,Mean Loss: 0.013456593808598904
+ITERATION:  33 0
+tensor(0.4992)
+init. error: tensor(-0.0024, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0408, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5363) tensor(0.0071)
+tensor(0.4993)
+init. error: tensor(-0.0024, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0479, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5656) tensor(0.0072)
+tensor(0.5001)
+init. error: tensor(-0.0024, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0491, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5732) tensor(0.0057)
+Epoch 1, Min Loss: 0.009598923558011887, Max Loss: 0.014562333759167103,Mean Loss: 0.012249833473233555
+Epoch 2, Min Loss: 0.009492045515087245, Max Loss: 0.014420901760500992,Mean Loss: 0.012196471322376206
+Epoch 3, Min Loss: 0.009443755180661147, Max Loss: 0.014407385099662414,Mean Loss: 0.012170494768202329
+Epoch 4, Min Loss: 0.009475454125003967, Max Loss: 0.014384948292171108,Mean Loss: 0.012187780135054005
+Epoch 5, Min Loss: 0.00947988098466235, Max Loss: 0.01432171345641451,Mean Loss: 0.012150911048445024
+Epoch 6, Min Loss: 0.00941000553706424, Max Loss: 0.014311993353074435,Mean Loss: 0.012153175484723335
+Epoch 7, Min Loss: 0.009417476653008587, Max Loss: 0.014330501182872362,Mean Loss: 0.01214264990923754
+Epoch 8, Min Loss: 0.009461186153665634, Max Loss: 0.014265686560890296,Mean Loss: 0.012136332279486767
+Epoch 9, Min Loss: 0.00942820599589965, Max Loss: 0.0142710263276034,Mean Loss: 0.012121133094158043
+Epoch 10, Min Loss: 0.009408186802828363, Max Loss: 0.014281708255558757,Mean Loss: 0.012128236139735574
+ITERATION:  34 0
+tensor(0.5013)
+init. error: tensor(-0.0023, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0408, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5379) tensor(-0.0111)
+tensor(0.5000)
+init. error: tensor(-0.0023, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0474, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5607) tensor(-0.0095)
+tensor(0.5000)
+init. error: tensor(-0.0023, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0499, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5653) tensor(-0.0112)
+Epoch 1, Min Loss: 0.008393328325422644, Max Loss: 0.013773625019436691,Mean Loss: 0.011258541909352828
+Epoch 2, Min Loss: 0.008320346490646119, Max Loss: 0.013686045984212004,Mean Loss: 0.011209220695190203
+Epoch 3, Min Loss: 0.008341442115028928, Max Loss: 0.013678244073406865,Mean Loss: 0.011178811713515329
+Epoch 4, Min Loss: 0.008332886320895554, Max Loss: 0.01361630810152369,Mean Loss: 0.011055936140218636
+Epoch 5, Min Loss: 0.008344307434792789, Max Loss: 0.01367078332382946,Mean Loss: 0.011031752533132308
+Epoch 6, Min Loss: 0.00827423042967665, Max Loss: 0.013676177077839554,Mean Loss: 0.011008401419160676
+Epoch 7, Min Loss: 0.008281310645139052, Max Loss: 0.013608612448633348,Mean Loss: 0.011000523038211207
+Epoch 8, Min Loss: 0.008293639768591717, Max Loss: 0.013594319746415649,Mean Loss: 0.010993761954215024
+Epoch 9, Min Loss: 0.008256387142518981, Max Loss: 0.013620513884829934,Mean Loss: 0.010975241735482272
+Epoch 10, Min Loss: 0.00824849829278554, Max Loss: 0.013618559771958107,Mean Loss: 0.010979242687697701
+ITERATION:  35 0
+tensor(0.4989)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0384, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5388) tensor(-0.0019)
+tensor(0.4992)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0441, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5541) tensor(-0.0046)
+tensor(0.4998)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0466, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5564) tensor(-0.0072)
+Epoch 1, Min Loss: 0.007434023145219548, Max Loss: 0.013214591967025355,Mean Loss: 0.01033287888777382
+Epoch 2, Min Loss: 0.0074169509642040615, Max Loss: 0.013213276449066681,Mean Loss: 0.0103022555272408
+Epoch 3, Min Loss: 0.007382165926211403, Max Loss: 0.013188034341046382,Mean Loss: 0.010284750970039456
+Epoch 4, Min Loss: 0.007382357835586963, Max Loss: 0.013160889750173118,Mean Loss: 0.010266359751069735
+Epoch 5, Min Loss: 0.007395769596528779, Max Loss: 0.013134322209944307,Mean Loss: 0.010277551307452826
+Epoch 6, Min Loss: 0.007373341695619344, Max Loss: 0.013127616331293682,Mean Loss: 0.010262050416602539
+Epoch 7, Min Loss: 0.007396355494903169, Max Loss: 0.013112474343121877,Mean Loss: 0.010270255265059777
+Epoch 8, Min Loss: 0.007373462842020134, Max Loss: 0.013088408717587749,Mean Loss: 0.010253979676742669
+Epoch 9, Min Loss: 0.007362598062154666, Max Loss: 0.01311264597124393,Mean Loss: 0.010254337765655711
+Epoch 10, Min Loss: 0.007337001266186976, Max Loss: 0.013141577211145759,Mean Loss: 0.010251266119605182
+ITERATION:  36 0
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0389, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5366) tensor(0.0029)
+tensor(0.4997)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0454, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5507) tensor(-0.0011)
+tensor(0.4999)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0475, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5525) tensor(-0.0045)
+Epoch 1, Min Loss: 0.006723278889337227, Max Loss: 0.01296605298200295,Mean Loss: 0.009795405531452164
+Epoch 2, Min Loss: 0.006707121993422787, Max Loss: 0.012911051751035851,Mean Loss: 0.009773691433090922
+Epoch 3, Min Loss: 0.00670425218055321, Max Loss: 0.012881111399686663,Mean Loss: 0.009746400891986121
+Epoch 4, Min Loss: 0.00670367546226922, Max Loss: 0.012878714891583407,Mean Loss: 0.009750707174025292
+Epoch 5, Min Loss: 0.006703136240184967, Max Loss: 0.012795234110945755,Mean Loss: 0.009725148963966094
+Epoch 6, Min Loss: 0.0066617793317582785, Max Loss: 0.012751348983602055,Mean Loss: 0.009712098634181567
+Epoch 7, Min Loss: 0.006652712160180404, Max Loss: 0.012682353347967563,Mean Loss: 0.009693572373821157
+Epoch 8, Min Loss: 0.006667312917352382, Max Loss: 0.012653905005654111,Mean Loss: 0.009692944887749218
+Epoch 9, Min Loss: 0.006696023401690912, Max Loss: 0.012650252960398175,Mean Loss: 0.009688340176771528
+Epoch 10, Min Loss: 0.006648973853747266, Max Loss: 0.01261965180766533,Mean Loss: 0.00967768567450342
+ITERATION:  37 0
+tensor(0.5005)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0378, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5395) tensor(0.0034)
+tensor(0.5006)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0438, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5507) tensor(-0.0038)
+tensor(0.5006)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0453, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5515) tensor(-0.0043)
+Epoch 1, Min Loss: 0.006177073548569874, Max Loss: 0.012706943523916431,Mean Loss: 0.009368001206414239
+Epoch 2, Min Loss: 0.0061615249352147084, Max Loss: 0.01266036298759407,Mean Loss: 0.009341334868034328
+Epoch 3, Min Loss: 0.006145716378126632, Max Loss: 0.012627122523608031,Mean Loss: 0.009332794547284818
+Epoch 4, Min Loss: 0.006155765770937658, Max Loss: 0.012616609436105498,Mean Loss: 0.00932102850959746
+Epoch 5, Min Loss: 0.006133769956803081, Max Loss: 0.01260474775745361,Mean Loss: 0.009312262442699861
+Epoch 6, Min Loss: 0.006130441129270327, Max Loss: 0.012597566125255944,Mean Loss: 0.009303883902684657
+Epoch 7, Min Loss: 0.00613086271062117, Max Loss: 0.01259462258932165,Mean Loss: 0.009293787111779079
+Epoch 8, Min Loss: 0.006136791805363564, Max Loss: 0.012576504353659623,Mean Loss: 0.00929064540512333
+Epoch 9, Min Loss: 0.00613887763005189, Max Loss: 0.012564560119689816,Mean Loss: 0.009282818872415733
+Epoch 10, Min Loss: 0.006126272022216157, Max Loss: 0.012543304340117406,Mean Loss: 0.009267959859526343
+ITERATION:  38 0
+tensor(0.4996)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0369, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5418) tensor(0.0001)
+tensor(0.4993)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0433, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5499) tensor(-0.0047)
+tensor(0.5001)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0465, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5503) tensor(-0.0038)
+Epoch 1, Min Loss: 0.0057479561108844035, Max Loss: 0.012653868030047831,Mean Loss: 0.009055435382091902
+Epoch 2, Min Loss: 0.005731291550589271, Max Loss: 0.012605205243648937,Mean Loss: 0.009039331305716455
+Epoch 3, Min Loss: 0.005728391702824671, Max Loss: 0.012605898756304086,Mean Loss: 0.009026894133520896
+Epoch 4, Min Loss: 0.005737675757518923, Max Loss: 0.012598541228521097,Mean Loss: 0.009025766905684397
+Epoch 5, Min Loss: 0.005719271298281584, Max Loss: 0.012585178350362427,Mean Loss: 0.009012097979329276
+Epoch 6, Min Loss: 0.005718711729245774, Max Loss: 0.012574615373136842,Mean Loss: 0.009016951709711347
+Epoch 7, Min Loss: 0.005715764226670575, Max Loss: 0.012574604792175741,Mean Loss: 0.009006825650295393
+Epoch 8, Min Loss: 0.005711279870127022, Max Loss: 0.01255733856174782,Mean Loss: 0.008997609762241452
+Epoch 9, Min Loss: 0.0057062447293211764, Max Loss: 0.012555767643617422,Mean Loss: 0.008992729537534893
+Epoch 10, Min Loss: 0.005684023538147273, Max Loss: 0.012563036540840946,Mean Loss: 0.008991017498398625
+ITERATION:  39 0
+tensor(0.4995)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0363, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5400) tensor(-0.0035)
+tensor(0.5003)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0426, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5482) tensor(-0.0011)
+tensor(0.5014)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0449, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5497) tensor(-0.0078)
+Epoch 1, Min Loss: 0.005412457278594184, Max Loss: 0.012699655786881215,Mean Loss: 0.008848798655388223
+Epoch 2, Min Loss: 0.005416021558681952, Max Loss: 0.012662515410067786,Mean Loss: 0.0088321527755168
+Epoch 3, Min Loss: 0.005405566510678849, Max Loss: 0.012632385255877341,Mean Loss: 0.00882102913545416
+Epoch 4, Min Loss: 0.005406489751736084, Max Loss: 0.012590406938638927,Mean Loss: 0.008807410206422282
+Epoch 5, Min Loss: 0.005421351133449503, Max Loss: 0.012568217433181067,Mean Loss: 0.008797876544443322
+Epoch 6, Min Loss: 0.005393765128044244, Max Loss: 0.012551598541047699,Mean Loss: 0.008783753839308324
+Epoch 7, Min Loss: 0.005397420482601558, Max Loss: 0.012515888825268679,Mean Loss: 0.008764498531642613
+Epoch 8, Min Loss: 0.005384846985511725, Max Loss: 0.012507415879207949,Mean Loss: 0.008740128314936497
+Epoch 9, Min Loss: 0.005396833979007469, Max Loss: 0.012507103576896305,Mean Loss: 0.008720188867889157
+Epoch 10, Min Loss: 0.005377658151992271, Max Loss: 0.012482913541390072,Mean Loss: 0.008685819342001315
+ITERATION:  40 0
+tensor(0.5002)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0366, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5407) tensor(-0.0050)
+tensor(0.4999)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0425, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5479) tensor(-0.0045)
+tensor(0.5003)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0444, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5489) tensor(-0.0040)
+Epoch 1, Min Loss: 0.005176850871448074, Max Loss: 0.012677946679942896,Mean Loss: 0.008604400569341086
+Epoch 2, Min Loss: 0.005180149951010254, Max Loss: 0.012642363832796112,Mean Loss: 0.008572358997104419
+Epoch 3, Min Loss: 0.005176216574210194, Max Loss: 0.012593596766455176,Mean Loss: 0.0085488437232823
+Epoch 4, Min Loss: 0.0051716360856939375, Max Loss: 0.01254395690639637,Mean Loss: 0.00853122207618809
+Epoch 5, Min Loss: 0.005158385867950566, Max Loss: 0.01247514614640048,Mean Loss: 0.008513089059343382
+Epoch 6, Min Loss: 0.005165049249085989, Max Loss: 0.01237583323963191,Mean Loss: 0.008489321967022675
+Epoch 7, Min Loss: 0.0051585263570453205, Max Loss: 0.012283808554635475,Mean Loss: 0.00847081125333246
+Epoch 8, Min Loss: 0.005163302299838057, Max Loss: 0.012213483183050572,Mean Loss: 0.008459247589425548
+Epoch 9, Min Loss: 0.005153103410522134, Max Loss: 0.012165884941074527,Mean Loss: 0.008445655388441331
+Epoch 10, Min Loss: 0.0051596867633906755, Max Loss: 0.012119800429942363,Mean Loss: 0.00843801407411476
+ITERATION:  41 0
+tensor(0.5000)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0408, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5407) tensor(-0.0075)
+tensor(0.5002)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0464, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5477) tensor(-0.0041)
+tensor(0.5001)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0488, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5481) tensor(-0.0098)
+Epoch 1, Min Loss: 0.005004697845508682, Max Loss: 0.012447758244338067,Mean Loss: 0.008439262715774993
+Epoch 2, Min Loss: 0.0049985757176063406, Max Loss: 0.01241182374622103,Mean Loss: 0.0084213850344588
+Epoch 3, Min Loss: 0.005001818597567024, Max Loss: 0.0123935163754341,Mean Loss: 0.008413945485948144
+Epoch 4, Min Loss: 0.004996550295176751, Max Loss: 0.012375871384985141,Mean Loss: 0.00840190486510135
+Epoch 5, Min Loss: 0.0049970557210577615, Max Loss: 0.012360224264204538,Mean Loss: 0.008391458276074123
+Epoch 6, Min Loss: 0.004992676817537907, Max Loss: 0.012346623225635886,Mean Loss: 0.008380235288528262
+Epoch 7, Min Loss: 0.0049880272002253935, Max Loss: 0.012336548552028313,Mean Loss: 0.008372453495486664
+Epoch 8, Min Loss: 0.004985293314583931, Max Loss: 0.01233554444582832,Mean Loss: 0.008365341697607841
+Epoch 9, Min Loss: 0.0049835940671711255, Max Loss: 0.01232593576806909,Mean Loss: 0.008356518100545328
+Epoch 10, Min Loss: 0.004993571248941241, Max Loss: 0.012323099433964868,Mean Loss: 0.008348437128419716
+ITERATION:  42 0
+tensor(0.4996)
+init. error: tensor(-0.0019, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0394, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5422) tensor(-0.0124)
+tensor(0.5001)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0462, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5472) tensor(-0.0063)
+tensor(0.5000)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0480, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5470) tensor(-0.0083)
+Epoch 1, Min Loss: 0.004885337550547861, Max Loss: 0.012647818816393347,Mean Loss: 0.00839694896313761
+Epoch 2, Min Loss: 0.004878863983460525, Max Loss: 0.012634036968007595,Mean Loss: 0.008386940896092538
+Epoch 3, Min Loss: 0.0048719531297267945, Max Loss: 0.012607005110198986,Mean Loss: 0.008376230011795304
+Epoch 4, Min Loss: 0.004883027860861537, Max Loss: 0.012583253351927158,Mean Loss: 0.00836943347011194
+Epoch 5, Min Loss: 0.004870549032195759, Max Loss: 0.012567072032695813,Mean Loss: 0.008361779685676862
+Epoch 6, Min Loss: 0.004869952553209649, Max Loss: 0.012551543851926302,Mean Loss: 0.008355015263320335
+Epoch 7, Min Loss: 0.004867613645287098, Max Loss: 0.01253757556190803,Mean Loss: 0.008347189046894311
+Epoch 8, Min Loss: 0.004870689724339172, Max Loss: 0.012530679010974597,Mean Loss: 0.008341111807302307
+Epoch 9, Min Loss: 0.004868317811425576, Max Loss: 0.012521125118724913,Mean Loss: 0.00833755664262017
+Epoch 10, Min Loss: 0.004864421903316508, Max Loss: 0.01251128900607693,Mean Loss: 0.008330039090457526
+ITERATION:  43 0
+tensor(0.4986)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0402, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5394) tensor(-0.0056)
+tensor(0.5010)
+init. error: tensor(-0.0020, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0469, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5471) tensor(-0.0042)
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0485, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5454) tensor(-0.0079)
+Epoch 1, Min Loss: 0.004798084103305666, Max Loss: 0.012884131269480702,Mean Loss: 0.008410915510564795
+Epoch 2, Min Loss: 0.004793900713230277, Max Loss: 0.012873954767303854,Mean Loss: 0.008401623489676501
+Epoch 3, Min Loss: 0.004791429842856927, Max Loss: 0.012864449572082503,Mean Loss: 0.008394335322709154
+Epoch 4, Min Loss: 0.004790640165086634, Max Loss: 0.01285963864382649,Mean Loss: 0.00838911943055024
+Epoch 5, Min Loss: 0.004785013359314705, Max Loss: 0.012852093209731952,Mean Loss: 0.008381765397459781
+Epoch 6, Min Loss: 0.004781976576657221, Max Loss: 0.012843949182545241,Mean Loss: 0.008374233004312535
+Epoch 7, Min Loss: 0.004786975887116996, Max Loss: 0.012835629009969485,Mean Loss: 0.008366654366983504
+Epoch 8, Min Loss: 0.004782870055041956, Max Loss: 0.012826900069134277,Mean Loss: 0.008359732619320694
+Epoch 9, Min Loss: 0.0047749398811760945, Max Loss: 0.012826758503497791,Mean Loss: 0.008353365065029879
+Epoch 10, Min Loss: 0.004779055446696236, Max Loss: 0.012815794659645198,Mean Loss: 0.008345424930766603
+ITERATION:  44 0
+tensor(0.5000)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0398, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(-0.0013)
+tensor(0.5001)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0464, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5467) tensor(-0.0047)
+tensor(0.5003)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0486, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5473) tensor(-0.0098)
+Epoch 1, Min Loss: 0.004730559447653109, Max Loss: 0.013178394216062995,Mean Loss: 0.008441521785186501
+Epoch 2, Min Loss: 0.004726334399291006, Max Loss: 0.013163454713833872,Mean Loss: 0.00843026611973972
+Epoch 3, Min Loss: 0.004723407576587454, Max Loss: 0.01315425076830255,Mean Loss: 0.008420592402844382
+Epoch 4, Min Loss: 0.004724470662632247, Max Loss: 0.013145842055702186,Mean Loss: 0.008414815997493488
+Epoch 5, Min Loss: 0.004722816920606154, Max Loss: 0.013139362089374062,Mean Loss: 0.008407655534222172
+Epoch 6, Min Loss: 0.004721535539012975, Max Loss: 0.01312954097337792,Mean Loss: 0.008399595901374285
+Epoch 7, Min Loss: 0.0047201265929800815, Max Loss: 0.013119952162236093,Mean Loss: 0.008392844099455551
+Epoch 8, Min Loss: 0.004717315827081545, Max Loss: 0.0131162908018288,Mean Loss: 0.008388050513778281
+Epoch 9, Min Loss: 0.004715786440855801, Max Loss: 0.013110340381384455,Mean Loss: 0.00838190951706832
+Epoch 10, Min Loss: 0.004714891260868072, Max Loss: 0.01310337391820767,Mean Loss: 0.008376624818469595
+ITERATION:  45 0
+tensor(0.4993)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0438, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5408) tensor(-0.0025)
+tensor(0.4999)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0501, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5470) tensor(-0.0039)
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0522, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5474) tensor(-0.0050)
+Epoch 1, Min Loss: 0.004677733259820252, Max Loss: 0.013509718100314894,Mean Loss: 0.008491323991171012
+Epoch 2, Min Loss: 0.0046756919279708035, Max Loss: 0.013496755803461017,Mean Loss: 0.00848408283423617
+Epoch 3, Min Loss: 0.004675554009696026, Max Loss: 0.013487552073418795,Mean Loss: 0.008477267143183113
+Epoch 4, Min Loss: 0.004673007911311656, Max Loss: 0.013480938328912043,Mean Loss: 0.0084713052526276
+Epoch 5, Min Loss: 0.00467170187249846, Max Loss: 0.01346978899034473,Mean Loss: 0.008466044855684989
+Epoch 6, Min Loss: 0.004669651689974961, Max Loss: 0.013465903299556435,Mean Loss: 0.00846092987277752
+Epoch 7, Min Loss: 0.004670350167977545, Max Loss: 0.013460759685826206,Mean Loss: 0.008456669600428334
+Epoch 8, Min Loss: 0.004666628956491036, Max Loss: 0.013452274070272163,Mean Loss: 0.008451067601290673
+Epoch 9, Min Loss: 0.004665324177710121, Max Loss: 0.013449925329675094,Mean Loss: 0.00844787489870303
+Epoch 10, Min Loss: 0.004667284063988147, Max Loss: 0.013442240092586197,Mean Loss: 0.008443607887306028
+ITERATION:  46 0
+tensor(0.4981)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0426, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5390) tensor(-0.0059)
+tensor(0.4995)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0502, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5449) tensor(-0.0068)
+tensor(0.5008)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0522, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5486) tensor(-0.0093)
+Epoch 1, Min Loss: 0.004641435126896262, Max Loss: 0.013849698135949882,Mean Loss: 0.008565301383120894
+Epoch 2, Min Loss: 0.004641789358683957, Max Loss: 0.013840420659345399,Mean Loss: 0.008558605703258174
+Epoch 3, Min Loss: 0.004638824344578164, Max Loss: 0.013831741244264336,Mean Loss: 0.00855347419099036
+Epoch 4, Min Loss: 0.00463680666890391, Max Loss: 0.01382196044309921,Mean Loss: 0.00854691520814169
+Epoch 5, Min Loss: 0.004636572182385458, Max Loss: 0.013812826456368164,Mean Loss: 0.008542458427063552
+Epoch 6, Min Loss: 0.004635964897864504, Max Loss: 0.01380509371952456,Mean Loss: 0.008536543437447915
+Epoch 7, Min Loss: 0.004633196107109842, Max Loss: 0.013796021866364595,Mean Loss: 0.008531113279400563
+Epoch 8, Min Loss: 0.004632891418221092, Max Loss: 0.013787154639636883,Mean Loss: 0.008526032042585887
+Epoch 9, Min Loss: 0.004632314815604958, Max Loss: 0.013775697628782823,Mean Loss: 0.008521343489260716
+Epoch 10, Min Loss: 0.0046326416322818404, Max Loss: 0.013764556306099808,Mean Loss: 0.008516708511889869
+ITERATION:  47 0
+tensor(0.4998)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0426, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5394) tensor(-0.0078)
+tensor(0.4994)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0491, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5459) tensor(-0.0067)
+tensor(0.5004)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0509, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5471) tensor(-0.0097)
+Epoch 1, Min Loss: 0.0046178243642672895, Max Loss: 0.014132647741337618,Mean Loss: 0.00864249773538982
+Epoch 2, Min Loss: 0.0046161349379147095, Max Loss: 0.014094789613535007,Mean Loss: 0.008631933845945943
+Epoch 3, Min Loss: 0.004614109328016639, Max Loss: 0.014055168313533067,Mean Loss: 0.008622370184436439
+Epoch 4, Min Loss: 0.004612749019699792, Max Loss: 0.014014138372490803,Mean Loss: 0.008611568858356525
+Epoch 5, Min Loss: 0.004613612816606959, Max Loss: 0.013971481770277024,Mean Loss: 0.008602051171101629
+Epoch 6, Min Loss: 0.0046114888163283465, Max Loss: 0.013921753135323525,Mean Loss: 0.008590869697959472
+Epoch 7, Min Loss: 0.004611716901573042, Max Loss: 0.013859028411904971,Mean Loss: 0.00857908601411308
+Epoch 8, Min Loss: 0.004609694246388972, Max Loss: 0.013774419973790645,Mean Loss: 0.0085654306727089
+Epoch 9, Min Loss: 0.004608235859250029, Max Loss: 0.013680260838071506,Mean Loss: 0.008551011541113257
+Epoch 10, Min Loss: 0.004607941048157712, Max Loss: 0.013589135216424863,Mean Loss: 0.008537356731587401
+ITERATION:  48 0
+tensor(0.4999)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0392, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5401) tensor(-0.0075)
+tensor(0.5017)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0450, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5472) tensor(-0.0068)
+tensor(0.4998)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0473, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5456) tensor(-0.0085)
+Epoch 1, Min Loss: 0.004605116476032342, Max Loss: 0.013813528328863447,Mean Loss: 0.008655486715803762
+Epoch 2, Min Loss: 0.004603772372826778, Max Loss: 0.013731013531207868,Mean Loss: 0.008641660930805371
+Epoch 3, Min Loss: 0.004603826839261753, Max Loss: 0.013651549618335026,Mean Loss: 0.00862935055222444
+Epoch 4, Min Loss: 0.004601422270692791, Max Loss: 0.013576792501975844,Mean Loss: 0.008617008867921248
+Epoch 5, Min Loss: 0.004601531453241371, Max Loss: 0.013501925032650089,Mean Loss: 0.008604565831994863
+Epoch 6, Min Loss: 0.004599834801378595, Max Loss: 0.013425723637153502,Mean Loss: 0.008592950710750651
+Epoch 7, Min Loss: 0.004599545537951512, Max Loss: 0.013348711382786479,Mean Loss: 0.008581233774265616
+Epoch 8, Min Loss: 0.004598040905559208, Max Loss: 0.013272820669737262,Mean Loss: 0.008569256547371815
+Epoch 9, Min Loss: 0.0045977278698071285, Max Loss: 0.013202855612132835,Mean Loss: 0.00855830559188786
+Epoch 10, Min Loss: 0.004597575129863739, Max Loss: 0.013138329934537053,Mean Loss: 0.008548148739016142
+ITERATION:  49 0
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0389, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(-0.0094)
+tensor(0.4997)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0441, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5446) tensor(-0.0055)
+tensor(0.4997)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0459, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5455) tensor(-0.0042)
+Epoch 1, Min Loss: 0.004602251364098441, Max Loss: 0.013359653564857646,Mean Loss: 0.008671952963637878
+Epoch 2, Min Loss: 0.004600907077214548, Max Loss: 0.013303535229574623,Mean Loss: 0.008661387431963655
+Epoch 3, Min Loss: 0.004600471546751849, Max Loss: 0.013246925079673375,Mean Loss: 0.008651719031302536
+Epoch 4, Min Loss: 0.004599545857295894, Max Loss: 0.01319194662647443,Mean Loss: 0.008642363254844245
+Epoch 5, Min Loss: 0.004597671372893219, Max Loss: 0.013140262436709203,Mean Loss: 0.008634065585120313
+Epoch 6, Min Loss: 0.004597589528391732, Max Loss: 0.013092242819588503,Mean Loss: 0.008626218809796516
+Epoch 7, Min Loss: 0.004597181248711303, Max Loss: 0.013047791011745937,Mean Loss: 0.008618878405613904
+Epoch 8, Min Loss: 0.004596199661124206, Max Loss: 0.013006268020269126,Mean Loss: 0.008611326967330276
+Epoch 9, Min Loss: 0.0045954269658406, Max Loss: 0.012966983910379154,Mean Loss: 0.008604684097599857
+Epoch 10, Min Loss: 0.004595696550106779, Max Loss: 0.012932910177383631,Mean Loss: 0.008598591816881973
+ITERATION:  50 0
+tensor(0.4998)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0391, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5393) tensor(-0.0128)
+tensor(0.5001)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0443, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5459) tensor(-0.0057)
+tensor(0.5003)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0454, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5469) tensor(-0.0054)
+Epoch 1, Min Loss: 0.00459853581805764, Max Loss: 0.013169294113553238,Mean Loss: 0.008727711644525083
+Epoch 2, Min Loss: 0.00459745775841141, Max Loss: 0.013138249994537991,Mean Loss: 0.008720451860879613
+Epoch 3, Min Loss: 0.004597272950023073, Max Loss: 0.013106983849997577,Mean Loss: 0.008714420533033994
+Epoch 4, Min Loss: 0.004596195496823527, Max Loss: 0.01308044081228415,Mean Loss: 0.008708442959548292
+Epoch 5, Min Loss: 0.0045958607576564925, Max Loss: 0.013054379300601467,Mean Loss: 0.008703310318112589
+Epoch 6, Min Loss: 0.004593974052113481, Max Loss: 0.013028743358919898,Mean Loss: 0.00869713727115157
+Epoch 7, Min Loss: 0.004594533618604559, Max Loss: 0.013004324094338125,Mean Loss: 0.008692626515526117
+Epoch 8, Min Loss: 0.004594317628208634, Max Loss: 0.012982137165785989,Mean Loss: 0.008687362600164441
+Epoch 9, Min Loss: 0.004593748923290117, Max Loss: 0.01296004005001828,Mean Loss: 0.00868189708997372
+Epoch 10, Min Loss: 0.0045927975073257596, Max Loss: 0.012941038469320171,Mean Loss: 0.008677146327500673
+ITERATION:  51 0
+tensor(0.5002)
+init. error: tensor(-0.0021, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0378, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5384) tensor(-0.0103)
+tensor(0.5007)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0434, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5470) tensor(-0.0052)
+tensor(0.5006)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0452, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5454) tensor(-0.0054)
+Epoch 1, Min Loss: 0.004602237340454631, Max Loss: 0.013193380303204353,Mean Loss: 0.008804351169407495
+Epoch 2, Min Loss: 0.004599045313806542, Max Loss: 0.013174482569474209,Mean Loss: 0.008798484300193924
+Epoch 3, Min Loss: 0.0045996754246948315, Max Loss: 0.01315707034450872,Mean Loss: 0.008792116678208754
+Epoch 4, Min Loss: 0.0045987903549442434, Max Loss: 0.013138409519538301,Mean Loss: 0.008787667355694903
+Epoch 5, Min Loss: 0.004599745311518858, Max Loss: 0.013121526364951886,Mean Loss: 0.008783368515727074
+Epoch 6, Min Loss: 0.004598173168562307, Max Loss: 0.013101757343785166,Mean Loss: 0.008777801850398254
+Epoch 7, Min Loss: 0.004596869085559124, Max Loss: 0.01309293769299984,Mean Loss: 0.00877549917682854
+Epoch 8, Min Loss: 0.004596370312432228, Max Loss: 0.013072905640448884,Mean Loss: 0.008769226224352989
+Epoch 9, Min Loss: 0.004596752085382758, Max Loss: 0.013060715454109334,Mean Loss: 0.00876509848804537
+Epoch 10, Min Loss: 0.0045960087490097366, Max Loss: 0.01304082257872468,Mean Loss: 0.008760294940736178
+ITERATION:  52 0
+tensor(0.4991)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0386, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5390) tensor(-0.0099)
+tensor(0.5005)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0446, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5467) tensor(-0.0051)
+tensor(0.4992)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0452, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5463) tensor(-0.0066)
+Epoch 1, Min Loss: 0.00460173047244128, Max Loss: 0.013280028961517948,Mean Loss: 0.00888393949577911
+Epoch 2, Min Loss: 0.004601915787931081, Max Loss: 0.013265107121725905,Mean Loss: 0.008878866130716095
+Epoch 3, Min Loss: 0.004600313463907634, Max Loss: 0.013248448103671701,Mean Loss: 0.008872999382646355
+Epoch 4, Min Loss: 0.004601383708541502, Max Loss: 0.013231219290866963,Mean Loss: 0.008868763740407135
+Epoch 5, Min Loss: 0.004600759471546128, Max Loss: 0.013214007314926697,Mean Loss: 0.00886351915235754
+Epoch 6, Min Loss: 0.004598791359397986, Max Loss: 0.013200067312573786,Mean Loss: 0.008858672687157787
+Epoch 7, Min Loss: 0.0045989598988863565, Max Loss: 0.013185083307280882,Mean Loss: 0.008853759393471376
+Epoch 8, Min Loss: 0.004598837875060408, Max Loss: 0.013171131270792629,Mean Loss: 0.0088490128817195
+Epoch 9, Min Loss: 0.004598874468698058, Max Loss: 0.013154988666048178,Mean Loss: 0.0088443702051345
+Epoch 10, Min Loss: 0.004597865584239655, Max Loss: 0.01313972333839535,Mean Loss: 0.008839624851477637
+ITERATION:  53 0
+tensor(0.5000)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0380, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5381) tensor(-0.0103)
+tensor(0.4994)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0435, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5436) tensor(-0.0041)
+tensor(0.5008)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0456, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5465) tensor(-0.0060)
+Epoch 1, Min Loss: 0.004606706548210351, Max Loss: 0.013383954899878482,Mean Loss: 0.008959587216582453
+Epoch 2, Min Loss: 0.004606433784215407, Max Loss: 0.013375001662741536,Mean Loss: 0.008955237200175667
+Epoch 3, Min Loss: 0.004605667294208044, Max Loss: 0.013361891088122491,Mean Loss: 0.008949779164363994
+Epoch 4, Min Loss: 0.0046052184651255625, Max Loss: 0.013354400259982534,Mean Loss: 0.00894562996225266
+Epoch 5, Min Loss: 0.004604976559161532, Max Loss: 0.013342138004061864,Mean Loss: 0.008941215527475805
+Epoch 6, Min Loss: 0.004604917507992872, Max Loss: 0.013332959030196864,Mean Loss: 0.008937398066900422
+Epoch 7, Min Loss: 0.004603635654829971, Max Loss: 0.01332401992915098,Mean Loss: 0.008931964853278952
+Epoch 8, Min Loss: 0.004603763626351356, Max Loss: 0.013316054590173494,Mean Loss: 0.008928217466762194
+Epoch 9, Min Loss: 0.004602920576046161, Max Loss: 0.013303872884498956,Mean Loss: 0.008923522372268056
+Epoch 10, Min Loss: 0.004603693753935872, Max Loss: 0.013294255097516479,Mean Loss: 0.008920310136566
+ITERATION:  54 0
+tensor(0.4998)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0391, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5373) tensor(-0.0143)
+tensor(0.5004)
+init. error: tensor(-0.0023, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0436, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5447) tensor(-0.0045)
+tensor(0.5007)
+init. error: tensor(-0.0022, device='cuda:0', grad_fn=<NegBackward0>)
+final error: tensor(-0.0458, device='cuda:0', grad_fn=<NegBackward0>)
+stats: tensor(0.5466) tensor(-0.0066)
+Epoch 1, Min Loss: 0.004610739333947649, Max Loss: 0.01390414773073861,Mean Loss: 0.009042496259801285
+Epoch 2, Min Loss: 0.004610360378542905, Max Loss: 0.01389328832776013,Mean Loss: 0.009038287839044434
+Epoch 3, Min Loss: 0.004609874420370157, Max Loss: 0.01388224077617451,Mean Loss: 0.00903378106598123
+Epoch 4, Min Loss: 0.004610247987849587, Max Loss: 0.013874850259059582,Mean Loss: 0.009030256794273177
+Epoch 5, Min Loss: 0.004609910244118681, Max Loss: 0.013864159271871455,Mean Loss: 0.009026447659943084
+Epoch 6, Min Loss: 0.004609888112859224, Max Loss: 0.0138529879748336,Mean Loss: 0.009022928649898869
+Epoch 7, Min Loss: 0.004608392902736811, Max Loss: 0.0138433239896957,Mean Loss: 0.009018399832929675
+Epoch 8, Min Loss: 0.004609029301405161, Max Loss: 0.013834224328629206,Mean Loss: 0.009015164086097996
+Epoch 9, Min Loss: 0.00460872190142673, Max Loss: 0.01382287645855042,Mean Loss: 0.009011337877943146
+Epoch 10, Min Loss: 0.004608337365614675, Max Loss: 0.01381449237384403,Mean Loss: 0.009008005761424876
+0.008040083912930209
+0.010319403772400296
+0.013365763576649724
+0.008418311368198305
+0.01381449237384403
+0.004608337365614675
+0.008565736690826001
+0.00869887567138909
+0.005463188647995108
+0.008785864234401317
