@@ -144,7 +144,7 @@ class Standardizer:
         for i in range(len(self.layers)-1):
             layer = self.layers[i]
 
-            if layer.activation in ('relu', 'leakyrelu', 'leaky_relu', 'prelu', 'relu6') and layer.next is not None: #(nn.ReLU, nn.LeakyReLU, nn.PReLU, nn.ReLU6)
+            if layer.activation in ('relu', 'leakyrelu', 'leaky_relu', 'prelu', 'relu6') and layer.next is not None:
                 if layer.layertype == 'RNN':
                     continue
                 else:
@@ -183,25 +183,41 @@ class Standardizer:
                 if layer.layertype == 'RNN':
                     layer.bias[0] = layer.bias[0] + layer.bias[1]
                     layer.bias[1].zero_()
-                    weights4sign = (layer.weights[0], layer.weights[1], layer.bias[0].reshape(-1, 1))
+                    # weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+                    # weights4sign = torch.hstack(weights4sign)
+                    # sums = weights4sign.sum(dim=1, keepdim=True)
+                    # signs = torch.sign(sums)
+                    # signs[signs==0] = 1
+                    # flipped_indices = torch.where(signs == -1)[0]
+                    # # print("before: ")
+                    # # print(flipped_indices)
+                    # # print(signs.squeeze())
+                    # # print(layer.bias[0])
+                    # # print()
 
-                    #weights4sign = (layer.weights[0], layer.weights[1], layer.bias[0].reshape(-1, 1), layer.bias[1].reshape(-1, 1))
-                    weights4sign = torch.hstack(weights4sign)
-                    sums = weights4sign.sum(dim=1, keepdim=True)
-                    signs = torch.sign(sums)
-                    signs[signs==0] = 1
+                    # layer.weights[0] *= signs
+                    # layer.weights[1] *= signs
+                    # layer.weights[1] *= signs.transpose(0, 1)
+                    # layer.bias[0] *= signs.squeeze()
 
-                    layer.weights[0] *= signs
-                    layer.weights[1] *= signs
-                    layer.weights[1] *= signs.transpose(0, 1)
-                    layer.bias[0] *= signs.squeeze()
-                    #layer.bias[1] *= signs.squeeze()
+                    # if layer.next.layertype == "RNN":
+                    #     layer.next.weights[0] *= signs.transpose(0, 1)
+                    # else:
+                    #     layer.next.weights *= signs.transpose(0, 1)
+                    # # continue
 
-                    if layer.next.layertype == "RNN":
-                        layer.next.weights[0] *= signs.transpose(0, 1)
-                    else:
-                        layer.next.weights *= signs.transpose(0, 1)
-                    # continue
+                    # weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+                    # weights4sign = torch.hstack(weights4sign)
+                    # sums = weights4sign.sum(dim=1, keepdim=True)
+                    # signs = torch.sign(sums)
+                    # signs[signs==0] = 1
+                    # flipped_indices = torch.where(signs == -1)[0]
+                    # # print("after: ")
+                    # # print(flipped_indices)
+                    # # print(signs.squeeze())
+                    # # print(layer.bias[0])
+                    # # print()
+                    # # print("-"*50)
                 else:
                     if layer.weights.dim() == 2:
                         weights4sign = (layer.weights, layer.bias.reshape(-1, 1))
@@ -237,7 +253,6 @@ class Standardizer:
 
         # 2) optimize mae by distributing last layer scale factor over all layers
         if not self.old_redist:
-        
             out_scale = torch.hstack((self.layers[-1].weights, self.layers[-1].bias.reshape(-1,1))).norm(dim=1, p=2)
             out_scale_total = sum(out_scale) / len(out_scale)
             avg_scale = out_scale_total ** (1 / len(self.layers))
@@ -245,7 +260,7 @@ class Standardizer:
             for i in range(len(self.layers)-1):
                 layer = self.layers[i]
 
-                if layer.activation in ('relu', 'leakyrelu', 'leaky_relu', 'prelu', 'relu6') and layer.next is not None: #(nn.ReLU, nn.LeakyReLU, nn.PReLU, nn.ReLU6)
+                if layer.activation in ('relu', 'leakyrelu', 'leaky_relu', 'prelu', 'relu6') and layer.next is not None:
                     if layer.layertype == "RNN":
                         print('redist')
                         layer.weights[0] *= avg_scale
@@ -262,41 +277,7 @@ class Standardizer:
                         layer.next.weights /= avg_scale
 
         else:
-            
-            number_fnn_input_neurons = self.layers[-1].weights.shape[1]
-            num_fnn_output_neurons = self.layers[-1].weights.shape[0]
-            index_1 = int(number_fnn_input_neurons/3)
-            index_2 = int(2*number_fnn_input_neurons/3)
-            fnn_weights_biases = torch.hstack((self.layers[-1].weights, self.layers[-1].bias.reshape(-1,1)))
-
-            # print(fnn_weights_biases)
-
-            appended_fnn_weights_biases_1 = torch.cat((fnn_weights_biases[:, 0:index_1],fnn_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-            fnn_layer_norm_1 = torch.norm(appended_fnn_weights_biases_1 ,dim=1, p=2)
-            appended_fnn_weights_biases_2 = torch.cat((fnn_weights_biases[:, index_1:index_2],fnn_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-            fnn_layer_norm_2 = torch.norm(appended_fnn_weights_biases_2, dim=1, p=2)
-            appended_fnn_weights_biases_3 = torch.cat((fnn_weights_biases[:,  index_2:number_fnn_input_neurons],fnn_weights_biases[:, number_fnn_input_neurons].view(num_fnn_output_neurons,1)), dim=1)
-            fnn_layer_norm_3 = torch.norm(appended_fnn_weights_biases_3, dim=1, p=2)
-
-            avg_out_scale_mul_1 = (sum(fnn_layer_norm_1)/len(fnn_layer_norm_1))**0.5
-            avg_out_scale_mul_2 = (sum(fnn_layer_norm_2)/len(fnn_layer_norm_2)) **0.5
-            avg_out_scale_mul_3 = (sum(fnn_layer_norm_3)/len(fnn_layer_norm_3)) ** 0.5
-
-            cnn_layer = self.layers[0]
-            cnn_layer.weights[0] =   cnn_layer.weights[0]*avg_out_scale_mul_1 # all 196 rows are the same so take any one except bias
-            cnn_layer.bias[0] =   cnn_layer.bias[0]*avg_out_scale_mul_1
-            
-            cnn_layer.weights[1] =   cnn_layer.weights[1]*avg_out_scale_mul_2 # want to only use the weights and not the biases
-            cnn_layer.bias[1] =   cnn_layer.bias[1]*avg_out_scale_mul_2
-
-            cnn_layer.weights[2] =  cnn_layer.weights[2]*avg_out_scale_mul_3 #  want to only use the weights and not the biases
-            cnn_layer.bias[2] =   cnn_layer.bias[2]*avg_out_scale_mul_3
-
-            fnn_layer = self.layers[-1]
-            fnn_layer.weights[:, 0:index_1] =  fnn_weights_biases[:, 0:index_1]/avg_out_scale_mul_1
-            fnn_layer.weights[:, index_1:index_2] =  fnn_weights_biases[:, index_1:index_2]/avg_out_scale_mul_2
-            fnn_layer.weights[:, index_2:number_fnn_input_neurons] = fnn_weights_biases[:, index_2:number_fnn_input_neurons]/avg_out_scale_mul_3
-
+            print("ERROR: NOT IMPLEMENTED - OLD REDISTRIBUTION", file=sys.stderr)
 
     def align(self, std_target): #takes the standardizer object of the target network as argument
 
@@ -317,7 +298,7 @@ class Standardizer:
                     #fnn layer
                     self_weights = layer.weights
                     target_weights = std_target.layers[i].weights
-            distances = torch.cdist(target_weights, self_weights, p=1).cpu().numpy()
+            distances = torch.cdist(torch.abs(target_weights), torch.abs(self_weights), p=1).cpu().numpy()
             indices = torch.from_numpy(linear_sum_assignment(distances)[1])
             #permute outgoing weights
             if layer.layertype == 'RNN':
@@ -349,7 +330,88 @@ class Standardizer:
                     layer.next.weights = reshaped.view(m, n)
                 else:  
                     layer.next.weights = layer.next.weights[:, indices]
+
+    def sort_permute(self, layer):
+        weights4norm = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+        weights4norm = torch.hstack(weights4norm)
+        indices = torch.argsort(torch.norm(weights4norm, dim=1, p=2))
+        layer.weights[0] = layer.weights[0][indices]
+        layer.weights[1] = layer.weights[1][indices] 
+        layer.weights[1] = layer.weights[1][:, indices]#since square, "next" recurrent weights also get permuted?
+        layer.bias[0] = layer.bias[0][indices]
+        layer.bias[1] = layer.bias[1][indices]
+
+        if layer.next.layertype == 'RNN':
+            layer.next.weights[0] = layer.weights[0][:, indices] #only permute input hidden layer
+        else:
+            layer.next.weights = layer.next.weights[:, indices]
     
+    def rnn_align(self, std_target):
+        for i in range(len(self.layers) - 1):
+            layer = self.layers[i]
+            target_layer = std_target.layers[i]
+            if layer.layertype == 'RNN':
+                #permutations, sort by norm
+                before = layer.weights[1].clone()
+                self.sort_permute(layer)
+                self.sort_permute(target_layer)
+
+                #polarity
+                self_weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+                # self_weights4sign = (layer.weights[0], layer.bias[0].reshape(-1, 1))
+                self_weights4sign = torch.hstack(self_weights4sign)
+                target_weights4sign = (target_layer.weights[0], target_layer.weights[1], target_layer.weights[1].t(), target_layer.bias[0].reshape(-1, 1))
+                # target_weights4sign = (target_layer.weights[0], target_layer.bias[0].reshape(-1, 1))
+                target_weights4sign = torch.hstack(target_weights4sign)
+                
+                loss_orig = torch.abs(self_weights4sign - target_weights4sign)
+                loss_orig[loss_orig > 0.001] = 1
+                loss_orig = loss_orig.sum(dim=1)
+
+                loss_flip = torch.abs(-self_weights4sign - target_weights4sign)
+                loss_flip[loss_flip > 0.001] = 1
+                loss_flip = loss_flip.sum(dim=1)
+
+                # Choose polarity that minimizes loss
+                signs = (loss_flip > loss_orig).float().unsqueeze(1)  # shape (n, 1)
+                # print('++++++++++++++++++++')
+                # print(signs.squeeze())
+                # print(self_weights4sign[3])
+                # print(target_weights4sign[3])
+                # print(-self_weights4sign[3] - target_weights4sign[3])
+                signs[signs == 0] = -1  # Set flip indices to -1
+                # print(signs.squeeze())
+                # print("+++++++++++++++++++++")
+                
+                # print("before: ")
+                # print(layer.weights[0])
+                # print(layer.weights[1])
+                # print(layer.bias[0])
+                # print(signs.squeeze())
+                # print(torch.where(signs == -1)[0])
+                # print()
+
+                layer.weights[0] *= signs
+                layer.weights[1] *= signs
+                layer.weights[1] *= signs.transpose(0, 1)
+                layer.bias[0] *= signs.squeeze()
+
+                if layer.next.layertype == "RNN":
+                    layer.next.weights[0] *= signs.transpose(0, 1)
+                else:
+                    layer.next.weights *= signs.transpose(0, 1)
+
+                # print("after: ")
+                # print(layer.weights[0])
+                # print(layer.weights[1])
+                # print(layer.bias[0])
+                # print(torch.where(signs == -1)[0])
+                # print()
+            else:
+                print("ERROR")
+
+                
+
     def reload(self):
         model_params = dict(self.model.named_parameters())
         for layer in self.layers:
@@ -481,7 +543,7 @@ class SingleTransformerEncoderStandardizer:
         # self.b_q *= q_balance_factor
         # self.W_k *= k_balance_factor
         # # self.b_q *= k_balance_factor
-        self.W_k, self.b_q, self.W_k = self.balance_two_matrices(self.W_k, self.b_q, self.W_k, self.b_k)
+        self.W_q, self.b_q, self.W_k = self.balance_two_matrices(self.W_q, self.b_q, self.W_k, self.b_k)
 
         #negative -> switch order after softmax?
 

@@ -104,8 +104,6 @@ class Population(nn.Module):
             self.datasets[0] = self.ds
         elif self.ds is None and len(self.datasets) == 0:
             raise Exception("no datasets")
-        elif self.ds is not None and len(self.datasets) > 0:
-            raise Exception("both self.ds and self.datasets exist")
         
         if bottom_half:
             original = self.subs
@@ -178,13 +176,14 @@ class Population(nn.Module):
         # return
         print("-"*50)
         print("NEW REDISTRIBUTION")
-        mse, mae, max_ae, mape, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=False, model_type=model_type)
-        print("total mse:", mse)
-        print("total mae:", mae)
-        print("total max_ae:", max_ae)
-        print("total mape:", mape)
-        for l_mse, l_mae, l_max_ae, l_mape, layername in layerwise_metrics:
-            print(f"{layername} - mse: {l_mse}, mae: {l_mae}, max_ae: {l_max_ae}, mape: {l_mape}")
+        mse, mae, max_ae, mape, max_pe, layerwise_metrics = evaluate(net,self.subs[self.best],tanh=tanh, old_redist=False, model_type=model_type)
+        print("total mse:", f"{mse:.3e}")
+        print("total mae:", f"{mae:.3e}")
+        print("total max_ae:", f"{max_ae:.3e}")
+        print("total mape:", f"{mape:.3e}%")
+        print("total max_pe:", f"{max_pe:.3e}%")
+        for l_mse, l_mae, l_max_ae, l_mape, l_max_pe, layername in layerwise_metrics:
+            print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mape: {l_mape:.3e}%, max_pe: {l_max_pe:.3e}%")
         print("-"*50)
         
     def forward(self, x):

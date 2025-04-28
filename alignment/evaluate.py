@@ -1,6 +1,7 @@
 import torch
 import copy
 import sys
+import math
 from recon_evals import e_mae, e_layers_mae, e_max_ae, e_mse
 from standardize_align_new import Standardizer, SingleTransformerEncoderStandardizer
 
@@ -43,7 +44,10 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
         std_reconstruction = Standardizer(reconstruction, old_redist)
         std_target = Standardizer(original, old_redist)
     #align networks
-    std_reconstruction.align(std_target)
+    if model_type == 'rnn':
+        std_reconstruction.rnn_align(std_target)
+    else:
+        std_reconstruction.align(std_target)
     reconstruction = std_reconstruction.reload()
     original = std_target.reload()
 
@@ -62,6 +66,7 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
     total_ae = 0
     total_ape = 0
     max_ae = float('-inf')
+    max_pe = float('-inf')
     layerwise_metrics = []
 
     for og_weight, re_weight, layername in zip(og_layerdict.values(), re_layerdict.values(), og_layerdict.keys()):
@@ -70,13 +75,17 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
         total_ae += torch.nn.functional.l1_loss(og_weight, re_weight, reduction="sum").item()
         layermax_ae = torch.nn.functional.l1_loss(og_weight, re_weight, reduction="none").max().item()
         max_ae = max(layermax_ae, max_ae)
-        total_ape += (torch.abs((og_weight - re_weight) / og_weight) * 100).sum().item()
+        pe = (torch.abs((og_weight - re_weight) / og_weight) * 100)
+        pe = torch.nan_to_num(pe, nan=0.0, posinf=0.0, neginf=0.0)
+        total_ape += pe.sum().item()
+        max_pe = max(pe.max().item(), max_pe)
 
         #layerwise metrics
         layer_se = torch.nn.functional.mse_loss(og_weight, re_weight, reduction="mean").item()
         layer_ae = torch.nn.functional.l1_loss(og_weight, re_weight, reduction="mean").item()
-        layer_ape = (torch.abs((og_weight - re_weight) / og_weight) * 100).mean().item()
-        layerwise_metrics.append((layer_se, layer_ae, layermax_ae, layer_ape, layername))
+        layer_ape = pe.mean().item()
+        layermax_pe = pe.max().item()
+        layerwise_metrics.append((layer_se, layer_ae, layermax_ae, layer_ape, layermax_pe, layername))
         
     mse = total_se / total_size
     mae = total_ae / total_size
@@ -85,7 +94,7 @@ def evaluate_reconstruction(original, reconstruction,return_blackbox=False,tanh=
 
     #can separate out biases and see if the biases are worse than the weights?
 
-    return mse, mae, max_ae, mape, layerwise_metrics
+    return mse, mae, max_ae, mape, max_pe, layerwise_metrics
 
 def evaluate_reconstruction_transformer(original, reconstruction):
     reconstruction = copy.deepcopy(reconstruction)

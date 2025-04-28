@@ -25,7 +25,7 @@ num_epochs  = int(sys.argv[5])
 dataset  = str(sys.argv[6])
 optim_ = str(sys.argv[7]) # optimizer for black box network
 activation  = str(sys.argv[8])
-aligner = str(sys.argv[9])
+comment = str(sys.argv[9])
 input_shape = str(sys.argv[10])
 input_shape = tuple(int(x) for x in input_shape.split('x')) if input_shape[0].isdigit() else None
 if input_shape is not None:
@@ -52,7 +52,7 @@ if strong_start:
     strong_start_str="strong_start_"
 if single_strong_start:
     strong_start_str="single_strong_start_"    
-name = strong_start_str+"seed_"+str(seed)+"_"+layer_dim+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation + "_sampling_method_"+sampling_method+"_aligner_"+aligner
+name = strong_start_str+"seed_"+str(seed)+"_"+layer_dim+"_"+comment+"_outer_iterations_"+str(outer_iterations)+"_num_samples_"+str(num_samples)+"_num_epochs_"+str(num_epochs)+"_dataset_"+dataset+"_optim_"+optim_ + "_activation_"+activation + "_sampling_method_"+sampling_method
 
 import os
 if not os.path.exists("./results/"):
@@ -377,7 +377,7 @@ with torch.enable_grad():
         
         
         print("ITERATION: ",outer_iter, len(population.inputs))
-        print("model type: ", model_type, file=sys.stderr)
+        # print("model type: ", model_type, file=sys.stderr)
         if sampling_method =="committee":
             samples_to_generate = num_samples
             seq_len = None
