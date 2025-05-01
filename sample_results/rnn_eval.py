@@ -15,7 +15,7 @@ from util import Population
 from standardize_align_new import Standardizer, SingleTransformerEncoderStandardizer
 
 from models import base_CNN, two_CNN, var_CNN, base_RNN, var_RNN, base_TransformerEncoder
-from test_utils import *
+from eval_utils import *
 
 torch.set_printoptions(precision=3, linewidth=200, sci_mode=False)
 np.set_printoptions(precision=3, suppress=True, linewidth=200, formatter={'float_kind': lambda x: f"{x:.3f}"})
@@ -32,9 +32,15 @@ np.set_printoptions(precision=3, suppress=True, linewidth=200, formatter={'float
 # hidden_size = 64
 # best_model_index = 0 #needs to be manually inspected from log file
 
-#hidden layer 128
-blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_outer_iterations_55_num_samples_40000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_128_evenmoresamples/black_box.pt"
-final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_outer_iterations_55_num_samples_40000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_128_evenmoresamples/population_iteration_54.pt"
+# #hidden layer 128
+# blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_outer_iterations_55_num_samples_40000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_128_evenmoresamples/black_box.pt"
+# final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_outer_iterations_55_num_samples_40000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee_aligner_128_evenmoresamples/population_iteration_54.pt"
+# hidden_size = 128
+# best_model_index = 0 #needs to be manually inspected from log file
+
+#hidden layer 128 more epochs
+blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/black_box.pt"
+final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/population_iteration_69.pt"
 hidden_size = 128
 best_model_index = 0 #needs to be manually inspected from log file
 
@@ -101,6 +107,9 @@ print("-----------")
 # print("-----------")
 # print_diff(best_model, blackbox)
 print_flattened_loss(best_model, blackbox)
+print()
+print("abs loss:")
+print_abs_loss(best_model, blackbox)
 print()
 print_loss(best_model, blackbox)
 # print()

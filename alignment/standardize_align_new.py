@@ -9,6 +9,8 @@ import torch.fx as fx
 import sys
 import numpy as np
 
+import os
+os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
 activation_module_types = (
     nn.ReLU,
@@ -363,8 +365,28 @@ class Standardizer:
                 target_weights4sign = (target_layer.weights[0], target_layer.weights[1], target_layer.weights[1].t(), target_layer.bias[0].reshape(-1, 1))
                 # target_weights4sign = (target_layer.weights[0], target_layer.bias[0].reshape(-1, 1))
                 target_weights4sign = torch.hstack(target_weights4sign)
+
+                # print("layer.weights[0].shape:", layer.weights[0].shape, file=sys.stderr)
+                # print("layer.weights[1].shape:", layer.weights[1].shape, file=sys.stderr)
+                # print("layer.weights[1].T.shape:", layer.weights[1].t().shape, file=sys.stderr)
+                # print("layer.bias[0].shape:", layer.bias[0].shape, file=sys.stderr)
+
+                # print("target_layer.weights[0].shape:", target_layer.weights[0].shape, file=sys.stderr)
+                # print("target_layer.weights[1].shape:", target_layer.weights[1].shape, file=sys.stderr)
+                # print("target_layer.weights[1].T.shape:", target_layer.weights[1].t().shape, file=sys.stderr)
+                # print("target_layer.bias[0].shape:", target_layer.bias[0].shape, file=sys.stderr)
+
+                # print("self_weights4sign.shape:", self_weights4sign.shape, file=sys.stderr)
+                # print("target_weights4sign.shape:", target_weights4sign.shape, file=sys.stderr)
+
+                # print("Any NaNs in self_weights4sign?", torch.isnan(self_weights4sign).any().item(), file=sys.stderr)
+                # print("Any NaNs in target_weights4sign?", torch.isnan(target_weights4sign).any().item(), file=sys.stderr)
                 
                 loss_orig = torch.abs(self_weights4sign - target_weights4sign)
+                # print("loss_orig.shape:", loss_orig.shape, file=sys.stderr) 
+
+                # raise ValueError("STOP HERE")
+                
                 loss_orig[loss_orig > 0.001] = 1
                 loss_orig = loss_orig.sum(dim=1)
 

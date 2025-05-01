@@ -13,6 +13,8 @@ import numpy as np
 import util
 import gc
 
+os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+
 from models import base_CNN, two_CNN, var_CNN, base_RNN, var_RNN, base_TransformerEncoder
 
 # Get seed, network 2nd layer dimension, outer iter, num_samples 
@@ -428,12 +430,12 @@ with torch.enable_grad():
            population.train_one_epoch(batch_size=128, epoch_num=i,restore=False) 
            sys.stdout.flush()
         population.save(models_path +"/population_iteration_"+str(outer_iter)+".pt")
-        population.evaluate(net,tanh=tanh,model_type=model_type)
+        #population.evaluate(net,tanh=tanh,model_type=model_type)
         
 
 for i in range(10):
     print(population.subs[i].loss)
 sys.stdout.flush()
 
-for i in range(10):
-    print(util.evaluate(population.subs[i],net,tanh=tanh, model_type=model_type))
+# for i in range(10):
+#     print(util.evaluate(population.subs[i],net,tanh=tanh, model_type=model_type))
