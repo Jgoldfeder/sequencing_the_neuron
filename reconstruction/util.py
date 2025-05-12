@@ -512,7 +512,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
 
 
 def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn'):    
-    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365']:
+    if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'tinyimagenet']:
         raise ValueError("Unknown Dataset")
     if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:
         raise ValueError("Unknown Optimizer")
