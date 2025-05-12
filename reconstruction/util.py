@@ -594,6 +594,7 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
     if dataset == 'tinyimagenet':
         dataset = TinyImageNetDataset(root="data", batch_size=128, image_size=64)
         trainloader, test_loader = dataset.get_loaders()
+        input_dim = 64*64*3
 
        
     
@@ -667,5 +668,5 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
         # Calculate and print accuracy
         net.eval()
         accuracy = evaluate_accuracy(net)
-        print(f"Accuracy on MNIST: {accuracy:.4f}")
+        print(f"Accuracy on dataset: {accuracy:.4f}")
         net.train()
