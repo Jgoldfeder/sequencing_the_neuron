@@ -16,6 +16,7 @@ sys.path.append('../alignment')
 import evaluate as evaluate_
 from recon_evals import e_mae,e_layers_mae,e_max_ae,e_mse
 import align_cnn 
+from tiny_imagenet import TinyImageNetDataset
 device = 0
 
 
@@ -589,6 +590,11 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
         test_dataset = torchvision.datasets.Places365(root=image_dir, split='val', small=True, transform=big_transform,download=download)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
         input_dim = 256*256*3
+
+    if dataset == 'tinyimagenet':
+        dataset = TinyImageNetDataset(root="data", batch_size=128, image_size=64)
+        trainloader, test_loader = dataset.get_loaders()
+
        
     
     def evaluate_accuracy(network):

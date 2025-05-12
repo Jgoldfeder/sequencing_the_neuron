@@ -49,6 +49,8 @@ if dataset in ['cifar10','cifar100']:
     input_dim = 1024*3
 if dataset in ['places365']:
     input_dim = 256*256*3
+if dataset in ['tinyimagenet']:
+    input_dim = 64*64*3
 strong_start_str=""
 if strong_start:
     strong_start_str="strong_start_"
