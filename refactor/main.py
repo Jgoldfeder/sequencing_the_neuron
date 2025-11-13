@@ -22,7 +22,7 @@ if __name__ == "__main__":
 					 default='relu', help='Activation function to use')
 	parser.add_argument('--outer_iterations', '-oi', type=int, default=55, help='Number of outer iterations')
 	parser.add_argument('--num_samples', '-ns', type=int, default=10000, help='Number of samples to generate')
-	parser.add_argument('--num_epochs', '-ne', type=int, default=25, help='Number of training epochs per iteration')
+	parser.add_argument('--num_epochs', '-ne', type=int, default=25, help='Number of training epochs to train the black box')
 	parser.add_argument('--seq_len', '-sl', type=int, nargs='+', help='Sequence lengths for RNN/Transformer inputs')
 	parser.add_argument('--dataset', '-d', type=str, choices=['mnist', 'cifar10', 'cifar100', 'places365', 'tinyimagenet'],
 					 required=True, help='Dataset to use for training and evaluation')
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 	elif args.activation == "nonleakyreluapproximation":
 		activation_f = nn.LeakyReLU(negative_slope=0.0001)
 	elif args.activation =="relu":
-		activation_f = nn.ReLU()
+		activation_f = nn.LeakyReLU()
 	else:
 		raise ValueError("Unsupported activation function")
 	
