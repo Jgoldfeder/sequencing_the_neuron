@@ -217,9 +217,9 @@ class Population(nn.Module):
 		self.outputs.append(outputs)
 
 		if window is None or len(self.inputs) <=window:
-			self.ds = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
+			self.datasets[0] = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
 		else:
-			self.ds = SampleDataset(torch.cat(self.inputs[-window:]),torch.cat(self.outputs[-window:]))
+			self.datasets[0] = SampleDataset(torch.cat(self.inputs[-window:]),torch.cat(self.outputs[-window:]))
 
 	def add_seq_data(self, inputs, outputs, seq_len, window = None):
 		self.inputs_dict[seq_len].append(inputs)
