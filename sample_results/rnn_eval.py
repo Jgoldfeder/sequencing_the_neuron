@@ -39,10 +39,10 @@ np.set_printoptions(precision=3, suppress=True, linewidth=200, formatter={'float
 # best_model_index = 0 #needs to be manually inspected from log file
 
 #hidden layer 128 more epochs
-blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/black_box.pt"
-final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/population_iteration_69.pt"
-hidden_size = 128
-best_model_index = 0 #needs to be manually inspected from log file
+blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_31_RNNx28_28-moresamples_outer_iterations_55_num_samples_20000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/black_box.pt"
+final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_31_RNNx28_28-moresamples_outer_iterations_55_num_samples_20000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/population_iteration_54.pt"
+hidden_size = 28
+best_model_index = 8 #needs to be manually inspected from log file
 
 num_std = 1
 

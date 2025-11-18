@@ -142,6 +142,7 @@ class Standardizer:
                     if weight is not None:
                         self.layers.append(Layer(layername, module_type, weight, bias, activation_function))
 
+    '''
     def canonical_forms(self):
         for i in range(len(self.layers)-1):
             layer = self.layers[i]
@@ -185,41 +186,43 @@ class Standardizer:
                 if layer.layertype == 'RNN':
                     layer.bias[0] = layer.bias[0] + layer.bias[1]
                     layer.bias[1].zero_()
-                    # weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
-                    # weights4sign = torch.hstack(weights4sign)
-                    # sums = weights4sign.sum(dim=1, keepdim=True)
-                    # signs = torch.sign(sums)
-                    # signs[signs==0] = 1
-                    # flipped_indices = torch.where(signs == -1)[0]
-                    # # print("before: ")
-                    # # print(flipped_indices)
-                    # # print(signs.squeeze())
-                    # # print(layer.bias[0])
-                    # # print()
+                    #
+                    weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+                    weights4sign = torch.hstack(weights4sign)
+                    sums = weights4sign.sum(dim=1, keepdim=True)
+                    signs = torch.sign(sums)
+                    signs[signs==0] = 1
+                    flipped_indices = torch.where(signs == -1)[0]
+                    # print("before: ")
+                    # print(flipped_indices)
+                    # print(signs.squeeze())
+                    # print(layer.bias[0])
+                    # print()
 
-                    # layer.weights[0] *= signs
-                    # layer.weights[1] *= signs
-                    # layer.weights[1] *= signs.transpose(0, 1)
-                    # layer.bias[0] *= signs.squeeze()
+                    layer.weights[0] *= signs
+                    layer.weights[1] *= signs
+                    layer.weights[1] *= signs.transpose(0, 1)
+                    layer.bias[0] *= signs.squeeze()
 
-                    # if layer.next.layertype == "RNN":
-                    #     layer.next.weights[0] *= signs.transpose(0, 1)
-                    # else:
-                    #     layer.next.weights *= signs.transpose(0, 1)
-                    # # continue
+                    if layer.next.layertype == "RNN":
+                        layer.next.weights[0] *= signs.transpose(0, 1)
+                    else:
+                        layer.next.weights *= signs.transpose(0, 1)
+                    # continue
 
-                    # weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
-                    # weights4sign = torch.hstack(weights4sign)
-                    # sums = weights4sign.sum(dim=1, keepdim=True)
-                    # signs = torch.sign(sums)
-                    # signs[signs==0] = 1
-                    # flipped_indices = torch.where(signs == -1)[0]
-                    # # print("after: ")
-                    # # print(flipped_indices)
-                    # # print(signs.squeeze())
-                    # # print(layer.bias[0])
-                    # # print()
-                    # # print("-"*50)
+                    weights4sign = (layer.weights[0], layer.weights[1], layer.weights[1].t(), layer.bias[0].reshape(-1, 1))
+                    weights4sign = torch.hstack(weights4sign)
+                    sums = weights4sign.sum(dim=1, keepdim=True)
+                    signs = torch.sign(sums)
+                    signs[signs==0] = 1
+                    flipped_indices = torch.where(signs == -1)[0]
+                    # print("after: ")
+                    # print(flipped_indices)
+                    # print(signs.squeeze())
+                    # print(layer.bias[0])
+                    # print()
+                    # print("-"*50)
+                    #
                 else:
                     if layer.weights.dim() == 2:
                         weights4sign = (layer.weights, layer.bias.reshape(-1, 1))
@@ -280,6 +283,108 @@ class Standardizer:
 
         else:
             print("ERROR: NOT IMPLEMENTED - OLD REDISTRIBUTION", file=sys.stderr)
+    '''
+    def canonical_forms(self):
+        def is_conv(L): return L.weights.dim() == 4
+        def flat_wb(L):
+            # Flatten weights per output channel and append bias as a column
+            Wf = L.weights.view(L.weights.shape[0], -1) if is_conv(L) else L.weights
+            b  = L.bias.reshape(-1, 1)
+            return torch.hstack((Wf, b))
+
+        def row_l2(Wb):
+            # L2 across each row (out-channel or neuron)
+            n = Wb.norm(dim=1, p=2, keepdim=True)
+            return torch.where(n == 0, torch.tensor(1e-8, device=Wb.device, dtype=Wb.dtype), n)
+
+        def row_sign(Wb):
+            s = torch.sign(Wb.sum(dim=1, keepdim=True))
+            s[s == 0] = 1
+            return s
+
+        def as_weight_factor(L, v):
+            # v is [out,1]; return shape for broadcasting onto weights
+            return v.view(-1, 1, 1, 1) if is_conv(L) else v
+
+        def squeeze_bias_factor(v):
+            # bias expects [out], not [out,1] or [out,1,1,1]
+            return v.squeeze()
+
+        def scale_next(next_layer, factor, prev_layer):
+            # factor is [out,1]; push to next layer's input dimension
+            if next_layer.layertype == prev_layer.layertype:
+                next_layer.weights *= factor.transpose(0, 1)
+                return
+            if 'Conv' in prev_layer.layertype and next_layer.layertype == 'Linear':
+                k = prev_layer.weights.shape[0]  # out-channels of conv
+                n = next_layer.weights.shape[1]  # fan-in of linear
+                if n % k != 0:
+                    raise ValueError('Number of output channels of convolutional layer must be a multiple of number of input channels')
+                sec = n // k
+                # factor: [k,1] → scale each input block
+                f = factor.squeeze(1)
+                for i in range(k):
+                    next_layer.weights[:, i*sec:(i+1)*sec] *= f[i]
+
+        def normalize_relu_block(L):
+            Wb = flat_wb(L)
+            f = row_l2(Wb)                 # [out,1]
+            L.weights /= as_weight_factor(L, f)
+            L.bias   /= squeeze_bias_factor(f)
+            if L.next is not None:
+                scale_next(L.next, f, L)
+
+        def align_tanh_block(L):
+            if L.layertype == 'RNN':
+                # Merge biases into bias[0], zero bias[1]
+                L.bias[0] = L.bias[0] + L.bias[1]
+                L.bias[1].zero_()
+                # Build rows for sign decision: [W_ih, W_hh, W_hh^T, b]
+                Wb = torch.hstack((
+                    L.weights[0],               # W_ih
+                    L.weights[1],               # W_hh
+                    L.weights[1].t(),           # W_hh^T (symmetry cue)
+                    L.bias[0].reshape(-1, 1)    # bias
+                ))
+                s = row_sign(Wb)               # [out,1]
+                # Flip rows/cols consistently
+                L.weights[0] *= s
+                L.weights[1] *= s
+                L.weights[1] *= s.transpose(0, 1)
+                L.bias[0]   *= squeeze_bias_factor(s)
+                if L.next is not None:
+                    if L.next.layertype == 'RNN':
+                        L.next.weights[0] *= s.transpose(0, 1)
+                    else:
+                        L.next.weights *= s.transpose(0, 1)
+                # (Optional) recompute/verify sign after flip if you need
+                return
+
+            # Non-RNN tanh: sign-align rows (neurons or out-channels)
+            Wb = flat_wb(L)
+            s = row_sign(Wb)                   # [out,1]
+            L.weights *= as_weight_factor(L, s)
+            L.bias    *= squeeze_bias_factor(s)
+            if L.next is not None:
+                scale_next(L.next, s, L)
+
+        for i in range(len(self.layers) - 1):
+            layer = self.layers[i]
+            nxt   = layer.next
+            if nxt is None:
+                continue
+
+            # ReLU family → normalize rows (unit L2)
+            if layer.activation in {'relu', 'leakyrelu', 'leaky_relu', 'prelu', 'relu6'}:
+                if layer.layertype != 'RNN':
+                    normalize_relu_block(layer)
+                continue
+
+            # tanh → sign canonicalization
+            if layer.activation == 'tanh':
+                align_tanh_block(layer)
+                continue
+
 
     def align(self, std_target): #takes the standardizer object of the target network as argument
 

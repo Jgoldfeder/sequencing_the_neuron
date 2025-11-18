@@ -298,12 +298,12 @@ class Population(nn.Module):
 	def evaluate(self,net, model_type='fnn'):
 		# Prints alignment metrics between the lowest-loss sub-model and the blackbox
 		print("-"*50)
-		mse, mae, max_ae, mape, max_pe, layerwise_metrics = evaluate_reconstruction(net,self.subs[self.best], model_type=model_type)
+		mse, mae, max_ae, mmpe, max_mpe, layerwise_metrics = evaluate_reconstruction(net,self.subs[self.best], model_type=model_type)
 		print("total mse:", f"{mse:.3e}")
 		print("total mae:", f"{mae:.3e}")
 		print("total max_ae:", f"{max_ae:.3e}")
-		print("total mape:", f"{mape:.3e}%")
-		print("total max_pe:", f"{max_pe:.3e}%")
-		for l_mse, l_mae, l_max_ae, l_mape, l_max_pe, layername in layerwise_metrics:
-			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mape: {l_mape:.3e}%, max_pe: {l_max_pe:.3e}%")
+		print("total mean_mag_pe:", f"{mmpe:.3e}%")
+		print("total max_mag_pe:", f"{max_mpe:.3e}%")
+		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
+			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
 		print("-"*50)

@@ -326,3 +326,190 @@ class Standardizer:
                     if layer.bias is not None:
                         model_params[f"{layer.layername}.bias"].copy_(layer.bias)
         return self.model
+    
+
+class SingleTransformerEncoderStandardizer:
+    #all learnable parameters of a single transformer encoder
+    layer: nn.TransformerEncoderLayer
+    dim: int
+
+    def __init__(self, layer):
+        if not isinstance (layer, nn.TransformerEncoderLayer):
+            raise TypeError(f"Expected nn.TransformerEncoderLayer, but got {type(layer).__name__}")
+        
+        self.layer = layer
+        self.dim = layer.self_attn.out_proj.weight.shape[1]
+        self.get_params()
+        self.canonical_forms()
+
+    def get_params(self):
+        layer = self.layer
+        mha = self.layer.self_attn
+        dim = self.dim
+
+        self.W_q = mha.in_proj_weight.detach().clone()[:dim, :]  # Query weight
+        self.W_k = mha.in_proj_weight.detach().clone()[dim:2*dim, :]  # Key weight
+        self.W_v = mha.in_proj_weight.detach().clone()[2*dim:, :]  # Value weight
+
+        self.b_q = mha.in_proj_bias.detach().clone()[:dim]      # Query bias
+        self.b_k = mha.in_proj_bias.detach().clone()[dim:2*dim]  # Key bias
+        self.b_v = mha.in_proj_bias.detach().clone()[2*dim:]    # Value bias
+
+        self.W_O = mha.out_proj.weight.detach().clone()
+        self.b_O = mha.out_proj.bias.detach().clone()
+
+        self.gam1 = layer.norm1.weight.detach().clone()
+        self.bet1 = layer.norm1.bias.detach().clone()
+
+        self.W1 = layer.linear1.weight.detach().clone()
+        self.b1 = layer.linear1.bias.detach().clone()
+        self.W2 = layer.linear2.weight.detach().clone()
+        self.b2 = layer.linear2.bias.detach().clone()
+
+        self.gam2 = layer.norm2.weight.detach().clone()
+        self.bet2 = layer.norm2.bias.detach().clone()
+
+        self.layers = {'W_q': self.W_q, 'b_q': self.b_q, #query
+                       'W_k': self.W_k, 'b_k': self.b_k, #key
+                       'W_v': self.W_v, 'b_v': self.b_v, #value
+                       'W_O': self.W_O, 'b_O': self.b_O, #output
+                       'gam1': self.gam1, 'bet1': self.bet1, #layernorm 1
+                       'W1': self.W1, 'b1': self.b1, #fnn 1
+                       'W2': self.W2, 'b2': self.b2, #fnn 2
+                       'gam2': self.gam2, 'bet2': self.bet2} #layernorm 2
+
+    def balance_linear_layers(self, balancelayers):
+        balancelayers[0][0] *= 7
+        # print("weight: ", balancelayers[0][0])
+        # print("bias: ", balancelayers[0][1])
+        # print("weight l1: ", balancelayers[1][0])
+        for i in range(len(balancelayers) - 1):
+            weight, bias = balancelayers[i]
+            if weight.dim() == 1: #since gamma has dim 1
+                weight = weight.reshape(-1, 1)
+            L2norms = torch.hstack((weight, bias.reshape(-1, 1))).norm(dim=1, p=2, keepdim=True)
+            L2norms = torch.where(L2norms == 0, torch.tensor(1e-8), L2norms)
+            weight /= L2norms
+            bias /= L2norms.squeeze()
+            balancelayers[i+1][0] *= L2norms.transpose(0, 1)
+
+        print('')
+
+    def balance_two_matrices(self, W1, b1, W2, b2):
+        norm1 = torch.hstack((W1, b1.reshape(-1, 1))).norm(p=2)
+        norm2 = torch.hstack((W2, b2.reshape(-1, 1))).norm(p=2)
+        balance_factor = torch.sqrt(norm1 / norm2)
+        W1 *= balance_factor
+        b1 *= balance_factor
+        W2 /= balance_factor
+        return W1, b1, W2
+
+    def canonical_forms(self):
+        #balance Key and Query weights
+
+        self.W_q, self.b_q, self.W_k = self.balance_two_matrices(self.W_q, self.b_q, self.W_k, self.b_k)
+
+        #negative -> switch order after softmax?
+
+        #balance Value and output projection matrices
+        self.W_v, self.b_v, self.W_O = self.balance_two_matrices(self.W_v, self.b_v, self.W_O, self.b_O)
+
+        #balance LayerNorm, linear1, and linear2 weights
+        balancelayers = [[self.W1, self.b1], [self.W2, self.b2]]
+        # self.balance_linear_layers(balancelayers)
+        self.W1, self.b1, self.W2 = self.balance_two_matrices(self.W1, self.b1, self.W2, self.b2)
+
+    def permute(self, std_target, wname, bname, next_wname):
+        self_weights = self.layers[wname].clone()
+        self_biases = self.layers[bname].clone()
+        target_weights = std_target.layers[wname].clone()
+        target_biases = std_target.layers[bname].clone()
+
+        self_weightstack = torch.hstack((self_weights, self_biases.reshape(-1, 1)))
+        target_weightstack = torch.hstack((target_weights, target_biases.reshape(-1, 1)))
+
+        distances = torch.cdist(target_weightstack, self_weightstack, p=1).cpu().numpy()
+        indices = torch.from_numpy(linear_sum_assignment(distances)[1])
+
+        #permute weights
+        self.layers[wname].copy_(self.layers[wname][indices])
+        self.layers[bname].copy_(self.layers[bname][indices])
+        self.layers[next_wname].copy_(self.layers[next_wname][:, indices])
+
+    def test_perms(self):
+        layername = "W1"
+        biasname = "b1"
+        nextlayername = "W2"
+        print(self.layers[layername].shape[0], file=sys.stderr)
+        dim = self.layers[layername].shape[0]
+        perm = np.random.permutation(dim)
+        self.layers[layername].copy_(self.layers[layername][perm])
+        self.layers[biasname].copy_(self.layers[biasname][perm])
+        self.layers[nextlayername].copy_(self.layers[nextlayername][:, perm])
+        
+    def align(self, std_target):
+        #permute key and query
+        selfstack = torch.hstack((self.W_q, self.b_q.reshape(-1, 1), self.W_k, self.b_k.reshape(-1, 1)))
+        targetstack = torch.hstack((std_target.W_q, std_target.b_q.reshape(-1, 1), std_target.W_k, std_target.b_k.reshape(-1, 1)))
+        distances = torch.cdist(targetstack, selfstack, p=1).cpu().numpy()
+        indices = torch.from_numpy(linear_sum_assignment(distances)[1])
+
+        self.W_q = self.W_q[indices]
+        self.b_q = self.b_q[indices]
+        self.W_k = self.W_k[indices]
+        self.b_k = self.b_k[indices]
+
+        #permute value
+        self.permute(std_target, "W_v", "b_v", "W_O")
+        #permute linear
+        self.permute(std_target, "W1", "b1", "W2")
+
+        # for i in range(1, len(self.layers)/2): #start at value matrix
+        #     selfvals = self.layers.values()
+        #     targetvals = std_target.layers.values()
+
+        #     #every even layer is the weight, and odd layer is bias
+        #     self_weights = selfvals[i*2].clone()
+        #     self_biases = selfvals[i*2+1].clone()
+        #     target_weights = targetvals[i*2].clone()
+        #     target_biases = targetvals[i*2+1].clone()
+
+        #     if self_weights.dim() == 1: #gamma has dim 1
+        #         self_weights = self_weights.reshape(-1, 1)
+        #         target_weights = target_weights.reshape(-1, 1)
+            
+        #     self_weightstack = torch.hstack((self_weights, self_biases.reshape(-1, 1)))
+        #     target_weightstack = torch.hstack((target_weights, target_biases.reshape(-1, 1)))
+            
+        #     distances = torch.cdist(target_weightstack, self_weightstack, p=1).cpu().numpy()
+        #     indices = torch.from_numpy(linear_sum_assignment(distances)[1])
+
+        #     #permute weights
+        #     selfvals[i*2] = selfvals[i*2][indices]
+        #     selfvals[i*2+1] = selfvals[i*2+1][indices]
+        #     selfvals[(i+1)*2] = selfvals[(i+1)*2][:, indices]
+
+
+    def reload(self):
+        layer = self.layer
+        in_proj_weight = torch.cat([self.W_q, self.W_k, self.W_v], dim=0)
+        in_proj_bias = torch.cat([self.b_q, self.b_k, self.b_v], dim=0)
+
+        with torch.no_grad():
+            layer.self_attn.in_proj_weight.copy_(in_proj_weight)
+            layer.self_attn.in_proj_bias.copy_(in_proj_bias)
+            layer.self_attn.out_proj.weight.copy_(self.W_O)
+            layer.self_attn.out_proj.bias.copy_(self.b_O)
+
+            layer.norm1.weight.copy_(self.gam1)
+            layer.norm1.bias.copy_(self.bet1)
+
+            layer.linear1.weight.copy_(self.W1)
+            layer.linear1.bias.copy_(self.b1)
+            layer.linear2.weight.copy_(self.W2)
+            layer.linear2.bias.copy_(self.b2)
+
+            layer.norm2.weight.copy_(self.gam2)
+            layer.norm2.bias.copy_(self.bet2)
+
+        return self.layer

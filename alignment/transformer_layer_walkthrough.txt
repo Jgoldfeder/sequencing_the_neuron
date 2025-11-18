@@ -1,0 +1,28 @@
+Layers of TransformerEncoderLayer
+
+input: (seq_len x d_model)
+
+First, goes through multiheaded attention:
+W_q, W_k, W_v; b_q, b_k, b_v for input projection
+
+Then, output of attention gets multiplied by output projection matrix:
+W_o, b_o
+
+Then, original input gets added back as a residual connection
+
+Then, the layer gets normalized
+norm1.weight, norm1.bias (Gamma1, Beta1)
+
+Then, goes through two feedforward layers, getting projected into dim_feedformward then back down
+linear1.weight (dim_feedforward, d_model); linear1.bias (dim_feedforward)
+Activation
+linear2.weight (d_model, dim_feedforward); linear2.bias (dim_feedformward)
+
+Another residual connection (add X', the output of the first LayerNorm)
+
+Then, second layer norm
+norm2.weight, norm2.bias (Gamma2, Beta2)
+
+
+
+You can only permute rows, not columns of Wk and Wq (why?)

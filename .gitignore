@@ -4,6 +4,7 @@ reconstruction/__pycache__/
 data/
 models/
 results/
+sample_results/
 
 alignment/loaded_model.py
 alignment/test*

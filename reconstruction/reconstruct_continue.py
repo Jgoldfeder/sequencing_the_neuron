@@ -44,6 +44,9 @@ strong_start=False
 single_strong_start = False
 save_samples=True
 
+blackbox_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/black_box.pt"
+final_population_dict_path = "/home/elvin/nn_sequencing/sequencing_the_neuron/models/seed_40_RNNx128_80ksamples-moreepochs_outer_iterations_80_num_samples_80000_num_epochs_5_dataset_mnist_optim_adam_activation_relu_sampling_method_committee/population_iteration_69.pt"
+
 input_dim=784
 if dataset in ['cifar10','cifar100']:
     input_dim = 1024*3
@@ -68,8 +71,9 @@ if not os.path.exists(models_path):
     os.makedirs(models_path)
 
 
-sys.stdout = open("./results/"+name, "w")
-print ("Log file for:"+name)
+sys.stdout = open("./results/"+name, "a")
+print('-----------------------------------------------')
+print ("Appending Log file for:"+name)
 
 layer_dim = layer_dim.split("x")
 if layer_dim[0].isdigit():
@@ -155,9 +159,8 @@ elif model_type == 'trans':
 else:
     net = Net()
 
-torch.save(net.state_dict(), models_path+"original_params_black_box.pt")
+torch.save(net.state_dict(), models_path+"continued_params_black_box.pt")
 net.to(device)
-util.train_blackbox(net,num_epochs,dataset,optim_, model_type=model_type)
 print(net)
 print("weight mean magnitude per layer")
 
@@ -229,145 +232,145 @@ lr = 0.001
 
 population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
 
-# if sampling_method =="dataset":
-#     trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
-#     with torch.no_grad():
-#         for i, data in enumerate(trainloader, 0):
-#             inputs, labels = data
-#             print()
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
+if sampling_method =="dataset":
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            print()
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
 
     
-# if sampling_method =="expanded_dataset":
-    # # only for MNIST
-    # if dataset!="mnist":
-    #     raise ValueError("expanded_dataset only supported for mnist")
+if sampling_method =="expanded_dataset":
+    # only for MNIST
+    if dataset!="mnist":
+        raise ValueError("expanded_dataset only supported for mnist")
 
-    # trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
-    # with torch.no_grad():
-    #     for i, data in enumerate(trainloader, 0):
-    #         inputs, labels = data
-    #         if model_type == 'fnn':
-    #             inputs = inputs.view(-1, input_dim)
-    #         new_inputs, labels = inputs.to(device), labels.to(device)            
-    #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-    #         population.add_data(new_inputs, new_outputs,window=50000)
-    #     for i, data in enumerate(test_loader, 0):
-    #         inputs, labels = data
-    #         if model_type == 'fnn':
-    #             inputs = inputs.view(-1, input_dim)
-    #         new_inputs, labels = inputs.to(device), labels.to(device)            
-    #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-    #         population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+            
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("emnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+
+if sampling_method =="fully_expanded_dataset":
+    # only for MNIST
+    if dataset!="mnist":
+        raise ValueError("fully expanded_dataset only supported for mnist")
+
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
             
     # trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("emnist")
     # with torch.no_grad():
     #     for i, data in enumerate(trainloader, 0):
     #         inputs, labels = data
-    #         if model_type == 'fnn':
-    #             inputs = inputs.view(-1, input_dim)
+    #         inputs = inputs.view(-1, input_dim)
     #         new_inputs, labels = inputs.to(device), labels.to(device)            
     #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
     #         population.add_data(new_inputs, new_outputs,window=50000)
     #     for i, data in enumerate(test_loader, 0):
     #         inputs, labels = data
-    #         if model_type == 'fnn':
-    #             inputs = inputs.view(-1, input_dim)
+    #         inputs = inputs.view(-1, input_dim)
     #         new_inputs, labels = inputs.to(device), labels.to(device)            
     #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
     #         population.add_data(new_inputs, new_outputs,window=50000)
 
-# if sampling_method =="fully_expanded_dataset":
-#     # only for MNIST
-#     if dataset!="mnist":
-#         raise ValueError("fully expanded_dataset only supported for mnist")
-
-#     trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset(dataset)
-#     with torch.no_grad():
-#         for i, data in enumerate(trainloader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#         for i, data in enumerate(test_loader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-            
-#     # trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("emnist")
-#     # with torch.no_grad():
-#     #     for i, data in enumerate(trainloader, 0):
-#     #         inputs, labels = data
-#     #         inputs = inputs.view(-1, input_dim)
-#     #         new_inputs, labels = inputs.to(device), labels.to(device)            
-#     #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#     #         population.add_data(new_inputs, new_outputs,window=50000)
-#     #     for i, data in enumerate(test_loader, 0):
-#     #         inputs, labels = data
-#     #         inputs = inputs.view(-1, input_dim)
-#     #         new_inputs, labels = inputs.to(device), labels.to(device)            
-#     #         new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#     #         population.add_data(new_inputs, new_outputs,window=50000)
-
 
     
-#     trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("qmnist")
-#     with torch.no_grad():
-#         for i, data in enumerate(trainloader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#         for i, data in enumerate(test_loader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#     trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("fmnist")
-#     with torch.no_grad():
-#         for i, data in enumerate(trainloader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#         for i, data in enumerate(test_loader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#     trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("kmnist")
-#     with torch.no_grad():
-#         for i, data in enumerate(trainloader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
-#         for i, data in enumerate(test_loader, 0):
-#             inputs, labels = data
-#             if model_type == 'fnn':
-#                 inputs = inputs.view(-1, input_dim)
-#             new_inputs, labels = inputs.to(device), labels.to(device)            
-#             new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-#             population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("qmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("fmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+    trainloader,test_loader,input_dim,test_dataset,trainset = util.get_dataset("kmnist")
+    with torch.no_grad():
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
+        for i, data in enumerate(test_loader, 0):
+            inputs, labels = data
+            if model_type == 'fnn':
+                inputs = inputs.view(-1, input_dim)
+            new_inputs, labels = inputs.to(device), labels.to(device)            
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=50000)
 
 with torch.enable_grad():
     for outer_iter in range(outer_iterations):
@@ -380,7 +383,7 @@ with torch.enable_grad():
             population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
         
         
-        print("ITERATION: ",outer_iter, len(population.inputs))
+        print("ITERATION: ",outer_iter)
         # print("model type: ", model_type, file=sys.stderr)
         if sampling_method =="committee":
             samples_to_generate = num_samples
@@ -408,24 +411,24 @@ with torch.enable_grad():
                         torch.save(new_inputs,models_path +"/data_iteration_final.pt")
             
             gc.collect()
-        # if sampling_method =="rand_gauss":
-        #     new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
-        #     new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-        #     population.add_data(new_inputs, new_outputs,window=500)
-        # if sampling_method =="rand_uni":
-        #     new_inputs=util.get_random_uniform(num_samples,input_dim=input_dim)
-        #     new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-        #     population.add_data(new_inputs, new_outputs,window=500)
-        # if sampling_method =="hard" or sampling_method =="easy":
-        #     reverse=True
-        #     if sampling_method =="easy":
-        #         reverse=False
-        #     if outer_iter>3:
-        #         new_inputs=util.get_hard(num_samples,population,input_dim=input_dim,reverse=reverse)
-        #     else:
-        #         new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
-        #     new_outputs = net(new_inputs.cuda(device)).cpu().detach()
-        #     population.add_data(new_inputs, new_outputs,window=500)
+        if sampling_method =="rand_gauss":
+            new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
+        if sampling_method =="rand_uni":
+            new_inputs=util.get_random_uniform(num_samples,input_dim=input_dim)
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
+        if sampling_method =="hard" or sampling_method =="easy":
+            reverse=True
+            if sampling_method =="easy":
+                reverse=False
+            if outer_iter>3:
+                new_inputs=util.get_hard(num_samples,population,input_dim=input_dim,reverse=reverse)
+            else:
+                new_inputs=util.get_random_gauss(num_samples,input_dim=input_dim)
+            new_outputs = net(new_inputs.cuda(device)).cpu().detach()
+            population.add_data(new_inputs, new_outputs,window=500)
             
 #sampling_options = ['committee','rand_gauss','rand_uni','dataset','expanded_dataset',"easy","hard"]
 

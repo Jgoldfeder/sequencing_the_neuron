@@ -27,6 +27,7 @@ if __name__ == "__main__":
 	parser.add_argument('--dataset', '-d', type=str, choices=['mnist', 'cifar10', 'cifar100', 'places365', 'tinyimagenet'],
 					 required=True, help='Dataset to use for training and evaluation')
 	parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility')
+	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
 	args = parser.parse_args()
 
@@ -35,17 +36,21 @@ if __name__ == "__main__":
 		raise ValueError("For RNN and Transformer models, --seq_len must be specified as a list of integers.")
 
 	# set up logging and output
-	name = f"{args.model_type}_{'-'.join(args.layers)}_outer-iterations-{args.outer_iterations}_samples-{args.num_samples}_epochs-{args.num_epochs}_dataset-{args.dataset}_activation-{args.activation}_seed-{args.seed}_{args.comment}"
+	name = f"{'-'.join(args.layers)}_outer-iterations-{args.outer_iterations}_samples-{args.num_samples}_epochs-{args.num_epochs}_dataset-{args.dataset}_activation-{args.activation}_seed-{args.seed}_{args.comment}"
 
-	if not os.path.exists("./results/"):
-		os.makedirs("./results/")
+	log_dir = "./results/"+args.model_type+"/"
+	if not os.path.exists(log_dir):
+		os.makedirs(log_dir)
+	
+	if args.cheat:
+		name = "cheat_"+name
 
-	models_path = "./models/"+name+"/"
+	models_path = "./models/"+name+"/"+args.model_type+"/"
 
 	if not os.path.exists(models_path):
 		os.makedirs(models_path)
 
-	sys.stdout = open("./results/"+name, "w")
+	sys.stdout = open(log_dir+name, "w")
 	print("Log file for:"+name)
 	for arg_name, arg_value in vars(args).items():
 		print(f"{arg_name}: {arg_value}")
@@ -113,7 +118,10 @@ if __name__ == "__main__":
 
 	# train children population\
 	print("Training student population", file=sys.__stdout__)
-	pop_size = 10
+	if args.cheat:
+		pop_size = 1
+	else:
+		pop_size = 10
 	subs = []
 	for i in range(pop_size):
 		if args.model_type == 'fnn':
@@ -143,14 +151,20 @@ if __name__ == "__main__":
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 
+			
+
 			#use committee sampling to generate samples
+			if args.cheat:
+				subslist = population.subs + [model]
+			else:
+				subslist = population.subs
 			samples_to_generate = args.num_samples
 			if args.model_type == 'rnn' or args.model_type == 'transformer':
 				samples_per_seq_len = samples_to_generate // len(args.seq_len) # equal number of samples per sequence length
 				for slen in args.seq_len:
 					to_generate = samples_per_seq_len
 					while to_generate > 0:
-						new_inputs = utils.get_adv(population.subs, num_samples=min(to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen)
+						new_inputs = utils.get_adv(subslist, num_samples=min(to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen)
 						to_generate -= 10002
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_rnn_dataset(new_inputs, new_outputs, slen, window=500)
@@ -158,7 +172,7 @@ if __name__ == "__main__":
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:
 				while samples_to_generate > 0:
-						new_inputs = utils.get_adv(population.subs, num_samples=min(samples_to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
+						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
 						samples_to_generate -= 10002
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_data(new_inputs, new_outputs, window=500)
