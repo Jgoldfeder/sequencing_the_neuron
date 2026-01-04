@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 from align_evaluate import evaluate_reconstruction
 device = 0
 
-def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=None):    
+def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=[28]):    
 	if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'tinyimagenet']:
 		raise ValueError("Unknown Dataset")
 	if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:

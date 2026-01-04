@@ -107,7 +107,9 @@ if __name__ == "__main__":
 
 	# train black-box model
 	print("Training black-box model", file=sys.__stdout__)
-	utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=args.seq_len)
+	#utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=args.seq_len)
+	#using seq len of 28 instead of sampling seq lens
+	utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=[28])
 	print(model)
 	print("weight mean magnitude per layer")
 	if args.model_type != 'transformer':
