@@ -128,6 +128,11 @@ class Standardizer:
 
         def scale_next(next_layer, factor, prev_layer):
             # factor is [out,1]; push to next layer's input dimension
+            if 'Conv' in prev_layer.layertype and 'Conv' in next_layer.layertype:
+                # factor: [C_prev, 1] -> [1, C_prev, 1, 1]
+                f = factor.squeeze(1).view(1, -1, 1, 1)
+                next_layer.weights *= f
+                return
             if next_layer.layertype == prev_layer.layertype:
                 next_layer.weights *= factor.transpose(0, 1)
                 return

@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_type', '-m', type=str, choices=['fnn', 'cnn', 'rnn', 'transformer'], required=True, 
 					 help='Type of model')
-	parser.add_argument('--input_shape', '-is', required=True, help="for fnn/rnn: single int. For cnn: 'C,H,W'")
+	# parser.add_argument('--input_shape', '-is', required=True, help="for fnn/rnn: single int. For cnn: 'C,H,W'")
 	parser.add_argument('--layers', '-l', required=True, nargs='+',
 					 help="for fnn/rnn: list of ints. For cnn: list of 'in_channels,out_channels,kernel_size,stride'")
 	parser.add_argument('--activation', '-a', type=str, choices=['relu', 'tanh', 'nonleakyrelu', 'nonleakyreluapproximation'],
@@ -24,8 +24,8 @@ if __name__ == "__main__":
 	parser.add_argument('--num_samples', '-ns', type=int, default=10000, help='Number of samples to generate')
 	parser.add_argument('--num_epochs', '-ne', type=int, default=25, help='Number of training epochs to train the black box')
 	parser.add_argument('--seq_len', '-sl', type=int, nargs='+', help='Sequence lengths for RNN/Transformer inputs')
-	parser.add_argument('--dataset', '-d', type=str, choices=['mnist', 'cifar10', 'cifar100', 'places365', 'tinyimagenet'],
-					 required=True, help='Dataset to use for training and evaluation')
+	parser.add_argument('--dataset', '-d', type=str, default='mnist',choices=['mnist', 'cifar10', 'cifar100', 'places365', 'tinyimagenet'],
+					 help='Dataset to use for training and evaluation')
 	parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility')
 	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
@@ -43,6 +43,7 @@ if __name__ == "__main__":
 		os.makedirs(log_dir)
 	
 	if args.cheat:
+		print("cheating!!", file=sys.stderr)
 		name = "cheat_"+name
 
 	models_path = "./models/"+name+"/"+args.model_type+"/"
@@ -60,11 +61,26 @@ if __name__ == "__main__":
 	print(f"Using device: {device}", file=sys.__stdout__)
 	torch.manual_seed(args.seed)
 	
-	input_dim = int(args.input_shape) if args.input_shape.isdigit() else np.prod([int(x) for x in args.input_shape.split(',')])
-	input_shape = int(args.input_shape) if args.input_shape.isdigit() else tuple(int(x) for x in args.input_shape.split(','))
-	layers = [int(x) for x in args.layers] if args.model_type in ['fnn', 'rnn'] else [
-		[int(param) for param in layer.split(',')] for layer in args.layers
-	]
+	# input_dim = int(args.input_shape) if args.input_shape.isdigit() else np.prod([int(x) for x in args.input_shape.split(',')])
+	# input_shape = int(args.input_shape) if args.input_shape.isdigit() else tuple(int(x) for x in args.input_shape.split(','))
+	input_dim, input_shape = utils.get_input_dim_and_shape(args.dataset, args.model_type)
+	if args.model_type == 'cnn':
+		layers = []
+		for l in args.layers:
+			layerconfigs = {}
+			p = l.split(',')
+			if len(p) != 4:
+				raise ValueError("Each CNN layer must be specified as in_channels,out_channels,kernel_size,stride")
+			layerconfigs['in_channels'] = int(p[0])
+			layerconfigs['out_channels'] =  int(p[1])
+			layerconfigs['kernel_size'] =  int(p[2])
+			layerconfigs['stride'] =  int(p[3])
+			layers.append(layerconfigs)
+	else:
+		layers = [int(x) for x in args.layers]
+
+	# print(layers, file=sys.__stdout__)
+	# print(type(layers[0][0]), file=sys.__stdout__)
 	if args.activation == "tanh":
 		activation_f = nn.Tanh()
 	elif args.activation == "nonleakyrelu":
@@ -84,14 +100,14 @@ if __name__ == "__main__":
 	elif args.model_type == 'rnn':
 		model = var_RNN(input_shape, layers)
 	elif args.model_type == 'transformer':
-		model = base_TransformerEncoder(input_dim, layers)
+		model = base_TransformerEncoder(input_shape, layers)
 
 	torch.save(model.state_dict(), models_path+"original_params_black_box.pt)")
 	model.to(device)
 
 	# train black-box model
 	print("Training black-box model", file=sys.__stdout__)
-	utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type)
+	utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=args.seq_len)
 	print(model)
 	print("weight mean magnitude per layer")
 	if args.model_type != 'transformer':
@@ -116,7 +132,7 @@ if __name__ == "__main__":
 	og_model.load_state_dict(torch.load(models_path+"original_params_black_box.pt)"))
 	torch.save(model.state_dict(), models_path+"black_box.pt")
 
-	# train children population\
+	# train children population
 	print("Training student population", file=sys.__stdout__)
 	if args.cheat:
 		pop_size = 1
@@ -151,8 +167,6 @@ if __name__ == "__main__":
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 
-			
-
 			#use committee sampling to generate samples
 			if args.cheat:
 				subslist = population.subs + [model]
@@ -167,7 +181,7 @@ if __name__ == "__main__":
 						new_inputs = utils.get_adv(subslist, num_samples=min(to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen)
 						to_generate -= 10002
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
-						population.add_rnn_dataset(new_inputs, new_outputs, slen, window=500)
+						population.add_seq_data(new_inputs, new_outputs, slen, window=500)
 						#save samples
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:

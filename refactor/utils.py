@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 from align_evaluate import evaluate_reconstruction
 device = 0
 
-def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn'):    
+def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=None):    
 	if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'tinyimagenet']:
 		raise ValueError("Unknown Dataset")
 	if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:
@@ -96,6 +96,9 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 		optimizer = optim.Rprop(net.parameters(), lr=0.01)
 		
 	# Train the neural network
+	if (model_type == 'rnn' or model_type == 'transformer') and seqlens is None:
+		raise ValueError("sequence_length must be provided for rnn and transformer models")
+
 	for epoch in range(num_epochs):
 		net.train()
 		running_loss = 0.0
@@ -104,10 +107,10 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 			if model_type == 'fnn':
 				inputs = inputs.view(-1, input_dim)
 			elif model_type == 'rnn' or model_type == 'transformer':
+				sequence_length = seqlens[i % len(seqlens)] # cycle through provided sequence lengths using modulo
 				inputs = inputs.squeeze(1)
-				sequence_length = 4
 				sequence_length = min(sequence_length, inputs.size(1))
-				inputs = inputs[:, :4, :]
+				inputs = inputs[:, :sequence_length, :]
 
 			inputs, labels = inputs.to(device), labels.to(device)
 	   
@@ -128,7 +131,9 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 
 def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=False,range_=1,device=device,input_dim=784, model_type='fnn', sequence_length=None):
 	# Generate adversarial inputs that maximize disagreement among the sub-models
+	#input_dim should be flattened input size for all models
 	if model_type == 'rnn' or model_type == 'transformer':
+		#only generate truncated number of sequences if sequence_length is specified
 		input_dim = int(input_dim*sequence_length/(math.sqrt(input_dim)))
 	
 	adv = nn.Embedding(num_samples,input_dim)
@@ -151,6 +156,7 @@ def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=F
 			if model_type == 'cnn':
 				weight = adv.weight.view(num_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim)))
 			elif model_type == 'rnn' or model_type == 'transformer':
+				#input dim here has been changed to truncated then flattened size
 				batch_size = num_samples
 				weight = adv.weight.view(batch_size, sequence_length, input_dim//sequence_length)
 			else:
@@ -307,3 +313,31 @@ class Population(nn.Module):
 		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
 			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
 		print("-"*50)
+
+
+def get_input_dim_and_shape(dataset, model_type):
+	'''
+	Returns flattened input dimension and input shape (either int or tuple) based on dataset and model type.
+	input_dim is always flattened input size, used in get_adv.
+	input_shape is used as parameter to model constructors.
+	Returns:
+	- input_dim: int
+	- input_shape: int or tuple
+	'''
+	if dataset in ['mnist','fmnist','kmnist']:
+		input_shape = (1, 28, 28)
+	elif dataset in ['cifar10','cifar100']:
+		input_shape = (3, 32, 32)
+	else:
+		raise NotImplementedError("Dataset not supported for input shape inference")
+	
+	input_dim = math.prod(input_shape) #total number of dimensions for flattened input, used in get_adv
+
+	#input_shape is used as parameter to model constructors
+	if model_type == 'fnn':
+		#input_shape is not used in fnn constructor, but we keep it for consistency
+		return input_dim, input_shape
+	elif model_type == 'cnn':
+		return input_dim, input_shape
+	elif model_type == 'rnn' or model_type == 'transformer':
+		return input_dim, input_shape[-1] # for rnn and transformer, input shape is (batch_size, seq_len, input_size), so we return input_size
