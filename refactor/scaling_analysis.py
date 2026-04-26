@@ -31,6 +31,8 @@ class Config:
     initial_k: int
     max_k: int
     configurations: List[Dict[str, Any]]  # List of {layers: [...], dataset: "..."}
+    num_gpus: int = 1  # Number of GPUs for parallel sample generation
+    samples_per_gpu: Optional[int] = None  # Max samples per GPU (auto-detected if None)
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -46,6 +48,8 @@ class Config:
             initial_k=data["initial_k"],
             max_k=data["max_k"],
             configurations=data["configurations"],
+            num_gpus=data.get("num_gpus", 1),
+            samples_per_gpu=data.get("samples_per_gpu", None),
         )
 
 
@@ -105,8 +109,11 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--outer_iterations", str(cfg.outer_iterations),
         "--num_samples", str(num_samples),
         "--comment", comment,
-        "--experiment_name", cfg.experiment_name
+        "--experiment_name", cfg.experiment_name,
+        "--num_gpus", str(cfg.num_gpus),
     ]
+    if cfg.samples_per_gpu is not None:
+        cmd.extend(["--samples_per_gpu", str(cfg.samples_per_gpu)])
 
     print(f"\n{'='*60}")
     print(f"Running: layers={layers}, dataset={dataset}, seed={cfg.seed}, K={num_samples}")

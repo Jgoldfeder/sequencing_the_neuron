@@ -30,6 +30,8 @@ if __name__ == "__main__":
 	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
 	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
+	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use for parallel sample generation and training')
+	parser.add_argument('--samples_per_gpu', type=int, default=None, help='Max samples per GPU for get_adv (auto-detected if not set)')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -67,6 +69,12 @@ if __name__ == "__main__":
 	device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 	print(f"Using device: {device}", file=sys.__stdout__)
 	torch.manual_seed(args.seed)
+
+	# Multi-GPU setup
+	gpu_ids = utils.get_gpu_ids(args.num_gpus)
+	if not gpu_ids:
+		gpu_ids = [0]
+	print(f"Using GPUs: {gpu_ids}", file=sys.__stdout__)
 	
 	# input_dim = int(args.input_shape) if args.input_shape.isdigit() else np.prod([int(x) for x in args.input_shape.split(',')])
 	# input_shape = int(args.input_shape) if args.input_shape.isdigit() else tuple(int(x) for x in args.input_shape.split(','))
@@ -157,9 +165,29 @@ if __name__ == "__main__":
 			subs.append(var_RNN(input_shape, layers))
 		elif args.model_type == 'transformer':
 			subs.append(base_TransformerEncoder(input_shape, layers))
-	population = utils.Population(subs)
-	population.cuda(device)
+	population = utils.Population(subs, gpu_ids=gpu_ids)
+	# Multi-GPU: students already assigned to GPUs in Population.__init__
 	model = model.cuda(device)
+
+	# Probe GPU memory to determine max samples per GPU (if not specified)
+	if args.samples_per_gpu is None and len(gpu_ids) >= 1:
+		samples_per_gpu = utils.probe_gpu_memory(
+			subs[0], input_dim, gpu_ids[0],
+			model_type=args.model_type,
+			sequence_length=args.seq_len[0] if args.seq_len else None,
+			num_students=pop_size
+		)
+	else:
+		samples_per_gpu = args.samples_per_gpu if args.samples_per_gpu else 10002
+
+	# Create model config for parallel sample generation
+	model_config = {
+		'type': args.model_type,
+		'layers': layers,
+		'activation': activation_f,
+		'input_shape': input_shape
+	}
+	print(f"Samples per GPU: {samples_per_gpu}", file=sys.__stdout__)
 	
 	criterion = nn.L1Loss()
 	lr = 0.001
@@ -194,9 +222,23 @@ if __name__ == "__main__":
 						#save samples
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:
-				while samples_to_generate > 0:
-						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
-						samples_to_generate -= 10002
+				# Use parallel sample generation if multiple GPUs available
+				if len(gpu_ids) > 1:
+					new_inputs = utils.get_adv_parallel(
+						subslist, gpu_ids=gpu_ids, samples_per_gpu=samples_per_gpu,
+						total_samples=samples_to_generate, model_config=model_config,
+						epochs=2000, schedule=[500, 1000, 1500], range_=1.000,
+						input_dim=input_dim, model_type=args.model_type, sequence_length=None
+					)
+					new_outputs = model(new_inputs.cuda(device)).cpu().detach()
+					population.add_data(new_inputs, new_outputs, window=500)
+					torch.save(new_inputs, models_path + "/data_iteration_final.pt")
+				else:
+					# Single GPU: use batched approach
+					while samples_to_generate > 0:
+						batch_size = min(samples_to_generate, samples_per_gpu)
+						new_inputs = utils.get_adv(subslist, num_samples=batch_size, epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
+						samples_to_generate -= batch_size
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_data(new_inputs, new_outputs, window=500)
 						#save samples

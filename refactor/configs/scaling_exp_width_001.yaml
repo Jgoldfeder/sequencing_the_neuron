@@ -16,6 +16,9 @@ initial_k: 2500
 # Maximum K to try before giving up on a tuple
 max_k: 100000000
 
+# Number of GPUs for parallel sample generation and training
+num_gpus: 1
+
 # List of [layers, dataset] tuples - SORTED EASIEST TO HARDEST
 configurations:
   # MNIST configs
