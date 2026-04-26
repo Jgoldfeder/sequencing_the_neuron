@@ -441,11 +441,13 @@ class Population(nn.Module):
 	def _assign_students_to_gpus(self):
 		"""Distribute students across available GPUs."""
 		num_gpus = len(self.gpu_ids)
+		print(f"Distributing {len(self.subs)} students across {num_gpus} GPUs: {self.gpu_ids}", file=sys.stderr)
 		for i, student in enumerate(self.subs):
 			gpu_idx = i % num_gpus
 			gpu_id = self.gpu_ids[gpu_idx]
 			self.device_assignments[i] = torch.device(f"cuda:{gpu_id}")
 			student.to(self.device_assignments[i])
+			print(f"  Student {i} -> GPU {gpu_id}", file=sys.stderr)
 
 	def cuda(self, device=None):
 		"""Override cuda to respect multi-GPU assignments or use single device."""
