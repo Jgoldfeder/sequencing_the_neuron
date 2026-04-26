@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import torch
+import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.optim as optim
 import os
@@ -10,7 +11,10 @@ from models import var_FNN, var_CNN, var_RNN, base_TransformerEncoder
 from align_evaluate import evaluate_reconstruction
 import utils
 
+# Set multiprocessing start method to 'spawn' for CUDA compatibility
+# Must be done before any CUDA operations
 if __name__ == "__main__":
+	mp.set_start_method('spawn', force=True)
 	# Parse arguments for run
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_type', '-m', type=str, choices=['fnn', 'cnn', 'rnn', 'transformer'], required=True, 
