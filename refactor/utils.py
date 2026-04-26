@@ -531,7 +531,7 @@ class Population(nn.Module):
 				if restore:
 					self.restore_grad()
 				optimizer.step()
-				running_losses += torch.tensor([l.detach().cpu().item() for l in losses])
+				running_losses += np.array([l.detach().cpu().item() for l in losses])
 
 		losses = list(running_losses/dataset_size)
 		
