@@ -516,7 +516,8 @@ class Population(nn.Module):
 				# Multi-GPU: compute forward pass and loss per student on their assigned device
 				losses = []
 				for i, s in enumerate(self.subs):
-					student_device = self.device_assignments[i]
+					# Get actual device from model parameters (more reliable than dict)
+					student_device = next(s.parameters()).device
 					x_dev = x.to(student_device)
 					y_dev = y.to(student_device)
 					y_hat = s(x_dev)

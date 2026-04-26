@@ -1,28 +1,20 @@
-print("Starting imports...", flush=True)
 import argparse
 import numpy as np
 import torch
-print("Torch imported", flush=True)
 import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.optim as optim
 import os
 import sys
 import gc
-print("Importing models...", flush=True)
 from models import var_FNN, var_CNN, var_RNN, base_TransformerEncoder
-print("Importing align_evaluate...", flush=True)
 from align_evaluate import evaluate_reconstruction
-print("Importing utils...", flush=True)
 import utils
-print("All imports done", flush=True)
 
 # Set multiprocessing start method to 'spawn' for CUDA compatibility
 # Must be done before any CUDA operations
 if __name__ == "__main__":
-	print("Setting multiprocessing start method...", flush=True)
 	mp.set_start_method('spawn', force=True)
-	print("Start method set", flush=True)
 	# Parse arguments for run
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_type', '-m', type=str, choices=['fnn', 'cnn', 'rnn', 'transformer'], required=True, 
