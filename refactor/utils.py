@@ -1,7 +1,6 @@
 import math
 import sys
 import gc
-import copy
 from collections import defaultdict
 import numpy as np
 import torch
@@ -26,97 +25,50 @@ def get_gpu_ids(num_gpus=1):
 
 
 def probe_gpu_memory(model_sample, input_dim, gpu_id=0, model_type='fnn',
-                     sequence_length=None, num_students=10, safety_factor=0.85):
+                     sequence_length=None, num_students=10, safety_factor=0.7):
     """
-    Probe GPU memory to determine maximum samples that can fit for get_adv().
+    Estimate maximum samples that can fit on GPU for get_adv() using analytical calculation.
 
-    Uses binary search to find the maximum batch size without OOM.
+    The main memory bottleneck is cdist which is O(n² * num_students).
 
     Args:
-        model_sample: A sample model from the population (for memory estimation)
+        model_sample: A sample model (used to estimate output dim)
         input_dim: Input dimension for samples
-        gpu_id: Which GPU to probe
+        gpu_id: Which GPU to check (assumes all GPUs are identical)
         model_type: Type of model ('fnn', 'cnn', 'rnn', 'transformer')
         sequence_length: Sequence length for RNN/transformer
         num_students: Number of students in population
-        safety_factor: Fraction of estimated max to use (default 0.85)
+        safety_factor: Fraction of estimated max to use (default 0.7)
 
     Returns:
-        Maximum recommended samples per batch for this GPU
+        Maximum recommended samples per batch
     """
+    # Get available GPU memory
     device = torch.device(f"cuda:{gpu_id}")
     torch.cuda.set_device(device)
     torch.cuda.empty_cache()
-    gc.collect()
 
-    # Compute effective input dimension
-    if model_type in ['rnn', 'transformer'] and sequence_length:
-        test_dim = int(input_dim * sequence_length / math.sqrt(input_dim))
-    else:
-        test_dim = input_dim
+    total_mem = torch.cuda.get_device_properties(gpu_id).total_memory
+    reserved_mem = torch.cuda.memory_reserved(gpu_id)
+    available_mem = total_mem - reserved_mem
 
-    # Binary search for max samples
-    low, high = 1000, 50000
-    max_working = low
+    # Estimate output dimension from model
+    output_dim = model_sample.layers[-1].out_features if hasattr(model_sample.layers[-1], 'out_features') else 10
 
-    print(f"Probing GPU {gpu_id} memory for max samples...", file=sys.stderr)
+    # Memory for cdist is the bottleneck: n² * num_students * output_dim * 4 bytes
+    # Solve: n² * num_students * output_dim * 4 <= available_mem * safety_factor
+    # n <= sqrt(available_mem * safety_factor / (num_students * output_dim * 4))
 
-    while low <= high:
-        mid = (low + high) // 2
-        try:
-            torch.cuda.empty_cache()
-            gc.collect()
+    max_samples = int(math.sqrt(available_mem * safety_factor / (num_students * output_dim * 4)))
 
-            # Simulate get_adv memory usage
-            test_embedding = nn.Embedding(mid, test_dim)
-            test_embedding.to(device)
+    # Also account for embedding memory: n * input_dim * 4 bytes
+    # But this is typically much smaller than cdist for reasonable n
 
-            # Simulate forward pass memory with multiple students
-            test_models = []
-            outputs = []
-            for _ in range(num_students):
-                test_model = copy.deepcopy(model_sample)
-                test_model.to(device)
-                test_models.append(test_model)
+    # Clamp to reasonable range
+    max_samples = max(1000, min(max_samples, 50000))
 
-            # Reshape weight based on model type
-            if model_type == 'cnn':
-                weight = test_embedding.weight.view(mid, 1, int(math.sqrt(test_dim)), int(math.sqrt(test_dim)))
-            elif model_type in ['rnn', 'transformer'] and sequence_length:
-                weight = test_embedding.weight.view(mid, sequence_length, test_dim // sequence_length)
-            else:
-                weight = test_embedding.weight
-
-            # Forward pass through all students (main memory consumer)
-            for model in test_models:
-                with torch.no_grad():
-                    out = model(weight)
-                    outputs.append(out)
-
-            # Simulate distance computation
-            outs = torch.stack(outputs)
-            outs = torch.transpose(outs, 1, 0).contiguous()
-            _ = torch.cdist(outs, outs)
-
-            # Cleanup
-            del test_embedding, test_models, outputs, outs, weight
-            torch.cuda.empty_cache()
-            gc.collect()
-
-            max_working = mid
-            low = mid + 1
-
-        except RuntimeError as e:
-            if "out of memory" in str(e).lower() or "CUDA" in str(e):
-                high = mid - 1
-                torch.cuda.empty_cache()
-                gc.collect()
-            else:
-                raise e
-
-    result = int(max_working * safety_factor)
-    print(f"GPU {gpu_id}: Max samples = {result} (probed {max_working}, safety factor {safety_factor})", file=sys.stderr)
-    return result
+    print(f"GPU {gpu_id}: {total_mem/1e9:.1f}GB total, estimated max samples = {max_samples}", file=sys.stderr)
+    return max_samples
 
 def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=[28]):    
 	if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'tinyimagenet']:
