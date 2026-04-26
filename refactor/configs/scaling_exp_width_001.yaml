@@ -1,0 +1,39 @@
+# Experiment name - all outputs will be under ./experiments/{experiment_name}/
+experiment_name: scaling_exp_width_001
+
+# Shared parameters for all runs
+activation: relu
+num_epochs: 25
+outer_iterations: 55
+seed: 0
+
+# Success threshold for max_ae
+max_ae_threshold: 0.001
+
+# Initial K value for num_samples
+initial_k: 2500
+
+# Maximum K to try before giving up on a tuple
+max_k: 100000000
+
+# List of [layers, dataset] tuples - SORTED EASIEST TO HARDEST
+configurations:
+  # MNIST configs
+  - layers: [784, 64, 10]
+    dataset: mnist
+  - layers: [784, 128, 10]
+    dataset: mnist
+  - layers: [784, 256, 10]
+    dataset: mnist
+
+  # CIFAR-100 configs
+  - layers: [3072, 128, 100]
+    dataset: cifar100
+  - layers: [3072, 256, 100]
+    dataset: cifar100
+  - layers: [3072, 512, 100]
+    dataset: cifar100
+  - layers: [3072, 1024, 100]
+    dataset: cifar100
+  - layers: [3072, 2048, 100]
+    dataset: cifar100

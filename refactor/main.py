@@ -29,6 +29,7 @@ if __name__ == "__main__":
 	parser.add_argument('--seed', type=int, default=0, help='Random seed for reproducibility')
 	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
+	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -38,15 +39,21 @@ if __name__ == "__main__":
 	# set up logging and output
 	name = f"{'-'.join(args.layers)}_outer-iterations-{args.outer_iterations}_samples-{args.num_samples}_epochs-{args.num_epochs}_dataset-{args.dataset}_activation-{args.activation}_seed-{args.seed}_{args.comment}"
 
-	log_dir = "./results/"+args.model_type+"/"
+	# Set base directory based on experiment_name
+	if args.experiment_name:
+		base_dir = f"./experiments/{args.experiment_name}/"
+	else:
+		base_dir = "./"
+
+	log_dir = base_dir + "results/" + args.model_type + "/"
 	if not os.path.exists(log_dir):
 		os.makedirs(log_dir)
-	
+
 	if args.cheat:
 		print("cheating!!", file=sys.stderr)
 		name = "cheat_"+name
 
-	models_path = "./models/"+name+"/"+args.model_type+"/"
+	models_path = base_dir + "models/" + name + "/" + args.model_type + "/"
 
 	if not os.path.exists(models_path):
 		os.makedirs(models_path)
@@ -205,6 +212,34 @@ if __name__ == "__main__":
 	for i in range(pop_size):
 		print(f"Student {i} loss:", population.subs[i].loss)
 	sys.stdout.flush()
+
+	# Evaluate all students and collect results
+	eval_results = []
 	for i in range(pop_size):
 		print(f"Evaluating student {i}:")
-		print(evaluate_reconstruction(model, population.subs[i], model_type=args.model_type))
+		result = evaluate_reconstruction(model, population.subs[i], model_type=args.model_type)
+		print(result)
+		mse, mae, max_ae, mmpe, max_mpe, layerwise_metrics = result
+		eval_results.append({
+			"student_idx": i,
+			"mse": mse,
+			"mae": mae,
+			"max_ae": max_ae,
+			"mmpe": mmpe,
+			"max_mpe": max_mpe
+		})
+
+	# Find best student (lowest max_ae)
+	best_result = min(eval_results, key=lambda x: x["max_ae"])
+
+	# Save results to JSON
+	import json
+	results_json = {
+		"args": vars(args),
+		"best_student": best_result,
+		"all_students": eval_results
+	}
+	results_json_path = models_path + "/results.json"
+	with open(results_json_path, "w") as f:
+		json.dump(results_json, f, indent=2)
+	print(f"Results saved to {results_json_path}", file=sys.__stdout__)

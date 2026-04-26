@@ -8,3 +8,6 @@ sample_results/
 
 alignment/loaded_model.py
 alignment/test*
+
+refactor/__pycache__/
+refactor/experiments/
