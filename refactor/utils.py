@@ -2,6 +2,7 @@ import math
 import sys
 import gc
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import torch
 import torch.nn as nn
@@ -513,16 +514,25 @@ class Population(nn.Module):
 					continue
 				optimizer.zero_grad()
 
-				# Multi-GPU: compute forward pass and loss per student on their assigned device
-				losses = []
-				for i, s in enumerate(self.subs):
-					# Get actual device from model parameters (more reliable than dict)
+				# Multi-GPU: compute forward pass and loss per student in parallel
+				def forward_student(args):
+					i, s, x_batch, y_batch = args
 					student_device = next(s.parameters()).device
-					x_dev = x.to(student_device)
-					y_dev = y.to(student_device)
+					x_dev = x_batch.to(student_device, non_blocking=True)
+					y_dev = y_batch.to(student_device, non_blocking=True)
 					y_hat = s(x_dev)
 					loss = criterion(y_hat, y_dev)
-					losses.append(loss)
+					return i, loss
+
+				# Run forward passes in parallel using threads (CUDA releases GIL)
+				num_workers = min(len(self.subs), len(self.gpu_ids))
+				with ThreadPoolExecutor(max_workers=num_workers) as executor:
+					args_list = [(i, s, x, y) for i, s in enumerate(self.subs)]
+					results = list(executor.map(forward_student, args_list))
+
+				# Sort by index to maintain order
+				results.sort(key=lambda r: r[0])
+				losses = [r[1] for r in results]
 
 				# Sum losses and backward (gradients flow to each device)
 				total_loss = sum(losses) * 200
