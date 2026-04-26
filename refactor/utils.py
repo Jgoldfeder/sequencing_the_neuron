@@ -50,6 +50,12 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 			trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform)
 			test_dataset = torchvision.datasets.CIFAR100(root='./data', train=False, transform=transform, download=True)
 			input_dim = 32*32*3
+		elif dataset == "tinyimagenet":
+			from tinyimagenet import TinyImageNet
+			transform_tiny = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+			trainset = TinyImageNet('./data/tinyimagenet', split='train', transform=transform_tiny)
+			test_dataset = TinyImageNet('./data/tinyimagenet', split='val', transform=transform_tiny)
+			input_dim = 64*64*3
 		trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
 		test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
 		
@@ -328,6 +334,8 @@ def get_input_dim_and_shape(dataset, model_type):
 		input_shape = (1, 28, 28)
 	elif dataset in ['cifar10','cifar100']:
 		input_shape = (3, 32, 32)
+	elif dataset == 'tinyimagenet':
+		input_shape = (3, 64, 64)
 	else:
 		raise NotImplementedError("Dataset not supported for input shape inference")
 	
