@@ -521,31 +521,36 @@ class Population(nn.Module):
 				except:
 					active_datasets.remove(seq_length) #remove exhausted dataset
 					continue
-				# Multi-GPU: each student trains independently on its own thread/GPU
-				import threading
-				losses_list = [None] * len(self.subs)
+				# Multi-GPU: each student trains on its own GPU with its own CUDA stream
+				# Create streams for each GPU if not already created
+				if not hasattr(self, 'streams'):
+					self.streams = {}
+					for gpu_id in self.gpu_ids:
+						self.streams[gpu_id] = torch.cuda.Stream(device=gpu_id)
 
-				def train_student(i, student, opt, x_batch, y_batch):
-					dev = next(student.parameters()).device
-					x_dev = x_batch.to(dev)
-					y_dev = y_batch.to(dev)
-					opt.zero_grad()
-					y_hat = student(x_dev)
-					loss = criterion(y_hat, y_dev) * 200
-					loss.backward()
-					opt.step()
-					losses_list[i] = loss.detach().cpu().item()
+				losses_list = []
 
-				threads = []
+				# Launch all students in parallel using streams
 				for i, s in enumerate(self.subs):
-					t = threading.Thread(target=train_student, args=(i, s, self.optimizers[i], x, y))
-					t.start()
-					threads.append(t)
+					dev = next(s.parameters()).device
+					gpu_id = dev.index
+					stream = self.streams[gpu_id]
 
-				for t in threads:
-					t.join()
+					with torch.cuda.stream(stream):
+						x_dev = x.to(dev, non_blocking=True)
+						y_dev = y.to(dev, non_blocking=True)
+						self.optimizers[i].zero_grad()
+						y_hat = s(x_dev)
+						loss = criterion(y_hat, y_dev) * 200
+						loss.backward()
+						self.optimizers[i].step()
+						losses_list.append(loss)
 
-				running_losses += np.array(losses_list)
+				# Sync all streams
+				for gpu_id in self.gpu_ids:
+					self.streams[gpu_id].synchronize()
+
+				running_losses += np.array([l.detach().cpu().item() for l in losses_list])
 
 		losses = list(running_losses/dataset_size)
 		
