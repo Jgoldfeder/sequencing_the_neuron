@@ -132,27 +132,18 @@ if __name__ == "__main__":
 	torch.save(model.state_dict(), models_path+"original_params_black_box.pt)")
 	model.to(device)
 
-	# Check for cached blackbox model (stored in existing models directory)
-	blackbox_cache_dir = base_dir + "models/blackbox/"
-	if not os.path.exists(blackbox_cache_dir):
-		os.makedirs(blackbox_cache_dir)
-	blackbox_cache_name = f"{args.model_type}_{'-'.join(args.layers)}_{args.activation}_{args.dataset}_epochs{args.num_epochs}_seed{args.seed}.pt"
-	blackbox_cache_path = blackbox_cache_dir + blackbox_cache_name
-	print(f"Checking for cached blackbox at: {blackbox_cache_path}", file=sys.__stdout__)
+	# Check for existing blackbox model at models_path
+	blackbox_path = models_path + "black_box.pt"
+	print(f"Checking for blackbox at: {blackbox_path}", file=sys.__stdout__)
 
-	if os.path.exists(blackbox_cache_path):
-		print(f"Loading cached blackbox from {blackbox_cache_path}", file=sys.__stdout__)
-		model.load_state_dict(torch.load(blackbox_cache_path, map_location=device))
+	if os.path.exists(blackbox_path):
+		print(f"Loading blackbox from {blackbox_path}", file=sys.__stdout__)
+		model.load_state_dict(torch.load(blackbox_path, map_location=device))
 	else:
 		# train black-box model
-		print(f"No cached blackbox found at {blackbox_cache_path}", file=sys.__stdout__)
+		print(f"No blackbox found at {blackbox_path}", file=sys.__stdout__)
 		print("Training black-box model", file=sys.__stdout__)
-		#utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=args.seq_len)
-		#using seq len of 28 instead of sampling seq lens
 		utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=[28])
-		# Cache the trained blackbox
-		torch.save(model.state_dict(), blackbox_cache_path)
-		print(f"Cached blackbox to {blackbox_cache_path}", file=sys.__stdout__)
 
 	print(model)
 	print("weight mean magnitude per layer")
