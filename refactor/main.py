@@ -1,7 +1,6 @@
 import argparse
 import numpy as np
 import torch
-import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.optim as optim
 import os
@@ -11,10 +10,7 @@ from models import var_FNN, var_CNN, var_RNN, base_TransformerEncoder
 from align_evaluate import evaluate_reconstruction
 import utils
 
-# Set multiprocessing start method to 'spawn' for CUDA compatibility
-# Must be done before any CUDA operations
 if __name__ == "__main__":
-	mp.set_start_method('spawn', force=True)
 	# Parse arguments for run
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_type', '-m', type=str, choices=['fnn', 'cnn', 'rnn', 'transformer'], required=True, 
@@ -34,9 +30,6 @@ if __name__ == "__main__":
 	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
 	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
-	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use for parallel sample generation and training')
-	parser.add_argument('--samples_per_gpu', type=int, default=None, help='Max samples per GPU for get_adv (auto-detected if not set)')
-	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -74,12 +67,6 @@ if __name__ == "__main__":
 	device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
 	print(f"Using device: {device}", file=sys.__stdout__)
 	torch.manual_seed(args.seed)
-
-	# Multi-GPU setup
-	gpu_ids = utils.get_gpu_ids(args.num_gpus)
-	if not gpu_ids:
-		gpu_ids = [0]
-	print(f"Using GPUs: {gpu_ids}", file=sys.__stdout__)
 	
 	# input_dim = int(args.input_shape) if args.input_shape.isdigit() else np.prod([int(x) for x in args.input_shape.split(',')])
 	# input_shape = int(args.input_shape) if args.input_shape.isdigit() else tuple(int(x) for x in args.input_shape.split(','))
@@ -125,36 +112,11 @@ if __name__ == "__main__":
 	torch.save(model.state_dict(), models_path+"original_params_black_box.pt)")
 	model.to(device)
 
-	# Check for cached blackbox (agnostic to K, outer_iterations, comment)
-	# Cache uses only: model_type, layers, activation, dataset, epochs, seed
-	blackbox_cache_dir = base_dir + "models/blackbox/"
-	if not os.path.exists(blackbox_cache_dir):
-		os.makedirs(blackbox_cache_dir)
-	blackbox_cache_name = f"{args.model_type}_{'-'.join(args.layers)}_{args.activation}_{args.dataset}_epochs{args.num_epochs}_seed{args.seed}.pt"
-	blackbox_cache_path = blackbox_cache_dir + blackbox_cache_name
-
-	# Also check the per-run location for backwards compatibility
-	blackbox_run_path = models_path + "black_box.pt"
-
-	print(f"Checking for blackbox at: {blackbox_cache_path}", file=sys.__stdout__)
-
-	if os.path.exists(blackbox_cache_path):
-		print(f"Loading blackbox from cache: {blackbox_cache_path}", file=sys.__stdout__)
-		model.load_state_dict(torch.load(blackbox_cache_path, map_location=device))
-	elif os.path.exists(blackbox_run_path):
-		print(f"Loading blackbox from run dir: {blackbox_run_path}", file=sys.__stdout__)
-		model.load_state_dict(torch.load(blackbox_run_path, map_location=device))
-		# Copy to cache for future runs
-		torch.save(model.state_dict(), blackbox_cache_path)
-		print(f"Cached blackbox to: {blackbox_cache_path}", file=sys.__stdout__)
-	else:
-		# train black-box model
-		print(f"No blackbox found, training...", file=sys.__stdout__)
-		utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=[28])
-		# Save to cache
-		torch.save(model.state_dict(), blackbox_cache_path)
-		print(f"Cached blackbox to: {blackbox_cache_path}", file=sys.__stdout__)
-
+	# train black-box model
+	print("Training black-box model", file=sys.__stdout__)
+	#utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=args.seq_len)
+	#using seq len of 28 instead of sampling seq lens
+	utils.train_blackbox(model, num_epochs=args.num_epochs, dataset=args.dataset, model_type=args.model_type, seqlens=[28])
 	print(model)
 	print("weight mean magnitude per layer")
 	if args.model_type != 'transformer':
@@ -184,7 +146,7 @@ if __name__ == "__main__":
 	if args.cheat:
 		pop_size = 1
 	else:
-		pop_size = args.population_size
+		pop_size = 10
 	subs = []
 	for i in range(pop_size):
 		if args.model_type == 'fnn':
@@ -195,33 +157,13 @@ if __name__ == "__main__":
 			subs.append(var_RNN(input_shape, layers))
 		elif args.model_type == 'transformer':
 			subs.append(base_TransformerEncoder(input_shape, layers))
-	population = utils.Population(subs, gpu_ids=gpu_ids)
-	# Multi-GPU: students already assigned to GPUs in Population.__init__
+	population = utils.Population(subs)
+	population.cuda(device)
 	model = model.cuda(device)
-
-	# Probe GPU memory to determine max samples per GPU (if not specified)
-	if args.samples_per_gpu is None and len(gpu_ids) >= 1:
-		samples_per_gpu = utils.probe_gpu_memory(
-			subs[0], input_dim, gpu_ids[0],
-			model_type=args.model_type,
-			sequence_length=args.seq_len[0] if args.seq_len else None,
-			num_students=pop_size
-		)
-	else:
-		samples_per_gpu = args.samples_per_gpu if args.samples_per_gpu else 10002
-
-	# Create model config for parallel sample generation
-	model_config = {
-		'type': args.model_type,
-		'layers': layers,
-		'activation': activation_f,
-		'input_shape': input_shape
-	}
-	print(f"Samples per GPU: {samples_per_gpu}", file=sys.__stdout__)
 	
 	criterion = nn.L1Loss()
 	lr = 0.001
-	population.set_optimizers(optim.Adam, lr=lr)
+	population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
 
 	with torch.enable_grad():
 		for outer_iter in range(args.outer_iterations):
@@ -230,7 +172,7 @@ if __name__ == "__main__":
 			restore = False
 			if outer_iter > 25:
 				lr = lr * 0.8
-				population.set_optimizers(optim.Adam, lr=lr)
+				population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 
@@ -252,23 +194,9 @@ if __name__ == "__main__":
 						#save samples
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:
-				# Use parallel sample generation if multiple GPUs available
-				if len(gpu_ids) > 1:
-					new_inputs = utils.get_adv_parallel(
-						subslist, gpu_ids=gpu_ids, samples_per_gpu=samples_per_gpu,
-						total_samples=samples_to_generate, model_config=model_config,
-						epochs=2000, schedule=[500, 1000, 1500], range_=1.000,
-						input_dim=input_dim, model_type=args.model_type, sequence_length=None
-					)
-					new_outputs = model(new_inputs.cuda(device)).cpu().detach()
-					population.add_data(new_inputs, new_outputs, window=500)
-					torch.save(new_inputs, models_path + "/data_iteration_final.pt")
-				else:
-					# Single GPU: use batched approach
-					while samples_to_generate > 0:
-						batch_size = min(samples_to_generate, samples_per_gpu)
-						new_inputs = utils.get_adv(subslist, num_samples=batch_size, epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
-						samples_to_generate -= batch_size
+				while samples_to_generate > 0:
+						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, 10002), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None)
+						samples_to_generate -= 10002
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_data(new_inputs, new_outputs, window=500)
 						#save samples
