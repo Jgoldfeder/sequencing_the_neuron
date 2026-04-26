@@ -36,6 +36,7 @@ if __name__ == "__main__":
 	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
 	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use for parallel sample generation and training')
 	parser.add_argument('--samples_per_gpu', type=int, default=None, help='Max samples per GPU for get_adv (auto-detected if not set)')
+	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 	if args.cheat:
 		pop_size = 1
 	else:
-		pop_size = 10
+		pop_size = args.population_size
 	subs = []
 	for i in range(pop_size):
 		if args.model_type == 'fnn':

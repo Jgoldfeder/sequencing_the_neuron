@@ -19,6 +19,9 @@ max_k: 100000000
 # Number of GPUs for parallel sample generation and training
 num_gpus: 1
 
+# Number of students in population
+population_size: 10
+
 # List of [layers, dataset] tuples - SORTED EASIEST TO HARDEST
 configurations:
   # MNIST configs
