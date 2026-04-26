@@ -516,29 +516,27 @@ class Population(nn.Module):
 					continue
 				optimizer.zero_grad()
 
-				# Multi-GPU: compute forward pass and loss per student in parallel
-				def forward_student(args):
+				# Multi-GPU: compute forward pass, loss, and backward per student in parallel
+				def train_student(args):
 					i, s, x_batch, y_batch = args
 					student_device = next(s.parameters()).device
 					x_dev = x_batch.to(student_device, non_blocking=True)
 					y_dev = y_batch.to(student_device, non_blocking=True)
 					y_hat = s(x_dev)
-					loss = criterion(y_hat, y_dev)
-					return i, loss
+					loss = criterion(y_hat, y_dev) * 200
+					# Backward on this student's GPU
+					loss.backward()
+					return i, loss.detach()
 
-				# Run forward passes in parallel using threads (CUDA releases GIL)
+				# Run forward+backward in parallel using threads (CUDA releases GIL)
 				num_workers = min(len(self.subs), len(self.gpu_ids))
 				with ThreadPoolExecutor(max_workers=num_workers) as executor:
 					args_list = [(i, s, x, y) for i, s in enumerate(self.subs)]
-					results = list(executor.map(forward_student, args_list))
+					results = list(executor.map(train_student, args_list))
 
 				# Sort by index to maintain order
 				results.sort(key=lambda r: r[0])
 				losses = [r[1] for r in results]
-
-				# Sum losses and backward (gradients flow to each device)
-				total_loss = sum(losses) * 200
-				total_loss.backward()
 
 				if restore:
 					self.restore_grad()
