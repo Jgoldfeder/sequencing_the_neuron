@@ -459,7 +459,14 @@ class Population(nn.Module):
 		return self
 	
 	def set_optimizer(self, optimizer):
+		# Legacy single optimizer (unused in multi-GPU mode)
 		self.optimizer = optimizer
+
+	def set_optimizers(self, optimizer_class, lr):
+		"""Create one optimizer per student for multi-GPU training."""
+		self.optimizers = []
+		for s in self.subs:
+			self.optimizers.append(optimizer_class(s.parameters(), lr=lr))
 	
 	def add_data(self,inputs,outputs,window = None):
 		self.inputs.append(inputs)
@@ -514,34 +521,31 @@ class Population(nn.Module):
 				except:
 					active_datasets.remove(seq_length) #remove exhausted dataset
 					continue
-				optimizer.zero_grad()
+				# Multi-GPU: each student trains independently on its own thread/GPU
+				import threading
+				losses_list = [None] * len(self.subs)
 
-				# Multi-GPU: compute forward pass, loss, and backward per student in parallel
-				def train_student(args):
-					i, s, x_batch, y_batch = args
-					student_device = next(s.parameters()).device
-					x_dev = x_batch.to(student_device, non_blocking=True)
-					y_dev = y_batch.to(student_device, non_blocking=True)
-					y_hat = s(x_dev)
+				def train_student(i, student, opt, x_batch, y_batch):
+					dev = next(student.parameters()).device
+					x_dev = x_batch.to(dev)
+					y_dev = y_batch.to(dev)
+					opt.zero_grad()
+					y_hat = student(x_dev)
 					loss = criterion(y_hat, y_dev) * 200
-					# Backward on this student's GPU
 					loss.backward()
-					return i, loss.detach()
+					opt.step()
+					losses_list[i] = loss.detach().cpu().item()
 
-				# Run forward+backward in parallel using threads (CUDA releases GIL)
-				num_workers = min(len(self.subs), len(self.gpu_ids))
-				with ThreadPoolExecutor(max_workers=num_workers) as executor:
-					args_list = [(i, s, x, y) for i, s in enumerate(self.subs)]
-					results = list(executor.map(train_student, args_list))
+				threads = []
+				for i, s in enumerate(self.subs):
+					t = threading.Thread(target=train_student, args=(i, s, self.optimizers[i], x, y))
+					t.start()
+					threads.append(t)
 
-				# Sort by index to maintain order
-				results.sort(key=lambda r: r[0])
-				losses = [r[1] for r in results]
+				for t in threads:
+					t.join()
 
-				if restore:
-					self.restore_grad()
-				optimizer.step()
-				running_losses += np.array([l.detach().cpu().item() for l in losses])
+				running_losses += np.array(losses_list)
 
 		losses = list(running_losses/dataset_size)
 		

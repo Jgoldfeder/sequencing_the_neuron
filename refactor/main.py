@@ -221,7 +221,7 @@ if __name__ == "__main__":
 	
 	criterion = nn.L1Loss()
 	lr = 0.001
-	population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+	population.set_optimizers(optim.Adam, lr=lr)
 
 	with torch.enable_grad():
 		for outer_iter in range(args.outer_iterations):
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 			restore = False
 			if outer_iter > 25:
 				lr = lr * 0.8
-				population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+				population.set_optimizers(optim.Adam, lr=lr)
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 
