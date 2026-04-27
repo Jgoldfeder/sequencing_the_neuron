@@ -382,6 +382,12 @@ class ParallelPopulation(nn.Module):
 	def set_lr(self, lr):
 		self.lr = lr
 
+	def save(self, PATH):
+		torch.save(self.state_dict(), PATH)
+
+	def load(self, PATH):
+		self.load_state_dict(torch.load(PATH))
+
 	def add_data(self, inputs, outputs, window=None):
 		self.inputs.append(inputs)
 		self.outputs.append(outputs)
@@ -393,7 +399,7 @@ class ParallelPopulation(nn.Module):
 			self._all_inputs = torch.cat(self.inputs[-window:])
 			self._all_outputs = torch.cat(self.outputs[-window:])
 
-	def train_one_epoch(self, batch_size=128, epoch_num=0, num_inner_epochs=1):
+	def train_one_epoch(self, batch_size=128, epoch_num=0, restore=False, num_inner_epochs=1):
 		"""Train all students in parallel, one per GPU."""
 		loss_queue = mp.Queue()
 		processes = []
