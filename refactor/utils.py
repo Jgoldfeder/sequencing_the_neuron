@@ -8,6 +8,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
+import torch.multiprocessing as mp
 from align_evaluate import evaluate_reconstruction
 device = 0
 
@@ -319,6 +320,142 @@ class Population(nn.Module):
 		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
 			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
 		print("-"*50)
+
+
+def _train_student_worker(gpu_id, student, inputs, outputs, batch_size, num_epochs, lr, loss_queue):
+	"""Worker function that trains a single student on a single GPU."""
+	device = torch.device(f"cuda:{gpu_id}")
+	student = student.to(device)
+
+	optimizer = optim.Adam(student.parameters(), lr=lr)
+	criterion = nn.L1Loss()
+
+	# Create dataset and dataloader
+	dataset = SampleDataset(inputs, outputs)
+	loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+	total_loss = 0.0
+	num_batches = 0
+
+	for epoch in range(num_epochs):
+		for x, y in loader:
+			x = x.to(device)
+			y = y.to(device)
+
+			optimizer.zero_grad()
+			y_hat = student(x)
+			loss = criterion(y_hat, y) * 200
+			loss.backward()
+			optimizer.step()
+
+			total_loss += loss.item()
+			num_batches += 1
+
+	avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
+	loss_queue.put((gpu_id, avg_loss))
+
+
+class ParallelPopulation(nn.Module):
+	"""Population that trains each student on a separate GPU in parallel using multiprocessing."""
+
+	def __init__(self, subs, gpu_ids):
+		super(ParallelPopulation, self).__init__()
+		assert len(gpu_ids) >= len(subs), f"Need at least {len(subs)} GPUs, got {len(gpu_ids)}"
+
+		self.subs = nn.ModuleList(subs)
+		self.gpu_ids = gpu_ids[:len(subs)]  # One GPU per student
+		self.pop_size = len(subs)
+		self.best = None
+		self.lr = 0.001
+
+		# Data storage
+		self.inputs = []
+		self.outputs = []
+
+		# Move each student to its GPU and enable shared memory
+		for i, student in enumerate(self.subs):
+			student.to(torch.device(f"cuda:{self.gpu_ids[i]}"))
+			student.share_memory()
+
+		print(f"ParallelPopulation: {self.pop_size} students on GPUs {self.gpu_ids}")
+
+	def set_lr(self, lr):
+		self.lr = lr
+
+	def add_data(self, inputs, outputs, window=None):
+		self.inputs.append(inputs)
+		self.outputs.append(outputs)
+
+		if window is None or len(self.inputs) <= window:
+			self._all_inputs = torch.cat(self.inputs)
+			self._all_outputs = torch.cat(self.outputs)
+		else:
+			self._all_inputs = torch.cat(self.inputs[-window:])
+			self._all_outputs = torch.cat(self.outputs[-window:])
+
+	def train_one_epoch(self, batch_size=128, epoch_num=0, num_inner_epochs=1):
+		"""Train all students in parallel, one per GPU."""
+		loss_queue = mp.Queue()
+		processes = []
+
+		# Spawn a process for each student
+		for i, student in enumerate(self.subs):
+			p = mp.Process(
+				target=_train_student_worker,
+				args=(
+					self.gpu_ids[i],
+					student,
+					self._all_inputs,
+					self._all_outputs,
+					batch_size,
+					num_inner_epochs,
+					self.lr,
+					loss_queue
+				)
+			)
+			p.start()
+			processes.append(p)
+
+		# Wait for all processes to complete
+		for p in processes:
+			p.join()
+
+		# Collect losses
+		losses = [0.0] * self.pop_size
+		while not loss_queue.empty():
+			gpu_id, loss = loss_queue.get()
+			idx = self.gpu_ids.index(gpu_id)
+			losses[idx] = loss
+
+		print(f"Epoch {epoch_num+1}, Min Loss: {min(losses):.6f}, Max Loss: {max(losses):.6f}, Mean Loss: {np.mean(losses):.6f}")
+
+		self.best = losses.index(min(losses))
+		for i, loss in enumerate(losses):
+			self.subs[i].loss = loss
+
+	def forward(self, x):
+		"""Forward through all students (for evaluation, moves data to each GPU)."""
+		outs = []
+		for i, s in enumerate(self.subs):
+			dev = torch.device(f"cuda:{self.gpu_ids[i]}")
+			outs.append(s(x.to(dev)))
+		return outs
+
+	def evaluate(self, net, model_type='fnn'):
+		"""Evaluate best student against blackbox."""
+		print("-"*50)
+		# Move best student to same device as net for comparison
+		best_student = self.subs[self.best]
+		mse, mae, max_ae, mmpe, max_mpe, layerwise_metrics = evaluate_reconstruction(net, best_student, model_type=model_type)
+		print("total mse:", f"{mse:.3e}")
+		print("total mae:", f"{mae:.3e}")
+		print("total max_ae:", f"{max_ae:.3e}")
+		print("total mean_mag_pe:", f"{mmpe:.3e}%")
+		print("total max_mag_pe:", f"{max_mpe:.3e}%")
+		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
+			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
+		print("-"*50)
+		return mse, mae, max_ae, mmpe, max_mpe
 
 
 def get_input_dim_and_shape(dataset, model_type):

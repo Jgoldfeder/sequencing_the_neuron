@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import torch
+import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.optim as optim
 import os
@@ -11,6 +12,8 @@ from align_evaluate import evaluate_reconstruction
 import utils
 
 if __name__ == "__main__":
+	mp.set_start_method('spawn', force=True)
+
 	# Parse arguments for run
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model_type', '-m', type=str, choices=['fnn', 'cnn', 'rnn', 'transformer'], required=True, 
@@ -30,6 +33,8 @@ if __name__ == "__main__":
 	parser.add_argument('--cheat', action='store_true', help='If set, "cheat" by using gradients from blackbox and population of 1')
 	parser.add_argument('--comment', '-c', type=str, default='', help='Additional comment for the run')
 	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
+	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use (uses ParallelPopulation if > 1)')
+	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -146,7 +151,7 @@ if __name__ == "__main__":
 	if args.cheat:
 		pop_size = 1
 	else:
-		pop_size = 10
+		pop_size = args.population_size
 	subs = []
 	for i in range(pop_size):
 		if args.model_type == 'fnn':
@@ -157,13 +162,24 @@ if __name__ == "__main__":
 			subs.append(var_RNN(input_shape, layers))
 		elif args.model_type == 'transformer':
 			subs.append(base_TransformerEncoder(input_shape, layers))
-	population = utils.Population(subs)
-	population.cuda(device)
+
+	# Use ParallelPopulation for multi-GPU, regular Population for single GPU
+	use_parallel = args.num_gpus > 1 and not args.cheat
+	if use_parallel:
+		gpu_ids = list(range(args.num_gpus))
+		population = utils.ParallelPopulation(subs, gpu_ids)
+	else:
+		population = utils.Population(subs)
+		population.cuda(device)
+
 	model = model.cuda(device)
-	
+
 	criterion = nn.L1Loss()
 	lr = 0.001
-	population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+	if use_parallel:
+		population.set_lr(lr)
+	else:
+		population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
 
 	with torch.enable_grad():
 		for outer_iter in range(args.outer_iterations):
@@ -172,7 +188,10 @@ if __name__ == "__main__":
 			restore = False
 			if outer_iter > 25:
 				lr = lr * 0.8
-				population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+				if use_parallel:
+					population.set_lr(lr)
+				else:
+					population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 

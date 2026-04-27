@@ -31,6 +31,8 @@ class Config:
     initial_k: int
     max_k: int
     configurations: List[Dict[str, Any]]  # List of {layers: [...], dataset: "..."}
+    num_gpus: int = 1
+    population_size: int = 10
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -46,6 +48,8 @@ class Config:
             initial_k=data["initial_k"],
             max_k=data["max_k"],
             configurations=data["configurations"],
+            num_gpus=data.get("num_gpus", 1),
+            population_size=data.get("population_size", 10),
         )
 
 
@@ -105,7 +109,9 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--outer_iterations", str(cfg.outer_iterations),
         "--num_samples", str(num_samples),
         "--comment", comment,
-        "--experiment_name", cfg.experiment_name
+        "--experiment_name", cfg.experiment_name,
+        "--num_gpus", str(cfg.num_gpus),
+        "--population_size", str(cfg.population_size),
     ]
 
     print(f"\n{'='*60}")
