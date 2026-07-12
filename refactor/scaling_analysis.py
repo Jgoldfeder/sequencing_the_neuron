@@ -65,20 +65,23 @@ class RunResult:
     error_msg: Optional[str] = None
 
 
-def get_results_json_path(cfg: Config, layers: List[int], dataset: str, num_samples: int, comment: str) -> str:
+def get_results_json_path(cfg: Config, layers: List[int], dataset: str, num_samples: int, comment: str, experiments_root: str = "experiments") -> str:
     """Compute the path to results.json matching main.py's naming convention."""
     layers_str = "-".join(str(l) for l in layers)
     name = f"{layers_str}_outer-iterations-{cfg.outer_iterations}_samples-{num_samples}_epochs-{cfg.num_epochs}_dataset-{dataset}_activation-{cfg.activation}_seed-{cfg.seed}_{comment}"
-    base_dir = f"./experiments/{cfg.experiment_name}/" if cfg.experiment_name else "./"
+    base_dir = f"./{experiments_root}/{cfg.experiment_name}/" if cfg.experiment_name else "./"
     models_path = f"{base_dir}models/{name}/fnn/"
     return models_path + "results.json"
 
 
-def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: int) -> RunResult:
+def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: int, script: str = "main.py") -> RunResult:
     """Run a single experiment with the given configuration."""
 
+    # Parallel runs write under experiments_parallel/ (see main_parallel.py) so they never
+    # skip or overwrite the single-GPU sweep. Everything else about the naming is identical.
+    experiments_root = "experiments_parallel" if script == "main_parallel.py" else "experiments"
     comment = f"scaling_K{num_samples}"
-    results_json_path = get_results_json_path(cfg, layers, dataset, num_samples, comment)
+    results_json_path = get_results_json_path(cfg, layers, dataset, num_samples, comment, experiments_root)
 
     # Check if results already exist (skip completed runs)
     if os.path.exists(results_json_path):
@@ -99,7 +102,7 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
             print(f"\n[RERUN] Corrupted results file, re-running: {results_json_path}")
 
     cmd = [
-        sys.executable, "main.py",
+        sys.executable, script,
         "--model_type", "fnn",
         "--layers", *[str(l) for l in layers],
         "--dataset", dataset,
@@ -173,10 +176,19 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
 def main():
     parser = argparse.ArgumentParser(description="Run scaling analysis experiments")
     parser.add_argument("config", type=str, help="Path to YAML config file")
+    parser.add_argument("--parallel", action="store_true",
+                        help="Use main_parallel.py (one student per GPU, multiprocessing training). "
+                             "Requires population_size == num_gpus in the config.")
     args = parser.parse_args()
 
     # Load config
     cfg = Config.from_yaml(args.config)
+
+    # Choose the training script; parallel training needs one student per GPU
+    script = "main_parallel.py" if args.parallel else "main.py"
+    if args.parallel and cfg.population_size != cfg.num_gpus:
+        parser.error(f"--parallel requires population_size == num_gpus "
+                     f"(got population_size={cfg.population_size}, num_gpus={cfg.num_gpus})")
 
     print("="*60)
     print("SCALING ANALYSIS")
@@ -184,6 +196,7 @@ def main():
     print(f"Config file: {args.config}")
     print(f"Experiment: {cfg.experiment_name}")
     print(f"Output dir: ./experiments/{cfg.experiment_name}/")
+    print(f"Training script: {script} ({'parallel: one student per GPU' if args.parallel else 'single-GPU'}), num_gpus={cfg.num_gpus}, population_size={cfg.population_size}")
     print(f"Shared params: activation={cfg.activation}, epochs={cfg.num_epochs}, outer_iter={cfg.outer_iterations}, seed={cfg.seed}")
     print(f"Success threshold: max_ae < {cfg.max_ae_threshold}")
     print(f"Initial K: {cfg.initial_k}")
@@ -212,7 +225,7 @@ def main():
         final_result = None
 
         while current_k <= cfg.max_k:
-            result = run_experiment(cfg, layers, dataset, current_k)
+            result = run_experiment(cfg, layers, dataset, current_k, script)
             final_result = result
 
             if result.success:
@@ -256,8 +269,9 @@ def main():
 
     print("="*60)
 
-    # Save results to file under experiment directory
-    base_dir = f"./experiments/{cfg.experiment_name}/" if cfg.experiment_name else "./"
+    # Save results under the experiment directory (parallel sweep lives under experiments_parallel/)
+    experiments_root = "experiments_parallel" if args.parallel else "experiments"
+    base_dir = f"./{experiments_root}/{cfg.experiment_name}/" if cfg.experiment_name else "./"
     os.makedirs(base_dir, exist_ok=True)
     results_file = base_dir + "scaling_analysis_results.json"
     with open(results_file, "w") as f:

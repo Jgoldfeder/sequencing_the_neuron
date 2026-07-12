@@ -9,9 +9,6 @@ import torch.fx as fx
 import sys
 import numpy as np
 
-import os
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-
 activation_module_types = (
 	nn.ReLU, nn.LeakyReLU, nn.Tanh, nn.Sigmoid, nn.ELU, nn.SELU, nn.CELU, nn.GELU, nn.Hardtanh, nn.ReLU6, nn.PReLU,
 	nn.Softplus, nn.Softsign, nn.Softmax, nn.Softmin, nn.Softshrink, nn.Softmax2d, nn.LogSoftmax, nn.Hardshrink,

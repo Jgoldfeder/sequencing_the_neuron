@@ -1,4 +1,5 @@
 import math
+import os
 import sys
 from collections import defaultdict
 import numpy as np
@@ -12,7 +13,36 @@ import torch.multiprocessing as mp
 from align_evaluate import evaluate_reconstruction
 device = 0
 
-def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=[28]):    
+def prepare_tinyimagenet(root="./data"):
+	"""Download + extract TinyImageNet-200 (64x64, 200 classes) if not already present,
+	and reorganize the val split into per-class folders so torchvision's ImageFolder can
+	read it. Self-contained (uses torchvision) — no third-party 'tinyimagenet' package.
+	Returns (train_dir, val_dir).
+	"""
+	import shutil
+	from torchvision.datasets.utils import download_and_extract_archive
+	base = os.path.join(root, "tiny-imagenet-200")
+	if not os.path.isdir(base):
+		url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
+		print(f"TinyImageNet not found; downloading (~240MB) to {root} ...", file=sys.__stdout__)
+		download_and_extract_archive(url, download_root=root)
+	train_dir = os.path.join(base, "train")
+	val_dir = os.path.join(base, "val")
+	# val ships as val/images/*.JPEG + val_annotations.txt; reshape into val/<wnid>/*.JPEG
+	val_images = os.path.join(val_dir, "images")
+	if os.path.isdir(val_images):
+		with open(os.path.join(val_dir, "val_annotations.txt")) as f:
+			for line in f:
+				parts = line.split("\t")
+				fname, wnid = parts[0], parts[1]
+				cls_dir = os.path.join(val_dir, wnid)
+				os.makedirs(cls_dir, exist_ok=True)
+				shutil.move(os.path.join(val_images, fname), os.path.join(cls_dir, fname))
+		shutil.rmtree(val_images)  # now empty
+	return train_dir, val_dir
+
+
+def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='fnn', seqlens=[28]):
 	if not dataset in ['mnist','fmnist','kmnist','cifar10','cifar100','places365', 'tinyimagenet']:
 		raise ValueError("Unknown Dataset")
 	if not optim_ in ["adam","rmsprop","sgd","adagrad","adadelta","rprop"]:
@@ -52,10 +82,11 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 			test_dataset = torchvision.datasets.CIFAR100(root='./data', train=False, transform=transform, download=True)
 			input_dim = 32*32*3
 		elif dataset == "tinyimagenet":
-			from tinyimagenet import TinyImageNet
 			transform_tiny = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-			trainset = TinyImageNet('./data/tinyimagenet', split='train', transform=transform_tiny)
-			test_dataset = TinyImageNet('./data/tinyimagenet', split='val', transform=transform_tiny)
+			train_dir, val_dir = prepare_tinyimagenet('./data')  # auto-downloads if missing
+			# ImageFolder's default loader converts to RGB, so grayscale images become 3-channel
+			trainset = torchvision.datasets.ImageFolder(train_dir, transform=transform_tiny)
+			test_dataset = torchvision.datasets.ImageFolder(val_dir, transform=transform_tiny)
 			input_dim = 64*64*3
 		trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
 		test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
@@ -136,64 +167,196 @@ def train_blackbox(net,num_epochs=25,dataset="mnist",optim_="adam", model_type='
 		print(f"Accuracy on dataset: {accuracy:.4f}")
 		net.train()
 
-def get_adv(sub_list,lr=0.01,epochs=100,num_samples=1000,schedule = [],reverse=False,range_=1,device=device,input_dim=784, model_type='fnn', sequence_length=None):
-	# Generate adversarial inputs that maximize disagreement among the sub-models
-	#input_dim should be flattened input size for all models
+def blackbox_cache_key(model_type, layers, activation, dataset, num_epochs, seed, optimizer="adam", seqlens=None):
+	"""Identity of a trained black-box: everything that determines its weights.
+
+	Deliberately excludes num_samples / outer_iterations / population_size — those affect
+	the reconstruction, not the black-box, so a scaling sweep over K reuses one black-box.
+	`layers` may be a list of ints (fnn/rnn) or of 'in,out,k,s' strings (cnn).
+	"""
+	layers_str = "-".join(str(l) for l in layers)
+	key = f"type-{model_type}_layers-{layers_str}_act-{activation}_dataset-{dataset}_epochs-{num_epochs}_opt-{optimizer}_seed-{seed}"
+	if model_type in ("rnn", "transformer") and seqlens is not None:
+		key += "_seqlens-" + "-".join(str(s) for s in seqlens)
+	return key.replace(",", "x").replace(" ", "")  # filename-safe (cnn specs contain commas)
+
+
+def load_or_train_blackbox(model, cache_key, num_epochs, dataset, model_type, seqlens, cache_dir="./blackbox_cache"):
+	"""Load a cached black-box matching cache_key, or train it and cache it.
+
+	Returns True on cache hit, False on miss. The weights are loaded into `model` in place
+	(on whatever device it already lives on).
+	"""
+	cache_path = os.path.join(cache_dir, cache_key + ".pt")
+	if os.path.exists(cache_path):
+		model.load_state_dict(torch.load(cache_path, map_location="cpu"))
+		msg = f"[blackbox-cache] HIT: loaded {cache_path} (skipped training)"
+		print(msg)
+		print(msg, file=sys.__stdout__)
+		return True
+	train_blackbox(model, num_epochs=num_epochs, dataset=dataset, model_type=model_type, seqlens=seqlens)
+	os.makedirs(cache_dir, exist_ok=True)
+	torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, cache_path)
+	msg = f"[blackbox-cache] MISS: trained and cached to {cache_path}"
+	print(msg)
+	print(msg, file=sys.__stdout__)
+	return False
+
+
+def get_adv(sub_list, lr=0.01, epochs=100, num_samples=1000, schedule=[], reverse=False, range_=1, device=device, input_dim=784, model_type='fnn', sequence_length=None, gpu_ids=None, gpu_model_copies=None):
+	"""
+	Generate adversarial inputs that maximize disagreement among sub-models.
+
+	Args:
+		gpu_ids: List of GPU ids to distribute SAMPLES across. Each GPU owns its
+		         chunk of samples and optimizes independently (no cross-GPU communication).
+		gpu_model_copies: Dict mapping gpu_id -> list of model copies on that GPU.
+		                  If None and gpu_ids is provided, models will be copied (slow!).
+		                  Pass pre-copied models for best performance.
+	"""
 	if model_type == 'rnn' or model_type == 'transformer':
-		#only generate truncated number of sequences if sequence_length is specified
-		input_dim = int(input_dim*sequence_length/(math.sqrt(input_dim)))
-	
-	adv = nn.Embedding(num_samples,input_dim)
-	adv.cuda(device)
-	range_ = range_
-	adv.apply(lambda x: nn.init.uniform_(x.weight, -range_, range_))
-	print(adv.weight.detach().abs().cpu().mean())
-	optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
-	error=0
-	# softmax = torch.nn.Softmax()
-	for epoch in range(epochs):
-		if epoch in schedule:
-			lr = lr/10
+		input_dim = int(input_dim * sequence_length / (math.sqrt(input_dim)))
+
+	use_multi_gpu = gpu_ids is not None and len(gpu_ids) > 1
+
+	if use_multi_gpu:
+		import copy
+		import threading
+
+		num_gpus = len(gpu_ids)
+		chunk_size = (num_samples + num_gpus - 1) // num_gpus
+		results = [None] * num_gpus
+
+		# Use pre-copied models if provided, otherwise copy (slow)
+		if gpu_model_copies is None:
+			print("Warning: copying models to GPUs (slow). Pass gpu_model_copies for better performance.")
+			gpu_model_copies = {}
+			for gpu_id in gpu_ids:
+				gpu_model_copies[gpu_id] = [copy.deepcopy(s).cuda(gpu_id) for s in sub_list]
+
+		# Pre-create embeddings and optimizers OUTSIDE threads to avoid GIL contention
+		gpu_data = {}
+		for gpu_idx in range(num_gpus):
+			gpu_id = gpu_ids[gpu_idx]
+			start_idx = gpu_idx * chunk_size
+			end_idx = min(start_idx + chunk_size, num_samples)
+			if start_idx >= num_samples:
+				continue
+			n_samples = end_idx - start_idx
+
+			torch.cuda.set_device(gpu_id)
+			adv = nn.Embedding(n_samples, input_dim).cuda(gpu_id)
+			nn.init.uniform_(adv.weight, -range_, range_)
 			optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
-		outs = []
-		for idx,s in enumerate(sub_list):
-			s.cuda(device)
-			#out = softmax(s(adv.weight)) 
-			# Reshape adv.weight according to model type
+			gpu_data[gpu_idx] = (adv, optimizer, n_samples)
+
+		# Synchronize all GPUs before starting threads
+		torch.cuda.synchronize()
+
+		def train_on_gpu(gpu_idx):
+			if gpu_idx not in gpu_data:
+				return
+			gpu_id = gpu_ids[gpu_idx]
+			torch.cuda.set_device(gpu_id)
+
+			adv, optimizer, n_samples = gpu_data[gpu_idx]
+			models = gpu_model_copies[gpu_id]
+
+			local_lr = lr
+			for epoch in range(epochs):
+				if epoch in schedule:
+					local_lr = local_lr / 10
+					optimizer = torch.optim.Adam(adv.parameters(), lr=local_lr)
+
+				# Reshape weight according to model type
+				if model_type == 'cnn':
+					weight = adv.weight.view(n_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim)))
+				elif model_type == 'rnn' or model_type == 'transformer':
+					weight = adv.weight.view(n_samples, sequence_length, input_dim // sequence_length)
+				else:
+					weight = adv.weight
+
+				# Forward through all models
+				outs = [torch.nn.functional.normalize(m(weight), p=1.0, dim=-1) for m in models]
+				outs = torch.stack(outs).transpose(1, 0).contiguous()
+				dists = torch.cdist(outs, outs)
+
+				error = -dists.flatten().mean()
+				if reverse:
+					error = -error
+				error.backward()
+				optimizer.step()
+				optimizer.zero_grad()
+
+			# Return final weights
+			if model_type == 'cnn':
+				results[gpu_idx] = adv.weight.view(n_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim))).detach().cpu()
+			elif model_type == 'rnn' or model_type == 'transformer':
+				results[gpu_idx] = adv.weight.view(n_samples, sequence_length, input_dim // sequence_length).detach().cpu()
+			else:
+				results[gpu_idx] = adv.weight.detach().cpu()
+
+		# Launch all GPUs in parallel
+		threads = [threading.Thread(target=train_on_gpu, args=(i,)) for i in range(num_gpus)]
+		for t in threads:
+			t.start()
+		for t in threads:
+			t.join()
+
+		# Concatenate results
+		weight = torch.cat([r for r in results if r is not None], dim=0)
+		return weight
+
+	else:
+		# Single GPU path (original code)
+		adv = nn.Embedding(num_samples, input_dim)
+		adv.cuda(device)
+		adv.apply(lambda x: nn.init.uniform_(x.weight, -range_, range_))
+		print(adv.weight.detach().abs().cpu().mean())
+		optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
+
+		for s in sub_list:
+			s.to(device)
+
+		error = 0
+		for epoch in range(epochs):
+			if epoch in schedule:
+				lr = lr / 10
+				optimizer = torch.optim.Adam(adv.parameters(), lr=lr)
+
 			if model_type == 'cnn':
 				weight = adv.weight.view(num_samples, 1, int(math.sqrt(input_dim)), int(math.sqrt(input_dim)))
 			elif model_type == 'rnn' or model_type == 'transformer':
-				#input dim here has been changed to truncated then flattened size
-				batch_size = num_samples
-				weight = adv.weight.view(batch_size, sequence_length, input_dim//sequence_length)
+				weight = adv.weight.view(num_samples, sequence_length, input_dim // sequence_length)
 			else:
 				weight = adv.weight
-			out = torch.nn.functional.normalize(s(weight), p=1.0, dim=-1)
-			#out = s(adv.weight)
-			
-			outs.append(out)
-			s.zero_grad()
-		outs = torch.stack(outs)
-		outs = torch.transpose(outs,1,0).contiguous()
-		dists = torch.cdist(outs,outs)
-		#dists = -cosine_cdist(outs,outs)
-		if error == 0:
-			if reverse:
-				print("init. error:", (dists.flatten().mean()))
-			else:
-				print("init. error:", -(dists.flatten().mean()))
-				
-		error = -(dists.flatten().mean())
-		if reverse:
-			error = -error
-		#print(error)
-		error.backward()
-		optimizer.step()
-		optimizer.zero_grad()
 
-	print("final error:",error)
-	print("stats:", weight.detach().abs().cpu().mean(),adv.weight.detach().cpu().mean())
-	return weight.detach().cpu()
+			outs = []
+			for s in sub_list:
+				out = torch.nn.functional.normalize(s(weight), p=1.0, dim=-1)
+				outs.append(out)
+				s.zero_grad()
+
+			outs = torch.stack(outs)
+			outs = torch.transpose(outs, 1, 0).contiguous()
+			dists = torch.cdist(outs, outs)
+
+			if error == 0:
+				if reverse:
+					print("init. error:", (dists.flatten().mean()))
+				else:
+					print("init. error:", -(dists.flatten().mean()))
+
+			error = -(dists.flatten().mean())
+			if reverse:
+				error = -error
+			error.backward()
+			optimizer.step()
+			optimizer.zero_grad()
+
+		print("final error:", error)
+		print("stats:", weight.detach().abs().cpu().mean(), adv.weight.detach().cpu().mean())
+		return weight.detach().cpu()
 
 class SampleDataset(Dataset):
 	def __init__(self, inputs, outputs):
@@ -221,10 +384,10 @@ class Population(nn.Module):
 		self.inputs_dict = defaultdict(list)
 		self.outputs_dict = defaultdict(list)
 		self.datasets = {}
-	
+
 	def set_optimizer(self, optimizer):
 		self.optimizer = optimizer
-	
+
 	def add_data(self,inputs,outputs,window = None):
 		self.inputs.append(inputs)
 		self.outputs.append(outputs)
@@ -250,7 +413,7 @@ class Population(nn.Module):
 		self.load_state_dict(torch.load(PATH))
 
 	def train_one_epoch(self,batch_size = 128,epoch_num=0,restore=False,bottom_half=False):
-		#check datasets. If only one dataset is used, populate the datasets dict with one item. 
+		#check datasets. If only one dataset is used, populate the datasets dict with one item.
 		if self.ds is not None and len(self.datasets) == 0:
 			self.datasets[0] = self.ds
 		elif self.ds is None and len(self.datasets) == 0:
@@ -320,148 +483,6 @@ class Population(nn.Module):
 		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
 			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
 		print("-"*50)
-
-
-def _train_student_worker(gpu_id, student, inputs, outputs, batch_size, num_epochs, lr, loss_queue):
-	"""Worker function that trains a single student on a single GPU."""
-	device = torch.device(f"cuda:{gpu_id}")
-	student = student.to(device)
-
-	optimizer = optim.Adam(student.parameters(), lr=lr)
-	criterion = nn.L1Loss()
-
-	# Create dataset and dataloader
-	dataset = SampleDataset(inputs, outputs)
-	loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-	total_loss = 0.0
-	num_batches = 0
-
-	for epoch in range(num_epochs):
-		for x, y in loader:
-			x = x.to(device)
-			y = y.to(device)
-
-			optimizer.zero_grad()
-			y_hat = student(x)
-			loss = criterion(y_hat, y) * 200
-			loss.backward()
-			optimizer.step()
-
-			total_loss += loss.item()
-			num_batches += 1
-
-	avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
-	loss_queue.put((gpu_id, avg_loss))
-
-
-class ParallelPopulation(nn.Module):
-	"""Population that trains each student on a separate GPU in parallel using multiprocessing."""
-
-	def __init__(self, subs, gpu_ids):
-		super(ParallelPopulation, self).__init__()
-		assert len(gpu_ids) >= len(subs), f"Need at least {len(subs)} GPUs, got {len(gpu_ids)}"
-
-		self.subs = nn.ModuleList(subs)
-		self.gpu_ids = gpu_ids[:len(subs)]  # One GPU per student
-		self.pop_size = len(subs)
-		self.best = None
-		self.lr = 0.001
-
-		# Data storage
-		self.inputs = []
-		self.outputs = []
-
-		# Move each student to its GPU and enable shared memory
-		for i, student in enumerate(self.subs):
-			student.to(torch.device(f"cuda:{self.gpu_ids[i]}"))
-			student.share_memory()
-
-		print(f"ParallelPopulation: {self.pop_size} students on GPUs {self.gpu_ids}")
-
-	def set_lr(self, lr):
-		self.lr = lr
-
-	def save(self, PATH):
-		torch.save(self.state_dict(), PATH)
-
-	def load(self, PATH):
-		self.load_state_dict(torch.load(PATH))
-
-	def add_data(self, inputs, outputs, window=None):
-		self.inputs.append(inputs)
-		self.outputs.append(outputs)
-
-		if window is None or len(self.inputs) <= window:
-			self._all_inputs = torch.cat(self.inputs)
-			self._all_outputs = torch.cat(self.outputs)
-		else:
-			self._all_inputs = torch.cat(self.inputs[-window:])
-			self._all_outputs = torch.cat(self.outputs[-window:])
-
-	def train_one_epoch(self, batch_size=128, epoch_num=0, restore=False, num_inner_epochs=1):
-		"""Train all students in parallel, one per GPU."""
-		loss_queue = mp.Queue()
-		processes = []
-
-		# Spawn a process for each student
-		for i, student in enumerate(self.subs):
-			p = mp.Process(
-				target=_train_student_worker,
-				args=(
-					self.gpu_ids[i],
-					student,
-					self._all_inputs,
-					self._all_outputs,
-					batch_size,
-					num_inner_epochs,
-					self.lr,
-					loss_queue
-				)
-			)
-			p.start()
-			processes.append(p)
-
-		# Wait for all processes to complete
-		for p in processes:
-			p.join()
-
-		# Collect losses
-		losses = [0.0] * self.pop_size
-		while not loss_queue.empty():
-			gpu_id, loss = loss_queue.get()
-			idx = self.gpu_ids.index(gpu_id)
-			losses[idx] = loss
-
-		print(f"Epoch {epoch_num+1}, Min Loss: {min(losses):.6f}, Max Loss: {max(losses):.6f}, Mean Loss: {np.mean(losses):.6f}")
-
-		self.best = losses.index(min(losses))
-		for i, loss in enumerate(losses):
-			self.subs[i].loss = loss
-
-	def forward(self, x):
-		"""Forward through all students (for evaluation, moves data to each GPU)."""
-		outs = []
-		for i, s in enumerate(self.subs):
-			dev = torch.device(f"cuda:{self.gpu_ids[i]}")
-			outs.append(s(x.to(dev)))
-		return outs
-
-	def evaluate(self, net, model_type='fnn'):
-		"""Evaluate best student against blackbox."""
-		print("-"*50)
-		# Move best student to same device as net for comparison
-		best_student = self.subs[self.best]
-		mse, mae, max_ae, mmpe, max_mpe, layerwise_metrics = evaluate_reconstruction(net, best_student, model_type=model_type)
-		print("total mse:", f"{mse:.3e}")
-		print("total mae:", f"{mae:.3e}")
-		print("total max_ae:", f"{max_ae:.3e}")
-		print("total mean_mag_pe:", f"{mmpe:.3e}%")
-		print("total max_mag_pe:", f"{max_mpe:.3e}%")
-		for l_mse, l_mae, l_max_ae, l_mmpe, l_max_mpe, layername in layerwise_metrics:
-			print(f"{layername} - mse: {l_mse:.3e}, mae: {l_mae:.3e}, max_ae: {l_max_ae:.3e}, mean_mag_pe: {l_mmpe:.3e}%, max_mag_pe: {l_max_mpe:.3e}%")
-		print("-"*50)
-		return mse, mae, max_ae, mmpe, max_mpe
 
 
 def get_input_dim_and_shape(dataset, model_type):

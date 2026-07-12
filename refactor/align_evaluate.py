@@ -68,8 +68,8 @@ def evaluate_reconstruction(original, reconstruction, model_type='fnn'):
         
     mse = total_se / total_size
     mae = total_ae / total_size
-    mmpe = layer_mpe / total_size
-    #mape of entire 
+    mmpe = total_mpe / total_size
+    #mape of entire
 
     #can separate out biases and see if the biases are worse than the weights?
 

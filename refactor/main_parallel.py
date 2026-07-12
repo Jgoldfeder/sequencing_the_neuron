@@ -11,6 +11,7 @@ import time
 from models import var_FNN, var_CNN, var_RNN, base_TransformerEncoder
 from align_evaluate import evaluate_reconstruction
 import utils
+import parallel_train
 
 if __name__ == "__main__":
 	mp.set_start_method('spawn', force=True)
@@ -45,9 +46,11 @@ if __name__ == "__main__":
 	# set up logging and output
 	name = f"{'-'.join(args.layers)}_outer-iterations-{args.outer_iterations}_samples-{args.num_samples}_epochs-{args.num_epochs}_dataset-{args.dataset}_activation-{args.activation}_seed-{args.seed}_{args.comment}"
 
-	# Set base directory based on experiment_name
+	# Set base directory based on experiment_name.
+	# Parallel runs live under experiments_parallel/ so they never collide with the
+	# single-GPU pipeline (main.py, which uses experiments/).
 	if args.experiment_name:
-		base_dir = f"./experiments/{args.experiment_name}/"
+		base_dir = f"./experiments_parallel/{args.experiment_name}/"
 	else:
 		base_dir = "./"
 
@@ -173,14 +176,21 @@ if __name__ == "__main__":
 	# Scale batch size with number of GPUs (10002 samples per GPU)
 	samples_per_batch = 10002 * args.num_gpus
 
-	population = utils.Population(subs)
-	population.cuda(device)
+	# Parallel population training: one student per GPU, one process per GPU.
+	# Requires population_size == num_gpus. Students stay on CPU in the parent;
+	# worker processes do the GPU training and return updated weights each outer iteration.
+	pop_gpu_ids = list(range(args.num_gpus))
+	if pop_size != len(pop_gpu_ids):
+		raise ValueError(f"main_parallel requires population_size == num_gpus "
+						 f"(got population_size={pop_size}, num_gpus={args.num_gpus})")
+	population = utils.Population(subs)   # subs remain on CPU
 
 	model = model.cuda(device)
 
 	criterion = nn.L1Loss()
 	lr = 0.001
-	population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+	# per-student Adam state, carried across outer iterations (None => fresh optimizer)
+	opt_states = [None] * pop_size
 
 	with torch.enable_grad():
 		for outer_iter in range(args.outer_iterations):
@@ -189,7 +199,7 @@ if __name__ == "__main__":
 			restore = False
 			if outer_iter > 25:
 				lr = lr * 0.8
-				population.set_optimizer(optim.Adam(population.parameters(), lr=lr))
+				opt_states = [None] * pop_size   # reset Adam on lr decay (matches main.py)
 
 			print("ITERATION: ",outer_iter, len(population.inputs))
 
@@ -227,9 +237,11 @@ if __name__ == "__main__":
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			gc.collect()
 
-			for i in range(10):
-				population.train_one_epoch(batch_size=128, epoch_num=i, restore=False)
-				sys.stdout.flush()
+			# train all students in parallel (one process per GPU); parent writes the log
+			opt_states = parallel_train.train_population(
+				population, pop_gpu_ids, opt_states,
+				batch_size=128, epochs=10, lr=lr, log=print)
+			sys.stdout.flush()
 			population.save(models_path +"/population_iteration_final.pt")
 			population.evaluate(model, model_type=args.model_type)
 
