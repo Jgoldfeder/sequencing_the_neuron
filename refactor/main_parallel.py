@@ -38,6 +38,7 @@ if __name__ == "__main__":
 	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use (uses ParallelPopulation if > 1)')
 	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
 	parser.add_argument('--samples_per_gpu', '-spg', type=int, default=10002, help='get_adv samples generated per GPU per batch')
+	parser.add_argument('--batch_size', '-bs', type=int, default=128, help='Batch size for training the student population')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -241,7 +242,7 @@ if __name__ == "__main__":
 			# train all students in parallel (one process per GPU); parent writes the log
 			opt_states = parallel_train.train_population(
 				population, pop_gpu_ids, opt_states,
-				batch_size=128, epochs=10, lr=lr, log=print)
+				batch_size=args.batch_size, epochs=10, lr=lr, log=print)
 			sys.stdout.flush()
 			population.save(models_path +"/population_iteration_final.pt")
 			population.evaluate(model, model_type=args.model_type)

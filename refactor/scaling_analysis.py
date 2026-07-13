@@ -34,6 +34,7 @@ class Config:
     num_gpus: int = 1
     population_size: int = 10
     samples_per_gpu: int = 10002
+    batch_size: int = 128
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -52,6 +53,7 @@ class Config:
             num_gpus=data.get("num_gpus", 1),
             population_size=data.get("population_size", 10),
             samples_per_gpu=data.get("samples_per_gpu", 10002),
+            batch_size=data.get("batch_size", 128),
         )
 
 
@@ -118,6 +120,7 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--num_gpus", str(cfg.num_gpus),
         "--population_size", str(cfg.population_size),
         "--samples_per_gpu", str(cfg.samples_per_gpu),
+        "--batch_size", str(cfg.batch_size),
     ]
 
     print(f"\n{'='*60}")
