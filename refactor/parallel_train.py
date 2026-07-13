@@ -35,20 +35,24 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        # move the (shared-memory) datasets onto this GPU once
-        data = [(x.to(gpu_id), y.to(gpu_id)) for (x, y) in staged]
-        num_batches = sum((x.shape[0] + batch_size - 1) // batch_size for x, _ in data)
+        # Keep the (shared-memory) datasets on CPU and move only each batch to the GPU.
+        # Staging the whole dataset on-GPU OOMs on large / high-dimensional data
+        # (e.g. TinyImageNet's 12288-dim inputs accumulate to tens of GB); per-batch
+        # transfer mirrors the legacy single-GPU path and scales to any dataset size.
+        num_batches = sum((x.shape[0] + batch_size - 1) // batch_size for x, _ in staged)
 
         trace = []
         for _ in range(epochs):
             ep = torch.zeros((), device=gpu_id)
-            for X, Y in data:
-                n = X.shape[0]
-                perm = torch.randperm(n, device=gpu_id)
+            for X_cpu, Y_cpu in staged:
+                n = X_cpu.shape[0]
+                perm = torch.randperm(n)                     # CPU indices
                 for b in range(0, n, batch_size):
                     sel = perm[b:b + batch_size]
+                    xb = X_cpu[sel].to(gpu_id, non_blocking=True)   # only this batch on GPU
+                    yb = Y_cpu[sel].to(gpu_id, non_blocking=True)
                     optimizer.zero_grad()
-                    loss = criterion(model(X[sel]), Y[sel])
+                    loss = criterion(model(xb), yb)
                     (loss * 200).backward()
                     optimizer.step()
                     ep = ep + loss.detach()                  # on-GPU, no sync
