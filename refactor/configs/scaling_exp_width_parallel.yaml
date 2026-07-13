@@ -4,18 +4,18 @@ experiment_name: scaling_exp_width_parallel
 # Shared parameters for all runs
 activation: relu
 num_epochs: 25
-outer_iterations: 55
+outer_iterations: 10 #55
 seed: 0
 
 # Success threshold for max_ae
 max_ae_threshold: 0.001
 
 # Initial K value for num_samples
-initial_k: 2500
+initial_k: 40000
 
 # Maximum K to try before giving up on a tuple
 max_k: 100000000
-num_gpus: 3
+num_gpus: 1
 population_size: 3
 # List of [layers, dataset] tuples - SORTED EASIEST TO HARDEST
 configurations:
@@ -39,5 +39,5 @@ configurations:
   # - layers: [3072, 2048, 100]
   #   dataset: cifar100
 
-  - layers: [12288, 128, 200]
+  - layers: [12288, 1024, 200]
     dataset: tinyimagenet
