@@ -59,7 +59,8 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
         # the host->device transfer with GPU compute. Handles datasets of ANY size (only a
         # few batches resident, so no OOM even for tens-of-GB accumulated data).
         loaders = [DataLoader(_BatchSlices(X, Y, batch_size), batch_size=None, shuffle=True,
-                              pin_memory=True, num_workers=0)
+                              pin_memory=True, num_workers=4, persistent_workers=True,
+                              prefetch_factor=4)
                    for X, Y in staged]
         num_batches = sum(len(l) for l in loaders)
 
