@@ -1,3 +1,7 @@
+import os
+# Avoid GPU-0 fragmentation OOMs (labeling a large generated batch after many iterations).
+# Must be set before torch initializes CUDA; setdefault lets an explicit env var override.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import argparse
 import numpy as np
 import torch
