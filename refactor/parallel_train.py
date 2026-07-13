@@ -49,11 +49,17 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
         def producer(q):
             for X_cpu, Y_cpu in staged:
                 n = X_cpu.shape[0]
-                perm = torch.randperm(n)                     # shuffle on CPU
-                for b in range(0, n, batch_size):
-                    sel = perm[b:b + batch_size]
-                    # gather + pin on the background thread (both release the GIL)
-                    q.put((X_cpu[sel].pin_memory(), Y_cpu[sel].pin_memory()))
+                nblocks = (n + batch_size - 1) // batch_size
+                # Shuffle BLOCK order and read each block as a CONTIGUOUS slice. A random
+                # per-sample gather from a huge shared tensor thrashes memory when several
+                # workers hit it at once (~5x slower with 3 GPUs); contiguous reads are
+                # cache-friendly and let the workers share bandwidth cleanly.
+                for bi in torch.randperm(nblocks).tolist():
+                    s = bi * batch_size
+                    # contiguous slice, NO pin_memory: pinning calls cudaHostAlloc, which
+                    # takes a global driver lock and serializes across the workers (~3x slower
+                    # with 3 GPUs). Plain slices let the workers share memory bandwidth cleanly.
+                    q.put((X_cpu[s:s + batch_size], Y_cpu[s:s + batch_size]))
             q.put(None)
 
         trace = []
