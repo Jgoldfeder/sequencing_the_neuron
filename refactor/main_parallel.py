@@ -39,6 +39,7 @@ if __name__ == "__main__":
 	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
 	parser.add_argument('--samples_per_gpu', '-spg', type=int, default=10002, help='get_adv samples generated per GPU per batch')
 	parser.add_argument('--batch_size', '-bs', type=int, default=128, help='Batch size for training the student population')
+	parser.add_argument('--get_adv_epochs', '-gae', type=int, default=2000, help='Optimization steps per get_adv call (lr drops at 25/50/75%%)')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -177,6 +178,9 @@ if __name__ == "__main__":
 	gpu_ids = list(range(args.num_gpus)) if args.num_gpus > 1 else None
 	# Scale batch size with number of GPUs (10002 samples per GPU)
 	samples_per_batch = args.samples_per_gpu * args.num_gpus
+	# get_adv optimization budget; lr drops at 25/50/75% of the steps (== [500,1000,1500] at the default 2000)
+	ga_epochs = args.get_adv_epochs
+	ga_schedule = [ga_epochs // 4, ga_epochs // 2, 3 * ga_epochs // 4]
 
 	# Parallel population training: one student per GPU, one process per GPU.
 	# Requires population_size == num_gpus. Students stay on CPU in the parent;
@@ -223,7 +227,7 @@ if __name__ == "__main__":
 				for slen in args.seq_len:
 					to_generate = samples_per_seq_len
 					while to_generate > 0:
-						new_inputs = utils.get_adv(subslist, num_samples=min(to_generate, samples_per_batch), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
+						new_inputs = utils.get_adv(subslist, num_samples=min(to_generate, samples_per_batch), epochs=ga_epochs, schedule=ga_schedule, range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
 						to_generate -= samples_per_batch
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_seq_data(new_inputs, new_outputs, slen, window=500)
@@ -231,7 +235,7 @@ if __name__ == "__main__":
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:
 				while samples_to_generate > 0:
-						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, samples_per_batch), epochs=2000, schedule=[500, 1000, 1500], range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
+						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, samples_per_batch), epochs=ga_epochs, schedule=ga_schedule, range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
 						samples_to_generate -= samples_per_batch
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
 						population.add_data(new_inputs, new_outputs, window=500)
