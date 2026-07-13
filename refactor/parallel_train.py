@@ -13,11 +13,27 @@ Separate processes have no shared GIL and scale ~Nx on N GPUs.
 """
 import io
 import copy
-import queue
-import threading
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+
+
+class _BatchSlices(Dataset):
+    """Dataset that returns contiguous batch-sized slices. Used with
+    DataLoader(batch_size=None) so each item is a fast contiguous view of the data rather
+    than 128 per-sample gathers (which thrash memory when several workers read a big shared
+    tensor at once). shuffle=True then shuffles the block order."""
+
+    def __init__(self, X, Y, batch_size):
+        self.X, self.Y, self.batch_size = X, Y, batch_size
+
+    def __len__(self):
+        return (self.X.shape[0] + self.batch_size - 1) // self.batch_size
+
+    def __getitem__(self, i):
+        s = i * self.batch_size
+        return self.X[s:s + self.batch_size], self.Y[s:s + self.batch_size]
 
 
 def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size, epochs, lr, out_q):
@@ -37,48 +53,28 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        # Feed the GPU with a prefetched batch pipeline: a background thread gathers +
-        # pins the next batch (CPU) while the GPU trains on the current one, so the
-        # host->device transfer is fully hidden behind compute. This gives full GPU
-        # utilization for datasets of ANY size — including ones far bigger than GPU memory
-        # (e.g. TinyImageNet's 12288-dim inputs, tens of GB accumulated) — with no OOM,
-        # since only a handful of batches are ever resident. Measured to match on-GPU
-        # staging throughput even on a 29.5GB dataset with a 24GB GPU.
-        num_batches = sum((x.shape[0] + batch_size - 1) // batch_size for x, _ in staged)
-
-        def producer(q):
-            for X_cpu, Y_cpu in staged:
-                n = X_cpu.shape[0]
-                nblocks = (n + batch_size - 1) // batch_size
-                # Shuffle BLOCK order and read each block as a CONTIGUOUS slice. A random
-                # per-sample gather from a huge shared tensor thrashes memory when several
-                # workers hit it at once (~5x slower with 3 GPUs); contiguous reads are
-                # cache-friendly and let the workers share bandwidth cleanly.
-                for bi in torch.randperm(nblocks).tolist():
-                    s = bi * batch_size
-                    # contiguous slice, NO pin_memory: pinning calls cudaHostAlloc, which
-                    # takes a global driver lock and serializes across the workers (~3x slower
-                    # with 3 GPUs). Plain slices let the workers share memory bandwidth cleanly.
-                    q.put((X_cpu[s:s + batch_size], Y_cpu[s:s + batch_size]))
-            q.put(None)
+        # Standard PyTorch input pipeline. _BatchSlices + batch_size=None makes each
+        # DataLoader item a CONTIGUOUS batch-sized slice (not 128 per-sample gathers);
+        # shuffle=True shuffles block order; pin_memory + a background pin thread overlap
+        # the host->device transfer with GPU compute. Handles datasets of ANY size (only a
+        # few batches resident, so no OOM even for tens-of-GB accumulated data).
+        loaders = [DataLoader(_BatchSlices(X, Y, batch_size), batch_size=None, shuffle=True,
+                              pin_memory=True, num_workers=0)
+                   for X, Y in staged]
+        num_batches = sum(len(l) for l in loaders)
 
         trace = []
         for _ in range(epochs):
-            q = queue.Queue(maxsize=4)                       # bounded: only a few batches resident
-            threading.Thread(target=producer, args=(q,), daemon=True).start()
             ep = torch.zeros((), device=gpu_id)
-            while True:
-                item = q.get()
-                if item is None:
-                    break
-                xb, yb = item
-                xb = xb.to(gpu_id, non_blocking=True)        # async H2D, overlaps next gather
-                yb = yb.to(gpu_id, non_blocking=True)
-                optimizer.zero_grad()
-                loss = criterion(model(xb), yb)
-                (loss * 200).backward()
-                optimizer.step()
-                ep = ep + loss.detach()                      # on-GPU, no sync
+            for loader in loaders:
+                for xb, yb in loader:
+                    xb = xb.to(gpu_id, non_blocking=True)
+                    yb = yb.to(gpu_id, non_blocking=True)
+                    optimizer.zero_grad()
+                    loss = criterion(model(xb), yb)
+                    (loss * 200).backward()
+                    optimizer.step()
+                    ep = ep + loss.detach()                  # on-GPU, no sync
             trace.append(ep / num_batches)                   # keep GPU scalar
         trace = [t.item() for t in trace]                    # materialize once, at the end
 
