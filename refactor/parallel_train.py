@@ -35,22 +35,32 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        # Keep the (shared-memory) datasets on CPU and move only each batch to the GPU.
-        # Staging the whole dataset on-GPU OOMs on large / high-dimensional data
-        # (e.g. TinyImageNet's 12288-dim inputs accumulate to tens of GB); per-batch
-        # transfer mirrors the legacy single-GPU path and scales to any dataset size.
+        # Stage the whole dataset on-GPU when it fits — fastest, full GPU utilization.
+        # Otherwise stream batches from CPU so oversized / high-dimensional data (e.g.
+        # TinyImageNet's 12288-dim inputs, tens of GB accumulated) doesn't OOM. Streaming is
+        # ~2x slower (moving the dataset every epoch is memory-bandwidth-bound), but it's the
+        # only option once the dataset exceeds GPU memory. Small/medium datasets pay nothing.
+        dataset_bytes = sum(x.element_size() * x.nelement() + y.element_size() * y.nelement()
+                            for x, y in staged)
+        free_bytes, _ = torch.cuda.mem_get_info(gpu_id)
+        stage_on_gpu = dataset_bytes < 0.4 * free_bytes      # leave headroom for model/grads/acts
+        if stage_on_gpu:
+            staged = [(x.to(gpu_id), y.to(gpu_id)) for x, y in staged]
         num_batches = sum((x.shape[0] + batch_size - 1) // batch_size for x, _ in staged)
 
         trace = []
         for _ in range(epochs):
             ep = torch.zeros((), device=gpu_id)
-            for X_cpu, Y_cpu in staged:
-                n = X_cpu.shape[0]
-                perm = torch.randperm(n)                     # CPU indices
+            for X, Y in staged:
+                n = X.shape[0]
+                perm = torch.randperm(n, device=(gpu_id if stage_on_gpu else "cpu"))
                 for b in range(0, n, batch_size):
                     sel = perm[b:b + batch_size]
-                    xb = X_cpu[sel].to(gpu_id, non_blocking=True)   # only this batch on GPU
-                    yb = Y_cpu[sel].to(gpu_id, non_blocking=True)
+                    if stage_on_gpu:
+                        xb, yb = X[sel], Y[sel]              # already on GPU
+                    else:
+                        xb = X[sel].to(gpu_id, non_blocking=True)   # stream one batch
+                        yb = Y[sel].to(gpu_id, non_blocking=True)
                     optimizer.zero_grad()
                     loss = criterion(model(xb), yb)
                     (loss * 200).backward()
