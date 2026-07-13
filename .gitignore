@@ -12,6 +12,5 @@ alignment/test*
 refactor/__pycache__/
 refactor/experiments/
 refactor/experiments_parallel/
-refactor/blackbox_cache/
 refactor/*.out
 refactor/err_*.txt
