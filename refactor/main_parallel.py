@@ -44,6 +44,7 @@ if __name__ == "__main__":
 	parser.add_argument('--samples_per_gpu', '-spg', type=int, default=10002, help='get_adv samples generated per GPU per batch')
 	parser.add_argument('--batch_size', '-bs', type=int, default=128, help='Batch size for training the student population')
 	parser.add_argument('--get_adv_epochs', '-gae', type=int, default=2000, help='Optimization steps per get_adv call (lr drops at 25/50/75%%)')
+	parser.add_argument('--window', '-w', type=int, default=500, help='Number of recent sample chunks to accumulate for training (caps RAM)')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -234,7 +235,7 @@ if __name__ == "__main__":
 						new_inputs = utils.get_adv(subslist, num_samples=min(to_generate, samples_per_batch), epochs=ga_epochs, schedule=ga_schedule, range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=slen, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
 						to_generate -= samples_per_batch
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
-						population.add_seq_data(new_inputs, new_outputs, slen, window=500)
+						population.add_seq_data(new_inputs, new_outputs, slen, window=args.window)
 						#save samples
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			else:
@@ -242,7 +243,7 @@ if __name__ == "__main__":
 						new_inputs = utils.get_adv(subslist, num_samples=min(samples_to_generate, samples_per_batch), epochs=ga_epochs, schedule=ga_schedule, range_=1.000, input_dim=input_dim, model_type=args.model_type, sequence_length=None, gpu_ids=gpu_ids, gpu_model_copies=gpu_model_copies)
 						samples_to_generate -= samples_per_batch
 						new_outputs = model(new_inputs.cuda(device)).cpu().detach()
-						population.add_data(new_inputs, new_outputs, window=500)
+						population.add_data(new_inputs, new_outputs, window=args.window)
 						#save samples
 						torch.save(new_inputs,models_path +"/data_iteration_final.pt")
 			gc.collect()
