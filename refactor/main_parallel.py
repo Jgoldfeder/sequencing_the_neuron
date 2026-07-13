@@ -37,6 +37,7 @@ if __name__ == "__main__":
 	parser.add_argument('--experiment_name', '-e', type=str, default='', help='Experiment name for organizing outputs')
 	parser.add_argument('--num_gpus', '-ng', type=int, default=1, help='Number of GPUs to use (uses ParallelPopulation if > 1)')
 	parser.add_argument('--population_size', '-ps', type=int, default=10, help='Number of students in population')
+	parser.add_argument('--samples_per_gpu', '-spg', type=int, default=10002, help='get_adv samples generated per GPU per batch')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -174,7 +175,7 @@ if __name__ == "__main__":
 	# Set up GPU ids for parallel get_adv
 	gpu_ids = list(range(args.num_gpus)) if args.num_gpus > 1 else None
 	# Scale batch size with number of GPUs (10002 samples per GPU)
-	samples_per_batch = 10002 * args.num_gpus
+	samples_per_batch = args.samples_per_gpu * args.num_gpus
 
 	# Parallel population training: one student per GPU, one process per GPU.
 	# Requires population_size == num_gpus. Students stay on CPU in the parent;

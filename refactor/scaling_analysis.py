@@ -33,6 +33,7 @@ class Config:
     configurations: List[Dict[str, Any]]  # List of {layers: [...], dataset: "..."}
     num_gpus: int = 1
     population_size: int = 10
+    samples_per_gpu: int = 10002
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -50,6 +51,7 @@ class Config:
             configurations=data["configurations"],
             num_gpus=data.get("num_gpus", 1),
             population_size=data.get("population_size", 10),
+            samples_per_gpu=data.get("samples_per_gpu", 10002),
         )
 
 
@@ -115,6 +117,7 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--experiment_name", cfg.experiment_name,
         "--num_gpus", str(cfg.num_gpus),
         "--population_size", str(cfg.population_size),
+        "--samples_per_gpu", str(cfg.samples_per_gpu),
     ]
 
     print(f"\n{'='*60}")
