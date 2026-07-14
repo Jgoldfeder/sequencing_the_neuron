@@ -392,19 +392,22 @@ class Population(nn.Module):
 		self.inputs.append(inputs)
 		self.outputs.append(outputs)
 
-		if window is None or len(self.inputs) <=window:
-			self.datasets[0] = SampleDataset(torch.cat(self.inputs),torch.cat(self.outputs))      
-		else:
-			self.datasets[0] = SampleDataset(torch.cat(self.inputs[-window:]),torch.cat(self.outputs[-window:]))
+		# Drop chunks beyond the window so the retained list (and thus RAM) is bounded.
+		# Chunks past the window are never used for training anyway, so this frees memory
+		# without changing behavior.
+		if window is not None and len(self.inputs) > window:
+			self.inputs = self.inputs[-window:]
+			self.outputs = self.outputs[-window:]
+		self.datasets[0] = SampleDataset(torch.cat(self.inputs), torch.cat(self.outputs))
 
 	def add_seq_data(self, inputs, outputs, seq_len, window = None):
 		self.inputs_dict[seq_len].append(inputs)
 		self.outputs_dict[seq_len].append(outputs)
 
-		if window is None or len(self.inputs_dict[seq_len]) <= window:
-			self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))
-		else:
-			self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len][-window:]), torch.cat(self.outputs_dict[seq_len][-window:]))
+		if window is not None and len(self.inputs_dict[seq_len]) > window:
+			self.inputs_dict[seq_len] = self.inputs_dict[seq_len][-window:]
+			self.outputs_dict[seq_len] = self.outputs_dict[seq_len][-window:]
+		self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))
 
 	def save(self,PATH):
 		torch.save(self.state_dict(), PATH)
