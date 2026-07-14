@@ -13,8 +13,7 @@ Separate processes have no shared GIL and scale ~Nx on N GPUs.
 """
 import io
 import copy
-import threading
-import queue as _pyqueue
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -91,14 +90,49 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
         out_q.put((idx, None, None, None, traceback.format_exc()))
 
 
-def _grouped_worker(idx, gpu_id, model_bytes, opt_state_bytes, batch_size, lr, ctrl_q, out_q):
-    """Persistent per-GPU worker for out-of-core training.
+class _MmapChunkBlocks(Dataset):
+    """Map-style dataset over memory-mapped chunk files (out-of-core training).
 
-    Spawned ONCE and kept alive across all groups/epochs. Waits on ctrl_q for group commands
-    from the parent; each command carries a shared-memory (X, Y) group the parent just loaded
-    from disk. Trains one pass over the group with the fast pinned DataLoader, releases its
-    references to the group, and acks so the parent can free it and load the next. On 'done'
-    it sends back final weights + optimizer state + per-epoch loss trace.
+    Each item is a CONTIGUOUS batch-sized block from one chunk -- a zero-copy view into the
+    mmap, so only the touched rows are paged in. Used with DataLoader(batch_size=None,
+    shuffle=True): shuffle permutes block order across all chunks (cross-chunk mixing) while
+    every read stays contiguous (page-cache friendly). Only chunk PATHS + a numpy block index
+    are stored (numpy => no per-worker copy-on-write bloat); the mmaps are opened lazily inside
+    each worker. The OS page cache holds whatever fits in RAM -- shared across all workers/GPUs
+    as ONE physical copy -- and pages from disk only when the data exceeds RAM. That is the
+    whole out-of-core story: no groups, no staging, no barriers.
+    """
+
+    def __init__(self, chunk_paths, batch_size):
+        self.paths = list(chunk_paths)
+        self.bs = batch_size
+        index = []
+        for ci, (px, _py) in enumerate(self.paths):
+            n = torch.load(px, mmap=True).shape[0]
+            for s in range(0, n, batch_size):
+                index.append((ci, s))
+        self.index = np.asarray(index, dtype=np.int64)      # numpy -> no COW bloat across workers
+        self._mmaps = None
+
+    def _open(self):
+        if self._mmaps is None:                             # opened once per worker process
+            self._mmaps = [(torch.load(px, mmap=True), torch.load(py, mmap=True))
+                           for px, py in self.paths]
+
+    def __len__(self):
+        return self.index.shape[0]
+
+    def __getitem__(self, i):
+        self._open()
+        ci, s = int(self.index[i, 0]), int(self.index[i, 1])
+        x, y = self._mmaps[ci]
+        return x[s:s + self.bs], y[s:s + self.bs]
+
+
+def _mmap_worker(idx, gpu_id, model_bytes, opt_state_bytes, chunk_paths, batch_size, epochs, lr, out_q):
+    """Per-GPU worker for out-of-core training. Identical to the in-RAM worker except the data
+    comes from memory-mapped chunk files via a standard DataLoader. The loader is built ONCE and
+    iterated across all epochs (persistent_workers=True), so there is no per-epoch process spawn.
     """
     try:
         torch.cuda.set_device(gpu_id)
@@ -111,26 +145,12 @@ def _grouped_worker(idx, gpu_id, model_bytes, opt_state_bytes, batch_size, lr, c
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
+        loader = DataLoader(_MmapChunkBlocks(chunk_paths, batch_size), batch_size=None, shuffle=True,
+                            pin_memory=True, num_workers=4, persistent_workers=True, prefetch_factor=4)
         trace = []
-        ep = torch.zeros((), device=gpu_id)
-        nb = 0
-        while True:
-            cmd = ctrl_q.get()
-            if cmd[0] == 'done':
-                wbuf = io.BytesIO()
-                torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, wbuf)
-                obuf = io.BytesIO()
-                torch.save(optimizer.state_dict(), obuf)
-                out_q.put(('result', idx, wbuf.getvalue(), obuf.getvalue(), trace, None))
-                return
-            # ('group', X, Y, end_epoch): train one pass over this shared group
-            _, X, Y, end_epoch = cmd
-            # num_workers=4 + prefetch so batch loading/pinning overlaps GPU compute (num_workers=0
-            # gives NO prefetch -> the GPU stalls on every batch; see commit cb9ea2f). Fresh loader
-            # per group, so persistent_workers=False.
-            loader = DataLoader(_BatchSlices(X, Y, batch_size), batch_size=None, shuffle=True,
-                                pin_memory=True, num_workers=4, persistent_workers=False,
-                                prefetch_factor=4)
+        for _ in range(epochs):
+            ep = torch.zeros((), device=gpu_id)
+            nb = 0
             for xb, yb in loader:
                 xb = xb.to(gpu_id, non_blocking=True)
                 yb = yb.to(gpu_id, non_blocking=True)
@@ -140,24 +160,28 @@ def _grouped_worker(idx, gpu_id, model_bytes, opt_state_bytes, batch_size, lr, c
                 optimizer.step()
                 ep = ep + loss.detach()
                 nb += 1
-            del loader, X, Y                                 # release shared-mem refs BEFORE ack
-            if end_epoch:
-                trace.append((ep / nb).item())
-                ep = torch.zeros((), device=gpu_id)
-                nb = 0
-            out_q.put(('ack', idx))                          # barrier signal to parent
+            trace.append((ep / nb).item())
+        del loader
+
+        wbuf = io.BytesIO()
+        torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, wbuf)
+        obuf = io.BytesIO()
+        torch.save(optimizer.state_dict(), obuf)
+        out_q.put((idx, wbuf.getvalue(), obuf.getvalue(), trace, None))
     except Exception:
         import traceback
-        out_q.put(('result', idx, None, None, None, traceback.format_exc()))
+        out_q.put((idx, None, None, None, traceback.format_exc()))
 
 
 def train_population_grouped(population, gpu_ids, opt_states, max_chunks_in_mem,
                              batch_size=128, epochs=10, lr=1e-3, log=print):
-    """Out-of-core training: all chunks live on disk (population.chunk_dir); the parent streams
-    them back one GROUP of `max_chunks_in_mem` chunks at a time into a single shared contiguous
-    array, all GPUs train that group in parallel, then a barrier frees it and the next group
-    loads. Peak RAM is ~1 group, independent of the accumulated window size. Same return
-    contract as train_population.
+    """Out-of-core training via memory-mapping. Every chunk lives on disk (population.chunk_dir);
+    each GPU worker mmaps them through a standard DataLoader. The OS page cache holds whatever
+    fits in RAM (shared across all GPUs as one physical copy) and pages from disk only when the
+    data exceeds RAM -- so RAM stays bounded regardless of window size, with no explicit
+    grouping/staging. `max_chunks_in_mem` is accepted for config compatibility but unused (the
+    page cache decides what stays resident). Same spawn-per-call structure and return contract
+    as the in-RAM train_population.
     """
     import torch.multiprocessing as mp
 
@@ -168,94 +192,24 @@ def train_population_grouped(population, gpu_ids, opt_states, max_chunks_in_mem,
     K = len(subs)
     if K != len(gpu_ids):
         raise ValueError(f"need one student per GPU: {K} students, {len(gpu_ids)} gpus")
-    M = max_chunks_in_mem if max_chunks_in_mem and max_chunks_in_mem > 0 else len(chunk_paths)
 
     ctx = mp.get_context('spawn')
-    out_q = ctx.Queue()
-    ctrl_qs = [ctx.Queue() for _ in range(K)]
+    q = ctx.Queue()
     procs = []
     for i in range(K):
         mbuf = io.BytesIO()
         torch.save(copy.deepcopy(subs[i]).to('cpu'), mbuf)
-        procs.append(ctx.Process(target=_grouped_worker,
+        procs.append(ctx.Process(target=_mmap_worker,
                                  args=(i, gpu_ids[i], mbuf.getvalue(), opt_states[i],
-                                       batch_size, lr, ctrl_qs[i], out_q)))
+                                       chunk_paths, batch_size, epochs, lr, q)))
     for p in procs:
         p.start()
-
-    n_groups = (len(chunk_paths) + M - 1) // M
-
-    # Flat schedule of every group across ALL epochs, so prefetching spans epoch boundaries
-    # (the last group of one epoch pre-loads the first group of the next). A single group
-    # (window fits in one group) uses a STABLE order, so every epoch's group is byte-identical
-    # and gets reused from RAM — loaded exactly once.
-    schedule = []
-    for e in range(epochs):
-        order = (list(range(len(chunk_paths))) if n_groups == 1
-                 else torch.randperm(len(chunk_paths)).tolist())
-        for gi in range(n_groups):
-            schedule.append((tuple(order[gi * M:(gi + 1) * M]), gi == n_groups - 1))
-
-    # Producer thread: assemble the next group's shared contiguous (X, Y) AHEAD of the GPUs
-    # (asks #1 & #2) so training never waits on disk. When the group is identical to the one
-    # just assembled (single-group case -> the whole window is that one group every epoch), the
-    # already-resident shared array is REUSED: no re-read from disk, no re-cat (ask #3). Each
-    # group's chunk list is freed right after the cat, so only the contiguous array persists
-    # (1x per group, no doubling); with 1-ahead prefetch at most two groups are resident (2xM).
-    buf = _pyqueue.Queue(maxsize=1)   # 1-ahead: current group trains while next is assembled
-    prod_err = {}
-
-    def produce():
-        try:
-            last_key = None
-            last_XY = None
-            for grp, end_epoch in schedule:
-                if grp == last_key:
-                    X, Y = last_XY                              # identical group: reuse RAM, no disk, no re-cat
-                else:
-                    xs = [torch.load(chunk_paths[j][0]) for j in grp]
-                    ys = [torch.load(chunk_paths[j][1]) for j in grp]
-                    X = torch.cat(xs).contiguous()
-                    Y = torch.cat(ys).contiguous()
-                    del xs, ys                                 # free the chunk list; keep only the array (no doubling)
-                    X.share_memory_(); Y.share_memory_()
-                    last_key, last_XY = grp, (X, Y)
-                buf.put((X, Y, end_epoch))
-            buf.put(None)
-        except Exception:
-            import traceback
-            prod_err['tb'] = traceback.format_exc()
-            buf.put(None)
-
-    try:
-        threading.Thread(target=produce, daemon=True).start()
-        while True:
-            item = buf.get()
-            if item is None:
-                break
-            X, Y, end_epoch = item
-            for i in range(K):
-                ctrl_qs[i].put(('group', X, Y, end_epoch))
-            acks = 0                                            # barrier: every GPU finishes this group
-            while acks < K:
-                msg = out_q.get()
-                if msg[0] == 'ack':
-                    acks += 1
-                elif msg[0] == 'result' and msg[5] is not None:
-                    raise RuntimeError(f"training worker {msg[1]} failed:\n{msg[5]}")
-            del X, Y                                            # drop our ref; reused groups survive via the producer
-        if prod_err:
-            raise RuntimeError(f"group producer failed:\n{prod_err['tb']}")
-        for i in range(K):
-            ctrl_qs[i].put(('done',))
-        raw = [out_q.get() for _ in range(K)]
-    finally:
-        for p in procs:
-            p.join()
+    raw = [q.get() for _ in procs]
+    for p in procs:
+        p.join()
 
     results = {}
-    for msg in raw:
-        _, idx, wbytes, obytes, trace, err = msg
+    for idx, wbytes, obytes, trace, err in raw:
         if err is not None:
             raise RuntimeError(f"training worker {idx} (gpu {gpu_ids[idx]}) failed:\n{err}")
         results[idx] = (wbytes, obytes, trace)
