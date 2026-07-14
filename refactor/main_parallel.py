@@ -45,7 +45,6 @@ if __name__ == "__main__":
 	parser.add_argument('--batch_size', '-bs', type=int, default=128, help='Batch size for training the student population')
 	parser.add_argument('--get_adv_epochs', '-gae', type=int, default=2000, help='Optimization steps per get_adv call (lr drops at 25/50/75%%)')
 	parser.add_argument('--window', '-w', type=int, default=500, help='Number of recent sample chunks to accumulate for training (caps RAM)')
-	parser.add_argument('--mix_chunks', '-mc', type=int, default=4, help='How many chunks each training batch mixes across (cross-chunk shuffle)')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -252,8 +251,7 @@ if __name__ == "__main__":
 			# train all students in parallel (one process per GPU); parent writes the log
 			opt_states = parallel_train.train_population(
 				population, pop_gpu_ids, opt_states,
-				batch_size=args.batch_size, epochs=10, lr=lr,
-				mix_chunks=args.mix_chunks, log=print)
+				batch_size=args.batch_size, epochs=10, lr=lr, log=print)
 			sys.stdout.flush()
 			population.save(models_path +"/population_iteration_final.pt")
 			population.evaluate(model, model_type=args.model_type)
