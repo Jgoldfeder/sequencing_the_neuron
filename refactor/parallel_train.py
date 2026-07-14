@@ -123,8 +123,12 @@ def _grouped_worker(idx, gpu_id, model_bytes, opt_state_bytes, batch_size, lr, c
                 return
             # ('group', X, Y, end_epoch): train one pass over this shared group
             _, X, Y, end_epoch = cmd
+            # num_workers=4 + prefetch so batch loading/pinning overlaps GPU compute (num_workers=0
+            # gives NO prefetch -> the GPU stalls on every batch; see commit cb9ea2f). Fresh loader
+            # per group, so persistent_workers=False.
             loader = DataLoader(_BatchSlices(X, Y, batch_size), batch_size=None, shuffle=True,
-                                pin_memory=True, num_workers=0)   # data already in RAM; pin thread overlaps transfer
+                                pin_memory=True, num_workers=4, persistent_workers=False,
+                                prefetch_factor=4)
             for xb, yb in loader:
                 xb = xb.to(gpu_id, non_blocking=True)
                 yb = yb.to(gpu_id, non_blocking=True)
