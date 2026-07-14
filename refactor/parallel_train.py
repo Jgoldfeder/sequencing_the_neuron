@@ -69,41 +69,82 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        def produce(q):
-            # background: load a group (in-RAM chunks are instant; disk chunks read here),
-            # assemble its batches, push them to the queue — overlaps CPU/disk with GPU compute.
-            for refs in staged:
-                if not refs:
-                    continue
-                gsize = ram_chunks if ram_chunks else len(refs)
-                order = torch.randperm(len(refs)).tolist()
-                for gi in range(0, len(order), gsize):
-                    group = [_load_ref(refs[j]) for j in order[gi:gi + gsize]]
-                    for b in _group_batches(group, batch_size, mix_chunks):
-                        q.put(b)
-                    # group freed here (disk-loaded tensors released)
-            q.put(None)
+        # Decide the fast path: if nothing spilled to disk AND the whole dataset fits on the
+        # GPU, STAGE it there once and train fully on-GPU. This is the big win — an FNN moves
+        # far more bytes than it computes on, so per-batch CPU->GPU streaming is bus-bound
+        # (~100k samp/s) while GPU-resident data is compute-bound (~400k). We only stream when
+        # the data is too big for the GPU (or disk-spilled).
+        all_refs = [r for refs in staged for r in refs]
+        has_disk = any(r[0] == 'disk' for r in all_refs)
+        staged_on_gpu = None
+        if not has_disk and all_refs:
+            chunks = [_load_ref(r) for r in all_refs]
+            dbytes = sum(x.numel() * x.element_size() + y.numel() * y.element_size()
+                         for x, y in chunks)
+            free, _ = torch.cuda.mem_get_info(gpu_id)
+            if dbytes < 0.4 * free:                           # leave room for model + activations
+                staged_on_gpu = [(x.to(gpu_id, non_blocking=True), y.to(gpu_id, non_blocking=True))
+                                 for x, y in chunks]
 
         trace = []
-        for _ in range(epochs):
-            q = queue.Queue(maxsize=8)                        # batch-level prefetch
-            threading.Thread(target=produce, args=(q,), daemon=True).start()
-            ep = torch.zeros((), device=gpu_id)
-            nb = 0
-            while True:
-                item = q.get()
-                if item is None:
-                    break
-                xb, yb = item
-                xb = xb.to(gpu_id, non_blocking=True)
-                yb = yb.to(gpu_id, non_blocking=True)
-                optimizer.zero_grad()
-                loss = criterion(model(xb), yb)
-                (loss * 200).backward()
-                optimizer.step()
-                ep = ep + loss.detach()                      # on-GPU, no sync
-                nb += 1
-            trace.append(ep / nb)                            # keep GPU scalar
+        if staged_on_gpu is not None:
+            # FAST PATH: data resident on GPU. Concatenate once into a single GPU tensor and
+            # train on CONTIGUOUS batch blocks (zero-copy views) in shuffled block order. No
+            # per-batch cat and no per-batch transfer -> compute-bound (~4x the streaming path).
+            X = torch.cat([x for x, _ in staged_on_gpu])
+            Y = torch.cat([y for _, y in staged_on_gpu])
+            del staged_on_gpu
+            starts = list(range(0, X.shape[0], batch_size))
+            for _ in range(epochs):
+                ep = torch.zeros((), device=gpu_id)
+                nb = 0
+                for bi in torch.randperm(len(starts)).tolist():   # shuffle block order
+                    s = starts[bi]
+                    xb = X[s:s + batch_size]
+                    yb = Y[s:s + batch_size]
+                    optimizer.zero_grad()
+                    loss = criterion(model(xb), yb)
+                    (loss * 200).backward()
+                    optimizer.step()
+                    ep = ep + loss.detach()
+                    nb += 1
+                trace.append(ep / nb)
+        else:
+            # STREAM / SPILL PATH: data too big for the GPU (or disk-backed). A background
+            # thread loads a group (in-RAM chunks are instant; disk chunks read here) and
+            # assembles its batches, pushing them to a queue — overlaps CPU/disk with compute.
+            def produce(q):
+                for refs in staged:
+                    if not refs:
+                        continue
+                    gsize = ram_chunks if ram_chunks else len(refs)
+                    order = torch.randperm(len(refs)).tolist()
+                    for gi in range(0, len(order), gsize):
+                        group = [_load_ref(refs[j]) for j in order[gi:gi + gsize]]
+                        for b in _group_batches(group, batch_size, mix_chunks):
+                            q.put(b)
+                        # group freed here (disk-loaded tensors released)
+                q.put(None)
+
+            for _ in range(epochs):
+                q = queue.Queue(maxsize=8)                    # batch-level prefetch
+                threading.Thread(target=produce, args=(q,), daemon=True).start()
+                ep = torch.zeros((), device=gpu_id)
+                nb = 0
+                while True:
+                    item = q.get()
+                    if item is None:
+                        break
+                    xb, yb = item
+                    xb = xb.to(gpu_id, non_blocking=True)
+                    yb = yb.to(gpu_id, non_blocking=True)
+                    optimizer.zero_grad()
+                    loss = criterion(model(xb), yb)
+                    (loss * 200).backward()
+                    optimizer.step()
+                    ep = ep + loss.detach()                   # on-GPU, no sync
+                    nb += 1
+                trace.append(ep / nb)                         # keep GPU scalar
         trace = [t.item() for t in trace]                    # materialize once, at the end
 
         wbuf = io.BytesIO()
