@@ -38,6 +38,8 @@ class Config:
     get_adv_epochs: int = 2000
     window: int = 500
     mix_chunks: int = 4
+    ram_chunks: int = 0
+    spill_dir: str = ""
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -60,6 +62,8 @@ class Config:
             get_adv_epochs=data.get("get_adv_epochs", 2000),
             window=data.get("window", 500),
             mix_chunks=data.get("mix_chunks", 4),
+            ram_chunks=data.get("ram_chunks", 0),
+            spill_dir=data.get("spill_dir", ""),
         )
 
 
@@ -130,7 +134,10 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--get_adv_epochs", str(cfg.get_adv_epochs),
         "--window", str(cfg.window),
         "--mix_chunks", str(cfg.mix_chunks),
+        "--ram_chunks", str(cfg.ram_chunks),
     ]
+    if cfg.spill_dir:
+        cmd += ["--spill_dir", cfg.spill_dir]
 
     print(f"\n{'='*60}")
     print(f"Running: layers={layers}, dataset={dataset}, seed={cfg.seed}, K={num_samples}")
