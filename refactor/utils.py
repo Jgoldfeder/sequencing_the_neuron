@@ -385,10 +385,40 @@ class Population(nn.Module):
 		self.outputs_dict = defaultdict(list)
 		self.datasets = {}
 
+		# Out-of-core mode: when chunk_dir is set (see set_chunk_dir), add_data writes each
+		# chunk to disk and self.inputs/self.outputs hold FILE PATHS (str) instead of tensors.
+		# The whole accumulated window then lives on disk, not in RAM; training streams it back
+		# in groups (see parallel_train.train_population). datasets[] is NOT built in this mode.
+		self.chunk_dir = None
+		self._chunk_id = 0
+
+	def set_chunk_dir(self, chunk_dir):
+		"""Enable out-of-core storage: chunks are saved to `chunk_dir` and only paths kept in RAM."""
+		self.chunk_dir = chunk_dir
+		if chunk_dir:
+			os.makedirs(chunk_dir, exist_ok=True)
+
 	def set_optimizer(self, optimizer):
 		self.optimizer = optimizer
 
 	def add_data(self,inputs,outputs,window = None):
+		if self.chunk_dir:
+			# Out-of-core: persist the chunk, keep only its paths in RAM.
+			px = os.path.join(self.chunk_dir, f"cx_{self._chunk_id}.pt")
+			py = os.path.join(self.chunk_dir, f"cy_{self._chunk_id}.pt")
+			self._chunk_id += 1
+			torch.save(inputs.detach().cpu().contiguous(), px)
+			torch.save(outputs.detach().cpu().contiguous(), py)
+			self.inputs.append(px)
+			self.outputs.append(py)
+			if window is not None and len(self.inputs) > window:
+				for old in self.inputs[:-window] + self.outputs[:-window]:
+					if os.path.exists(old):
+						os.remove(old)
+				self.inputs = self.inputs[-window:]
+				self.outputs = self.outputs[-window:]
+			return   # no in-RAM cat / SampleDataset in out-of-core mode
+
 		self.inputs.append(inputs)
 		self.outputs.append(outputs)
 

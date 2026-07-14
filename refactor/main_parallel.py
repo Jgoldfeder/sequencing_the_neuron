@@ -45,6 +45,8 @@ if __name__ == "__main__":
 	parser.add_argument('--batch_size', '-bs', type=int, default=128, help='Batch size for training the student population')
 	parser.add_argument('--get_adv_epochs', '-gae', type=int, default=2000, help='Optimization steps per get_adv call (lr drops at 25/50/75%%)')
 	parser.add_argument('--window', '-w', type=int, default=500, help='Number of recent sample chunks to accumulate for training (caps RAM)')
+	parser.add_argument('--chunk_dir', '-cd', type=str, default='', help='If set, store all sample chunks on disk here (out-of-core). Training streams them back in groups of --max_chunks_in_mem. Frees RAM for large windows.')
+	parser.add_argument('--max_chunks_in_mem', '-M', type=int, default=0, help='Out-of-core group size: chunks loaded into a shared RAM array at once (0 = all). Only used with --chunk_dir.')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -195,6 +197,12 @@ if __name__ == "__main__":
 		raise ValueError(f"main_parallel requires population_size == num_gpus "
 						 f"(got population_size={pop_size}, num_gpus={args.num_gpus})")
 	population = utils.Population(subs)   # subs remain on CPU
+	if args.chunk_dir:
+		# Out-of-core: store the run's chunks under a unique subdir so parallel runs don't collide.
+		run_chunk_dir = os.path.join(args.chunk_dir, name)
+		population.set_chunk_dir(run_chunk_dir)
+		print(f"[out-of-core] chunks stored on disk at {run_chunk_dir}, "
+			  f"max_chunks_in_mem={args.max_chunks_in_mem or 'all'}")
 
 	model = model.cuda(device)
 
@@ -251,7 +259,8 @@ if __name__ == "__main__":
 			# train all students in parallel (one process per GPU); parent writes the log
 			opt_states = parallel_train.train_population(
 				population, pop_gpu_ids, opt_states,
-				batch_size=args.batch_size, epochs=10, lr=lr, log=print)
+				batch_size=args.batch_size, epochs=10, lr=lr,
+				max_chunks_in_mem=args.max_chunks_in_mem, log=print)
 			sys.stdout.flush()
 			population.save(models_path +"/population_iteration_final.pt")
 			population.evaluate(model, model_type=args.model_type)
@@ -296,3 +305,9 @@ if __name__ == "__main__":
 	with open(results_json_path, "w") as f:
 		json.dump(results_json, f, indent=2)
 	print(f"Results saved to {results_json_path}", file=sys.__stdout__)
+
+	# Out-of-core: remove the on-disk chunk store for this run.
+	if args.chunk_dir and population.chunk_dir and os.path.isdir(population.chunk_dir):
+		import shutil
+		shutil.rmtree(population.chunk_dir, ignore_errors=True)
+		print(f"[out-of-core] removed chunk store {population.chunk_dir}")
