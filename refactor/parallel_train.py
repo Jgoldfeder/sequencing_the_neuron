@@ -18,7 +18,9 @@ serializes kernel launches across threads; separate processes have no shared GIL
 scale ~Nx on N GPUs.
 """
 import io
+import sys
 import copy
+import time
 import queue
 import threading
 import torch
@@ -76,16 +78,27 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
         # the data is too big for the GPU (or disk-spilled).
         all_refs = [r for refs in staged for r in refs]
         has_disk = any(r[0] == 'disk' for r in all_refs)
+        n_samples = 0
         staged_on_gpu = None
+        free, _ = torch.cuda.mem_get_info(gpu_id)
         if not has_disk and all_refs:
             chunks = [_load_ref(r) for r in all_refs]
+            n_samples = sum(x.shape[0] for x, _ in chunks)
             dbytes = sum(x.numel() * x.element_size() + y.numel() * y.element_size()
                          for x, y in chunks)
-            free, _ = torch.cuda.mem_get_info(gpu_id)
             if dbytes < 0.4 * free:                           # leave room for model + activations
                 staged_on_gpu = [(x.to(gpu_id, non_blocking=True), y.to(gpu_id, non_blocking=True))
                                  for x, y in chunks]
+            path = (f"STAGED-ON-GPU (fast)" if staged_on_gpu is not None
+                    else f"STREAMING (data {dbytes/1e9:.1f}GB >= 0.4*free {0.4*free/1e9:.1f}GB, too big to stage)")
+            print(f"[train gpu{gpu_id}] {path}: {len(chunks)} chunks, {n_samples} samples, "
+                  f"{dbytes/1e9:.2f}GB, free={free/1e9:.1f}GB, batch_size={batch_size}",
+                  file=sys.stderr, flush=True)
+        else:
+            print(f"[train gpu{gpu_id}] STREAMING-FROM-DISK (spill active): "
+                  f"{len(all_refs)} chunks, batch_size={batch_size}", file=sys.stderr, flush=True)
 
+        t_train = time.time()
         trace = []
         if staged_on_gpu is not None:
             # FAST PATH: data resident on GPU. Concatenate once into a single GPU tensor and
@@ -145,7 +158,12 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                     ep = ep + loss.detach()                   # on-GPU, no sync
                     nb += 1
                 trace.append(ep / nb)                         # keep GPU scalar
+        torch.cuda.synchronize(gpu_id)
         trace = [t.item() for t in trace]                    # materialize once, at the end
+        dt = time.time() - t_train
+        if n_samples and dt > 0:
+            print(f"[train gpu{gpu_id}] done: {epochs} epochs x {n_samples} samples in {dt:.1f}s "
+                  f"= {epochs * n_samples / dt / 1e3:.0f}k samples/s", file=sys.stderr, flush=True)
 
         wbuf = io.BytesIO()
         torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, wbuf)
