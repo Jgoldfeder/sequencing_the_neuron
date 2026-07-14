@@ -13,6 +13,8 @@ Separate processes have no shared GIL and scale ~Nx on N GPUs.
 """
 import io
 import copy
+import threading
+import queue as _pyqueue
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -181,29 +183,69 @@ def train_population_grouped(population, gpu_ids, opt_states, max_chunks_in_mem,
     for p in procs:
         p.start()
 
+    n_groups = (len(chunk_paths) + M - 1) // M
+
+    # Flat schedule of every group across ALL epochs, so prefetching spans epoch boundaries
+    # (the last group of one epoch pre-loads the first group of the next). A single group
+    # (window fits in one group) uses a STABLE order, so every epoch's group is byte-identical
+    # and gets reused from RAM — loaded exactly once.
+    schedule = []
+    for e in range(epochs):
+        order = (list(range(len(chunk_paths))) if n_groups == 1
+                 else torch.randperm(len(chunk_paths)).tolist())
+        for gi in range(n_groups):
+            schedule.append((tuple(order[gi * M:(gi + 1) * M]), gi == n_groups - 1))
+
+    # Producer thread: assemble the next group's shared contiguous (X, Y) AHEAD of the GPUs
+    # (asks #1 & #2) so training never waits on disk. When the group is identical to the one
+    # just assembled (single-group case -> the whole window is that one group every epoch), the
+    # already-resident shared array is REUSED: no re-read from disk, no re-cat (ask #3). Each
+    # group's chunk list is freed right after the cat, so only the contiguous array persists
+    # (1x per group, no doubling); with 1-ahead prefetch at most two groups are resident (2xM).
+    buf = _pyqueue.Queue(maxsize=1)   # 1-ahead: current group trains while next is assembled
+    prod_err = {}
+
+    def produce():
+        try:
+            last_key = None
+            last_XY = None
+            for grp, end_epoch in schedule:
+                if grp == last_key:
+                    X, Y = last_XY                              # identical group: reuse RAM, no disk, no re-cat
+                else:
+                    xs = [torch.load(chunk_paths[j][0]) for j in grp]
+                    ys = [torch.load(chunk_paths[j][1]) for j in grp]
+                    X = torch.cat(xs).contiguous()
+                    Y = torch.cat(ys).contiguous()
+                    del xs, ys                                 # free the chunk list; keep only the array (no doubling)
+                    X.share_memory_(); Y.share_memory_()
+                    last_key, last_XY = grp, (X, Y)
+                buf.put((X, Y, end_epoch))
+            buf.put(None)
+        except Exception:
+            import traceback
+            prod_err['tb'] = traceback.format_exc()
+            buf.put(None)
+
     try:
-        n_groups = (len(chunk_paths) + M - 1) // M
-        for e in range(epochs):
-            order = torch.randperm(len(chunk_paths)).tolist()   # reshuffle chunk->group each epoch
-            for gi in range(n_groups):
-                grp = order[gi * M:(gi + 1) * M]
-                xs = [torch.load(chunk_paths[j][0]) for j in grp]   # load M chunks from disk
-                ys = [torch.load(chunk_paths[j][1]) for j in grp]
-                X = torch.cat(xs).contiguous()                     # one contiguous array (1x group)
-                Y = torch.cat(ys).contiguous()
-                del xs, ys
-                X.share_memory_(); Y.share_memory_()               # zero-copy hand-off to all workers
-                end_epoch = (gi == n_groups - 1)
-                for i in range(K):
-                    ctrl_qs[i].put(('group', X, Y, end_epoch))
-                acks = 0                                            # barrier: every GPU finishes this group
-                while acks < K:
-                    msg = out_q.get()
-                    if msg[0] == 'ack':
-                        acks += 1
-                    elif msg[0] == 'result' and msg[5] is not None:
-                        raise RuntimeError(f"training worker {msg[1]} failed:\n{msg[5]}")
-                del X, Y                                            # free the shared group before the next
+        threading.Thread(target=produce, daemon=True).start()
+        while True:
+            item = buf.get()
+            if item is None:
+                break
+            X, Y, end_epoch = item
+            for i in range(K):
+                ctrl_qs[i].put(('group', X, Y, end_epoch))
+            acks = 0                                            # barrier: every GPU finishes this group
+            while acks < K:
+                msg = out_q.get()
+                if msg[0] == 'ack':
+                    acks += 1
+                elif msg[0] == 'result' and msg[5] is not None:
+                    raise RuntimeError(f"training worker {msg[1]} failed:\n{msg[5]}")
+            del X, Y                                            # drop our ref; reused groups survive via the producer
+        if prod_err:
+            raise RuntimeError(f"group producer failed:\n{prod_err['tb']}")
         for i in range(K):
             ctrl_qs[i].put(('done',))
         raw = [out_q.get() for _ in range(K)]
