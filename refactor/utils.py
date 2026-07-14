@@ -400,24 +400,25 @@ class Population(nn.Module):
 		self.ram_chunks = ram_chunks
 		self.spill_dir = spill_dir
 
-	def _spilling(self, window):
-		return bool(self.ram_chunks) and self.spill_dir is not None and window is not None and window > self.ram_chunks
-
-	def _store_chunk(self, inputs, outputs, lst_in, lst_out, spilling):
-		"""Append a chunk to (lst_in, lst_out) as an in-RAM tensor, or spill it to disk and
-		append the file paths instead."""
-		if spilling:
-			os.makedirs(self.spill_dir, exist_ok=True)
+	def _spill_overflow(self, lst_in, lst_out):
+		"""Keep the most recent `ram_chunks` chunks as in-RAM tensors; write older ones to
+		disk (replace the tensor with its file path). Recent chunks stay in RAM so they are
+		NOT re-read from disk every epoch; only the overflow (older than ram_chunks) spills."""
+		if not (self.ram_chunks and self.spill_dir):
+			return
+		ram_positions = [i for i, r in enumerate(lst_in) if torch.is_tensor(r)]
+		n_spill = len(ram_positions) - self.ram_chunks
+		if n_spill <= 0:
+			return
+		os.makedirs(self.spill_dir, exist_ok=True)
+		for i in ram_positions[:n_spill]:                    # oldest in-RAM tensors
 			px = os.path.join(self.spill_dir, f"cx_{self._cid}.pt")
 			py = os.path.join(self.spill_dir, f"cy_{self._cid}.pt")
 			self._cid += 1
-			torch.save(inputs, px)
-			torch.save(outputs, py)
-			lst_in.append(px)
-			lst_out.append(py)
-		else:
-			lst_in.append(inputs)
-			lst_out.append(outputs)
+			torch.save(lst_in[i], px)
+			torch.save(lst_out[i], py)
+			lst_in[i] = px
+			lst_out[i] = py
 
 	@staticmethod
 	def _trim(lst_in, lst_out, window):
@@ -431,8 +432,9 @@ class Population(nn.Module):
 			del lst_out[:-window]
 
 	def add_data(self,inputs,outputs,window = None):
-		spilling = self._spilling(window)
-		self._store_chunk(inputs, outputs, self.inputs, self.outputs, spilling)
+		self.inputs.append(inputs)
+		self.outputs.append(outputs)
+		self._spill_overflow(self.inputs, self.outputs)      # spill only chunks older than ram_chunks
 		self._trim(self.inputs, self.outputs, window)
 
 		# Legacy single-GPU train_one_epoch needs an in-RAM dataset; only build it when

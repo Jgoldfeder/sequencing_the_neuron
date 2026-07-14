@@ -69,37 +69,40 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        def load_groups(q):
-            # background: shuffle chunk order, load a group at a time (disk reads happen here)
+        def produce(q):
+            # background: load a group (in-RAM chunks are instant; disk chunks read here),
+            # assemble its batches, push them to the queue — overlaps CPU/disk with GPU compute.
             for refs in staged:
                 if not refs:
                     continue
                 gsize = ram_chunks if ram_chunks else len(refs)
                 order = torch.randperm(len(refs)).tolist()
                 for gi in range(0, len(order), gsize):
-                    q.put([_load_ref(refs[j]) for j in order[gi:gi + gsize]])
+                    group = [_load_ref(refs[j]) for j in order[gi:gi + gsize]]
+                    for b in _group_batches(group, batch_size, mix_chunks):
+                        q.put(b)
+                    # group freed here (disk-loaded tensors released)
             q.put(None)
 
         trace = []
         for _ in range(epochs):
-            gq = queue.Queue(maxsize=1)                       # 1 group prefetched ahead
-            threading.Thread(target=load_groups, args=(gq,), daemon=True).start()
+            q = queue.Queue(maxsize=8)                        # batch-level prefetch
+            threading.Thread(target=produce, args=(q,), daemon=True).start()
             ep = torch.zeros((), device=gpu_id)
             nb = 0
             while True:
-                chunks = gq.get()
-                if chunks is None:
+                item = q.get()
+                if item is None:
                     break
-                for xb, yb in _group_batches(chunks, batch_size, mix_chunks):
-                    xb = xb.to(gpu_id, non_blocking=True)
-                    yb = yb.to(gpu_id, non_blocking=True)
-                    optimizer.zero_grad()
-                    loss = criterion(model(xb), yb)
-                    (loss * 200).backward()
-                    optimizer.step()
-                    ep = ep + loss.detach()                  # on-GPU, no sync
-                    nb += 1
-                del chunks                                   # free the group (disk-loaded tensors)
+                xb, yb = item
+                xb = xb.to(gpu_id, non_blocking=True)
+                yb = yb.to(gpu_id, non_blocking=True)
+                optimizer.zero_grad()
+                loss = criterion(model(xb), yb)
+                (loss * 200).backward()
+                optimizer.step()
+                ep = ep + loss.detach()                      # on-GPU, no sync
+                nb += 1
             trace.append(ep / nb)                            # keep GPU scalar
         trace = [t.item() for t in trace]                    # materialize once, at the end
 
