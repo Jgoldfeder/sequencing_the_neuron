@@ -46,8 +46,6 @@ if __name__ == "__main__":
 	parser.add_argument('--get_adv_epochs', '-gae', type=int, default=2000, help='Optimization steps per get_adv call (lr drops at 25/50/75%%)')
 	parser.add_argument('--window', '-w', type=int, default=500, help='Number of recent sample chunks to accumulate for training (caps RAM)')
 	parser.add_argument('--mix_chunks', '-mc', type=int, default=4, help='How many chunks each training batch mixes across (cross-chunk shuffle)')
-	parser.add_argument('--ram_chunks', '-rc', type=int, default=0, help='Max chunks kept in RAM at once; if < window, older chunks spill to disk (0 = no spill)')
-	parser.add_argument('--spill_dir', type=str, default='', help='Directory for spilled chunk files (default: <models_path>/spill)')
 	args = parser.parse_args()
 
 	# check that seq_len is provided for rnn and transformer
@@ -198,10 +196,6 @@ if __name__ == "__main__":
 		raise ValueError(f"main_parallel requires population_size == num_gpus "
 						 f"(got population_size={pop_size}, num_gpus={args.num_gpus})")
 	population = utils.Population(subs)   # subs remain on CPU
-	# Disk spill: keep at most ram_chunks chunks in RAM, older ones on disk (0 => RAM-only).
-	if args.ram_chunks:
-		spill_dir = args.spill_dir if args.spill_dir else os.path.join(models_path, "spill")
-		population.set_spill(args.ram_chunks, spill_dir)
 
 	model = model.cuda(device)
 
@@ -259,7 +253,7 @@ if __name__ == "__main__":
 			opt_states = parallel_train.train_population(
 				population, pop_gpu_ids, opt_states,
 				batch_size=args.batch_size, epochs=10, lr=lr,
-				mix_chunks=args.mix_chunks, ram_chunks=args.ram_chunks, log=print)
+				mix_chunks=args.mix_chunks, log=print)
 			sys.stdout.flush()
 			population.save(models_path +"/population_iteration_final.pt")
 			population.evaluate(model, model_type=args.model_type)
@@ -304,9 +298,3 @@ if __name__ == "__main__":
 	with open(results_json_path, "w") as f:
 		json.dump(results_json, f, indent=2)
 	print(f"Results saved to {results_json_path}", file=sys.__stdout__)
-
-	# Clean up spilled chunk files (can be very large).
-	if args.ram_chunks:
-		import shutil
-		spill_dir = args.spill_dir if args.spill_dir else os.path.join(models_path, "spill")
-		shutil.rmtree(spill_dir, ignore_errors=True)

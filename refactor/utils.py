@@ -385,65 +385,21 @@ class Population(nn.Module):
 		self.outputs_dict = defaultdict(list)
 		self.datasets = {}
 
-		# Disk spill: keep at most `ram_chunks` chunks in RAM; when `window` exceeds that,
-		# write chunks to disk under `spill_dir` and stream them at training time. Entries in
-		# self.inputs/outputs are then either tensors (RAM) or file-path strings (disk).
-		self.ram_chunks = 0        # 0 => no limit => never spill (RAM-only)
-		self.spill_dir = None
-		self._cid = 0              # unique id for spill filenames
-
 	def set_optimizer(self, optimizer):
 		self.optimizer = optimizer
-
-	def set_spill(self, ram_chunks, spill_dir):
-		"""Enable disk spill: at most ram_chunks chunks kept in RAM, the rest on disk."""
-		self.ram_chunks = ram_chunks
-		self.spill_dir = spill_dir
-
-	def _spill_overflow(self, lst_in, lst_out):
-		"""Keep the most recent `ram_chunks` chunks as in-RAM tensors; write older ones to
-		disk (replace the tensor with its file path). Recent chunks stay in RAM so they are
-		NOT re-read from disk every epoch; only the overflow (older than ram_chunks) spills."""
-		if not (self.ram_chunks and self.spill_dir):
-			return
-		ram_positions = [i for i, r in enumerate(lst_in) if torch.is_tensor(r)]
-		n_spill = len(ram_positions) - self.ram_chunks
-		if n_spill <= 0:
-			return
-		os.makedirs(self.spill_dir, exist_ok=True)
-		for i in ram_positions[:n_spill]:                    # oldest in-RAM tensors
-			px = os.path.join(self.spill_dir, f"cx_{self._cid}.pt")
-			py = os.path.join(self.spill_dir, f"cy_{self._cid}.pt")
-			self._cid += 1
-			torch.save(lst_in[i], px)
-			torch.save(lst_out[i], py)
-			lst_in[i] = px
-			lst_out[i] = py
-
-	@staticmethod
-	def _trim(lst_in, lst_out, window):
-		"""Keep only the last `window` chunks; delete disk files for the dropped ones."""
-		if window is not None and len(lst_in) > window:
-			for rx, ry in zip(lst_in[:-window], lst_out[:-window]):
-				for r in (rx, ry):
-					if isinstance(r, str) and os.path.exists(r):
-						os.remove(r)
-			del lst_in[:-window]
-			del lst_out[:-window]
 
 	def add_data(self,inputs,outputs,window = None):
 		self.inputs.append(inputs)
 		self.outputs.append(outputs)
-		self._spill_overflow(self.inputs, self.outputs)      # spill only chunks older than ram_chunks
-		self._trim(self.inputs, self.outputs, window)
 
-		# Legacy single-GPU train_one_epoch needs an in-RAM dataset; only build it when
-		# nothing is spilled (all tensors). When spilling, the parallel trainer reads the
-		# chunk refs (tensors/paths) directly, so no cat and no full in-RAM dataset.
-		if all(torch.is_tensor(r) for r in self.inputs):
-			self.datasets[0] = ConcatDataset([SampleDataset(x, y) for x, y in zip(self.inputs, self.outputs)])
-		else:
-			self.datasets.pop(0, None)
+		# Drop chunks beyond the window so the retained list (and thus RAM) is bounded.
+		if window is not None and len(self.inputs) > window:
+			self.inputs = self.inputs[-window:]
+			self.outputs = self.outputs[-window:]
+		# ConcatDataset references the chunk tensors directly (no torch.cat copy), so the
+		# chunks are the ONLY copy in RAM (1x, not 2x). The parallel trainer reads the chunk
+		# list itself; this dataset is for the legacy single-GPU train_one_epoch path.
+		self.datasets[0] = ConcatDataset([SampleDataset(x, y) for x, y in zip(self.inputs, self.outputs)])
 
 	def add_seq_data(self, inputs, outputs, seq_len, window = None):
 		self.inputs_dict[seq_len].append(inputs)
