@@ -37,6 +37,8 @@ class Config:
     batch_size: int = 128
     get_adv_epochs: int = 2000
     window: int = 500
+    chunk_dir: str = ""            # if set, store chunks on disk (out-of-core); '' = in-RAM
+    max_chunks_in_mem: int = 0     # out-of-core group size (0 = all); only used with chunk_dir
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -58,6 +60,8 @@ class Config:
             batch_size=data.get("batch_size", 128),
             get_adv_epochs=data.get("get_adv_epochs", 2000),
             window=data.get("window", 500),
+            chunk_dir=data.get("chunk_dir", ""),
+            max_chunks_in_mem=data.get("max_chunks_in_mem", 0),
         )
 
 
@@ -128,6 +132,10 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--get_adv_epochs", str(cfg.get_adv_epochs),
         "--window", str(cfg.window),
     ]
+    # Out-of-core storage is only implemented on the parallel path (main_parallel.py).
+    if script == "main_parallel.py" and cfg.chunk_dir:
+        cmd += ["--chunk_dir", cfg.chunk_dir,
+                "--max_chunks_in_mem", str(cfg.max_chunks_in_mem)]
 
     print(f"\n{'='*60}")
     print(f"Running: layers={layers}, dataset={dataset}, seed={cfg.seed}, K={num_samples}")
