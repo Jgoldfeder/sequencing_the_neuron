@@ -7,40 +7,30 @@ optimizer state, and its per-epoch loss trace. The PARENT owns the log file and 
 the (min/max/mean) lines from the returned traces, so logging stays a single coherent
 stream even though training runs across processes.
 
-Why processes and not threads: the students are independent, but Python's GIL serializes
-kernel launches across threads, so a threaded version only reaches ~1.5x on small models.
-Separate processes have no shared GIL and scale ~Nx on N GPUs.
+Data path (chunk-wise, no cat): the accumulated dataset is a list of chunk tensors (one
+per get_adv call). Workers read the chunk list directly — the chunks are the ONLY copy in
+RAM (1x, not 2x). Each batch is composed of contiguous sub-slices drawn from `mix_chunks`
+different chunks, so batches mix across chunks (cross-chunk shuffle) while every read stays
+contiguous (fast). A background thread assembles batches on the CPU while the GPU trains.
+
+Why processes and not threads for the students: they're independent, but Python's GIL
+serializes kernel launches across threads; separate processes have no shared GIL and
+scale ~Nx on N GPUs.
 """
 import io
 import copy
+import queue
+import threading
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
 
 
-class _BatchSlices(Dataset):
-    """Dataset that returns contiguous batch-sized slices. Used with
-    DataLoader(batch_size=None) so each item is a fast contiguous view of the data rather
-    than 128 per-sample gathers (which thrash memory when several workers read a big shared
-    tensor at once). shuffle=True then shuffles the block order."""
+def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size, epochs, lr, mix_chunks, out_q):
+    """Trains one student on one GPU, chunk-wise with cross-chunk mixing.
 
-    def __init__(self, X, Y, batch_size):
-        self.X, self.Y, self.batch_size = X, Y, batch_size
-
-    def __len__(self):
-        return (self.X.shape[0] + self.batch_size - 1) // self.batch_size
-
-    def __getitem__(self, i):
-        s = i * self.batch_size
-        return self.X[s:s + self.batch_size], self.Y[s:s + self.batch_size]
-
-
-def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size, epochs, lr, out_q):
-    """Runs in its own process. Trains one student on one GPU.
-
-    Loss accumulation stays on-GPU and is materialized once at the end (no per-batch
-    sync), so logging adds no measurable overhead.
+    `staged` is a list of datasets; each dataset is a list of (X, Y) chunk tensors (CPU,
+    shared memory). No dataset is ever concatenated, so memory is 1x the chunks.
     """
     try:
         torch.cuda.set_device(gpu_id)
@@ -53,30 +43,48 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        # Standard PyTorch input pipeline. _BatchSlices + batch_size=None makes each
-        # DataLoader item a CONTIGUOUS batch-sized slice (not 128 per-sample gathers);
-        # shuffle=True shuffles block order; pin_memory + a background pin thread overlap
-        # the host->device transfer with GPU compute. Handles datasets of ANY size (only a
-        # few batches resident, so no OOM even for tens-of-GB accumulated data).
-        loaders = [DataLoader(_BatchSlices(X, Y, batch_size), batch_size=None, shuffle=True,
-                              pin_memory=True, num_workers=4, persistent_workers=True,
-                              prefetch_factor=4)
-                   for X, Y in staged]
-        num_batches = sum(len(l) for l in loaders)
+        def epoch_batches():
+            # One epoch: every sample seen once, batches mix up to `mix_chunks` chunks,
+            # sub-slices are contiguous, order reshuffled each call.
+            for chunks in staged:
+                if not chunks:
+                    continue
+                nmix = min(mix_chunks, len(chunks))
+                sub = max(1, batch_size // nmix)             # samples taken from each chunk per batch
+                specs = [(ci, s) for ci, (x, _) in enumerate(chunks)
+                         for s in range(0, x.shape[0], sub)]
+                order = torch.randperm(len(specs)).tolist()
+                for g in range(0, len(order), nmix):
+                    grp = [specs[order[k]] for k in range(g, min(g + nmix, len(order)))]
+                    xb = torch.cat([chunks[ci][0][s:s + sub] for ci, s in grp])   # contiguous sub-slices
+                    yb = torch.cat([chunks[ci][1][s:s + sub] for ci, s in grp])
+                    yield xb, yb
+
+        def fill(q):
+            for b in epoch_batches():
+                q.put(b)
+            q.put(None)
 
         trace = []
         for _ in range(epochs):
+            q = queue.Queue(maxsize=4)                       # bounded: a few batches resident
+            threading.Thread(target=fill, args=(q,), daemon=True).start()   # assemble on CPU, overlap GPU
             ep = torch.zeros((), device=gpu_id)
-            for loader in loaders:
-                for xb, yb in loader:
-                    xb = xb.to(gpu_id, non_blocking=True)
-                    yb = yb.to(gpu_id, non_blocking=True)
-                    optimizer.zero_grad()
-                    loss = criterion(model(xb), yb)
-                    (loss * 200).backward()
-                    optimizer.step()
-                    ep = ep + loss.detach()                  # on-GPU, no sync
-            trace.append(ep / num_batches)                   # keep GPU scalar
+            nb = 0
+            while True:
+                item = q.get()
+                if item is None:
+                    break
+                xb, yb = item
+                xb = xb.to(gpu_id, non_blocking=True)
+                yb = yb.to(gpu_id, non_blocking=True)
+                optimizer.zero_grad()
+                loss = criterion(model(xb), yb)
+                (loss * 200).backward()
+                optimizer.step()
+                ep = ep + loss.detach()                      # on-GPU, no sync
+                nb += 1
+            trace.append(ep / nb)                            # keep GPU scalar
         trace = [t.item() for t in trace]                    # materialize once, at the end
 
         wbuf = io.BytesIO()
@@ -89,21 +97,24 @@ def _train_worker(idx, gpu_id, model_bytes, opt_state_bytes, staged, batch_size,
         out_q.put((idx, None, None, None, traceback.format_exc()))
 
 
-def train_population(population, gpu_ids, opt_states, batch_size=128, epochs=10, lr=1e-3, log=print):
+def train_population(population, gpu_ids, opt_states, batch_size=128, epochs=10, lr=1e-3, mix_chunks=4, log=print):
     """Train every student in `population` for `epochs`, one student per GPU, in parallel.
 
     Loads returned weights back into population.subs (in place), sets each student's
     .loss, sets population.best, and writes per-epoch (min/max/mean) log lines via `log`.
-
-    Returns the updated list of per-student optimizer-state bytes (pass back in next call
-    to keep Adam momentum; pass a list of None to reset it, e.g. on an lr change).
+    Returns the updated list of per-student optimizer-state bytes (pass back next call to
+    keep Adam momentum; pass a list of None to reset it, e.g. on an lr change).
     """
     import torch.multiprocessing as mp
 
-    # mirror train_one_epoch's dataset check
-    if population.ds is not None and len(population.datasets) == 0:
-        population.datasets[0] = population.ds
-    if len(population.datasets) == 0:
+    # Gather the chunk lists (no cat). FNN => one dataset (population.inputs); seq models
+    # => one per sequence length (population.inputs_dict).
+    datasets_chunks = []
+    if population.inputs:
+        datasets_chunks.append(list(zip(population.inputs, population.outputs)))
+    for k in list(population.inputs_dict.keys()):
+        datasets_chunks.append(list(zip(population.inputs_dict[k], population.outputs_dict[k])))
+    if not datasets_chunks:
         raise Exception("no datasets")
 
     subs = population.subs
@@ -111,14 +122,16 @@ def train_population(population, gpu_ids, opt_states, batch_size=128, epochs=10,
     if K != len(gpu_ids):
         raise ValueError(f"need one student per GPU: {K} students, {len(gpu_ids)} gpus")
 
-    # stage datasets in shared memory (parent stays alive during training, so the
-    # file-descriptor sharing that torch uses for the INPUT direction is safe)
+    # share each chunk to workers (parent stays alive during training, so fd-sharing is safe)
     staged = []
-    for ds in population.datasets.values():
-        xi = ds.inputs.detach().to('cpu').contiguous()
-        yi = ds.outputs.detach().to('cpu').contiguous()
-        xi.share_memory_(); yi.share_memory_()
-        staged.append((xi, yi))
+    for chunks in datasets_chunks:
+        shared = []
+        for x, y in chunks:
+            xi = x.detach().to('cpu').contiguous()
+            yi = y.detach().to('cpu').contiguous()
+            xi.share_memory_(); yi.share_memory_()
+            shared.append((xi, yi))
+        staged.append(shared)
 
     ctx = mp.get_context('spawn')
     q = ctx.Queue()
@@ -128,7 +141,8 @@ def train_population(population, gpu_ids, opt_states, batch_size=128, epochs=10,
         torch.save(copy.deepcopy(subs[i]).to('cpu'), mbuf)   # full model (handles any arch)
         procs.append(ctx.Process(
             target=_train_worker,
-            args=(i, gpu_ids[i], mbuf.getvalue(), opt_states[i], staged, batch_size, epochs, lr, q),
+            args=(i, gpu_ids[i], mbuf.getvalue(), opt_states[i], staged,
+                  batch_size, epochs, lr, mix_chunks, q),
         ))
     for p in procs:
         p.start()

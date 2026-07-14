@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, ConcatDataset
 import torch.multiprocessing as mp
 from align_evaluate import evaluate_reconstruction
 device = 0
@@ -393,12 +393,13 @@ class Population(nn.Module):
 		self.outputs.append(outputs)
 
 		# Drop chunks beyond the window so the retained list (and thus RAM) is bounded.
-		# Chunks past the window are never used for training anyway, so this frees memory
-		# without changing behavior.
 		if window is not None and len(self.inputs) > window:
 			self.inputs = self.inputs[-window:]
 			self.outputs = self.outputs[-window:]
-		self.datasets[0] = SampleDataset(torch.cat(self.inputs), torch.cat(self.outputs))
+		# ConcatDataset references the chunk tensors directly (no torch.cat copy), so the
+		# chunks are the ONLY copy in RAM (1x, not 2x). The parallel trainer reads the chunk
+		# list itself; this dataset is for the legacy single-GPU train_one_epoch path.
+		self.datasets[0] = ConcatDataset([SampleDataset(x, y) for x, y in zip(self.inputs, self.outputs)])
 
 	def add_seq_data(self, inputs, outputs, seq_len, window = None):
 		self.inputs_dict[seq_len].append(inputs)
@@ -407,7 +408,7 @@ class Population(nn.Module):
 		if window is not None and len(self.inputs_dict[seq_len]) > window:
 			self.inputs_dict[seq_len] = self.inputs_dict[seq_len][-window:]
 			self.outputs_dict[seq_len] = self.outputs_dict[seq_len][-window:]
-		self.datasets[seq_len] = SampleDataset(torch.cat(self.inputs_dict[seq_len]), torch.cat(self.outputs_dict[seq_len]))
+		self.datasets[seq_len] = ConcatDataset([SampleDataset(x, y) for x, y in zip(self.inputs_dict[seq_len], self.outputs_dict[seq_len])])
 
 	def save(self,PATH):
 		torch.save(self.state_dict(), PATH)

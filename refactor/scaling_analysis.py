@@ -37,6 +37,7 @@ class Config:
     batch_size: int = 128
     get_adv_epochs: int = 2000
     window: int = 500
+    mix_chunks: int = 4
 
     @classmethod
     def from_yaml(cls, path: str) -> "Config":
@@ -58,6 +59,7 @@ class Config:
             batch_size=data.get("batch_size", 128),
             get_adv_epochs=data.get("get_adv_epochs", 2000),
             window=data.get("window", 500),
+            mix_chunks=data.get("mix_chunks", 4),
         )
 
 
@@ -127,6 +129,7 @@ def run_experiment(cfg: Config, layers: List[int], dataset: str, num_samples: in
         "--batch_size", str(cfg.batch_size),
         "--get_adv_epochs", str(cfg.get_adv_epochs),
         "--window", str(cfg.window),
+        "--mix_chunks", str(cfg.mix_chunks),
     ]
 
     print(f"\n{'='*60}")
