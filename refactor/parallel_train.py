@@ -145,12 +145,13 @@ def _mmap_worker(idx, gpu_id, model_bytes, opt_state_bytes, chunk_paths, batch_s
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
-        # num_workers=0: the data is already in RAM (OS page cache over the mmap), so loader
-        # worker PROCESSES only add IPC overhead copying each batch back to the main process
-        # (measured: nw=4 dropped warm throughput 184k->118k). Reading the mmap block directly in
-        # this process is fastest, and there are no workers to spawn (no per-epoch/outer-iter lag).
+        # num_workers=4 + prefetch, matching the working in-RAM worker. On multiple GPUs the
+        # background prefetch is what keeps each GPU fed (num_workers=0 does the mmap read + pin
+        # + transfer synchronously in the training thread, which starves the GPU once several
+        # processes contend -- that was the 1%-util regression). Built once, iterated all epochs
+        # (persistent_workers=True), so no per-epoch worker respawn.
         loader = DataLoader(_MmapChunkBlocks(chunk_paths, batch_size), batch_size=None, shuffle=True,
-                            pin_memory=True, num_workers=0)
+                            pin_memory=True, num_workers=4, persistent_workers=True, prefetch_factor=4)
         trace = []
         for _ in range(epochs):
             ep = torch.zeros((), device=gpu_id)
