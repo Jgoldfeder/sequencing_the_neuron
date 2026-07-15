@@ -145,8 +145,12 @@ def _mmap_worker(idx, gpu_id, model_bytes, opt_state_bytes, chunk_paths, batch_s
                 g['lr'] = lr
         criterion = nn.L1Loss()
 
+        # num_workers=0: the data is already in RAM (OS page cache over the mmap), so loader
+        # worker PROCESSES only add IPC overhead copying each batch back to the main process
+        # (measured: nw=4 dropped warm throughput 184k->118k). Reading the mmap block directly in
+        # this process is fastest, and there are no workers to spawn (no per-epoch/outer-iter lag).
         loader = DataLoader(_MmapChunkBlocks(chunk_paths, batch_size), batch_size=None, shuffle=True,
-                            pin_memory=True, num_workers=4, persistent_workers=True, prefetch_factor=4)
+                            pin_memory=True, num_workers=0)
         trace = []
         for _ in range(epochs):
             ep = torch.zeros((), device=gpu_id)
