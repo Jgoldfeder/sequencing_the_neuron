@@ -1,0 +1,87 @@
+{
+ "variant": "v18_min",
+ "cfg": {
+  "p": 8,
+  "q": 1500,
+  "outer": 2,
+  "epochs": 10,
+  "lr": 0.001,
+  "lr_sched": [
+   0.6,
+   0.85
+  ],
+  "batch": 512,
+  "qg_steps": 30,
+  "qg_lr": 0.1,
+  "qg_sched": [
+   0.5,
+   0.8
+  ],
+  "qg_init_std": 0.5,
+  "disagree": "median_pair",
+  "query_box": 0.0,
+  "query_div_w": 0.0,
+  "window": 20,
+  "maint_every": 0,
+  "restart_worst": 0,
+  "polish_f64": false,
+  "polish_epochs": 3,
+  "warmstart_iters": 5,
+  "fit_delta": 0.0,
+  "stop_loss": 0.0,
+  "stop_agree": 0.0,
+  "stop_patience": 3,
+  "fit_loss": "mse",
+  "lastlayer_every": 0,
+  "popavg_kappa": 0.0,
+  "lbfgs_polish": false,
+  "gate_kappa": 3.0,
+  "cluster_quorum": 0.75,
+  "cluster_gate": 10.0,
+  "combine": false,
+  "solver_polish": true,
+  "solverwindow": 1,
+  "verbose": true,
+  "dump_at_iter": 0,
+  "dump_path": "",
+  "stop_on_consensus": false,
+  "combine_polish_lr": 0.0001,
+  "combine_polish_steps": 200,
+  "log_every": 5,
+  "eval_pts": 2000
+ },
+ "arch": [
+  784,
+  32,
+  10
+ ],
+ "n_params": 25450,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cpu",
+ "log": [
+  {
+   "iter": 2,
+   "queries": 3000,
+   "best_loss": 0.5402245442708333,
+   "med_loss": 0.5649790364583334,
+   "worst_loss": 0.5750899088541667,
+   "max_eps": 3.7413206100463867,
+   "mean_eps": 0.2925767134875059,
+   "agree": 0.6784999966621399,
+   "wall_s": 36.7,
+   "cluster_max_eps": null
+  }
+ ],
+ "final_max_eps": 3.7413206100463867,
+ "final_mean_eps": 0.2925767134875059,
+ "final_max_eps_per_matrix": [
+  0.20441225171089172,
+  0.1622891128063202,
+  3.7413206100463867,
+  0.5827746391296387
+ ],
+ "final_agree": 0.6784999966621399,
+ "queries": 3000,
+ "wall_s": 36.8
+}

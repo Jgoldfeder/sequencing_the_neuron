@@ -1,0 +1,7 @@
+# large / regenerable artifacts — never commit
+recon/
+teachers/
+__pycache__/
+*.pt
+*.pyc
+*.log

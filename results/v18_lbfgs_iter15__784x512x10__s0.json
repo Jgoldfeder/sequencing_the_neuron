@@ -1,0 +1,105 @@
+{
+ "variant": "v18_lbfgs",
+ "cfg": {
+  "p": 8,
+  "q": 32000,
+  "outer": 15,
+  "epochs": 10,
+  "lr": 0.001,
+  "lr_sched": [
+   0.6,
+   0.85
+  ],
+  "batch": 512,
+  "qg_steps": 30,
+  "qg_lr": 0.1,
+  "qg_sched": [
+   0.5,
+   0.8
+  ],
+  "qg_init_std": 0.5,
+  "disagree": "median_pair",
+  "query_box": 0.0,
+  "query_div_w": 0.0,
+  "window": 60,
+  "maint_every": 0,
+  "restart_worst": 0,
+  "polish_f64": false,
+  "polish_epochs": 3,
+  "warmstart_iters": 5,
+  "fit_delta": 0.0,
+  "stop_loss": 0.0,
+  "stop_agree": 0.0,
+  "stop_patience": 3,
+  "fit_loss": "mse",
+  "lastlayer_every": 0,
+  "popavg_kappa": 0.0,
+  "lbfgs_polish": true,
+  "gate_kappa": 3.0,
+  "cluster_quorum": 0.75,
+  "cluster_gate": 10.0,
+  "combine": false,
+  "combine_polish_lr": 0.0001,
+  "combine_polish_steps": 200,
+  "log_every": 5,
+  "eval_pts": 2000
+ },
+ "arch": [
+  784,
+  512,
+  10
+ ],
+ "n_params": 407050,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cuda",
+ "log": [
+  {
+   "iter": 5,
+   "queries": 160000,
+   "best_loss": 0.2541580983352661,
+   "med_loss": 0.2568336933898926,
+   "worst_loss": 0.2604031859588623,
+   "max_eps": 0.49038296937942505,
+   "mean_eps": 0.0732543021440506,
+   "agree": 0.9915000200271606,
+   "wall_s": 55.1,
+   "cluster_max_eps": null
+  },
+  {
+   "iter": 10,
+   "queries": 320000,
+   "best_loss": 0.04987503277778625,
+   "med_loss": 0.05605365822792053,
+   "worst_loss": 0.05981526279449463,
+   "max_eps": 0.45575883984565735,
+   "mean_eps": 0.0187323383288458,
+   "agree": 0.999500036239624,
+   "wall_s": 214.8,
+   "cluster_max_eps": null
+  },
+  {
+   "iter": 15,
+   "queries": 480000,
+   "best_loss": 0.036470774866739906,
+   "med_loss": 0.04358195100148519,
+   "worst_loss": 0.05330854370117188,
+   "max_eps": 0.2787405252456665,
+   "mean_eps": 0.011566520755877718,
+   "agree": 1.0,
+   "wall_s": 473.5,
+   "cluster_max_eps": null
+  }
+ ],
+ "final_max_eps": 0.31204867362976074,
+ "final_mean_eps": 0.011190581193659455,
+ "final_max_eps_per_matrix": [
+  0.18724006414413452,
+  0.04066656529903412,
+  0.31204867362976074,
+  0.08428430557250977
+ ],
+ "final_agree": 1.0,
+ "queries": 480000,
+ "wall_s": 572.9
+}
