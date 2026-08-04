@@ -118,6 +118,9 @@ def main():
     ap.add_argument("--solverwindow", type=int, default=None,
                     help="window (in outer iters) of recent queries to "
                          "solver-polish on (default 10).")
+    ap.add_argument("--pop-save-every", type=int, default=0,
+                    help="snapshot the committee population every k outer iters "
+                         "to recon/_pop__ARCH__sSEED.pt (inspect mid-run).")
     ap.add_argument("--verbose", action="store_true",
                     help="print per-member polish detail (loss before->after, "
                          "#evals, time).")
@@ -165,6 +168,11 @@ def main():
         os.makedirs(recon_dir, exist_ok=True)
         overrides["stop_on_consensus"] = True
         overrides["dump_path"] = fast_dump
+    if args.pop_save_every > 0:
+        os.makedirs(recon_dir, exist_ok=True)
+        overrides["pop_save_every"] = args.pop_save_every
+        overrides["pop_save_path"] = os.path.join(
+            recon_dir, f"_pop__{arch_tag}__s{args.seed}.pt")
     cfg = Cfg(p=args.p, q=args.q, outer=args.outer, **overrides)
     print(f"[run] {args.variant} seed={args.seed} params={count_params(teacher)} "
           f"budget={cfg.outer * cfg.q} queries"

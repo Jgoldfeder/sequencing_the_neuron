@@ -101,6 +101,8 @@ class Cfg:
     # logging
     log_every: int = 5
     eval_pts: int = 2000
+    pop_save_every: int = 0       # >0: snapshot the population every k iters
+    pop_save_path: str = ""       # (inspect mid-run; overwrites, no queries)
 
 
 # ---------------------------------------------------------------- queries --
@@ -334,6 +336,97 @@ def build_consensus(pop, dims, losses=None, eps=0.02,
 
 
 @torch.no_grad()
+def consensus_neuron_stats(pop, teacher, dims, eps=0.02, quorum_ratio=0.625):
+    """Per-neuron consensus diagnostic (single hidden layer, ungated -- matches
+    the logged consensus). Instead of the all-or-nothing full consensus, report
+    how many hidden neurons reached a quorum consensus across the committee, and
+    the max/mean parameter error on JUST those neurons (each averaged over its
+    cluster, then aligned to the teacher). Teacher used only for scoring.
+    Returns {n_consensus, n_total, max_eps, mean_eps} or None."""
+    import math
+    from collections import defaultdict
+    if len(dims) != 3 or len(pop) < 2:
+        return None
+    P, H = len(pop), dims[1]
+    quorum = math.ceil(quorum_ratio * P)
+    mem = [m.clone() for m in pop]
+    for r in mem:
+        scale_normalize_(r)
+    F = [torch.cat([r.layers[0].weight, r.layers[0].bias[:, None]], 1) for r in mem]
+    parent = list(range(P * H))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]; x = parent[x]
+        return x
+    for a in range(P):
+        for b in range(a + 1, P):
+            D = torch.cdist(F[a].float(), F[b].float(), p=float("inf"))
+            ab, ba = D.argmin(1), D.argmin(0)
+            for i in range(H):
+                j = int(ab[i])
+                if int(ba[j]) == i and D[i, j] < eps:
+                    ra, rb = find(a * H + i), find(b * H + j)
+                    if ra != rb:
+                        parent[ra] = rb
+    clusters = defaultdict(list)
+    for node in range(P * H):
+        clusters[find(node)].append(node)
+    good = [v for v in clusters.values() if len(v) >= quorum]
+    if not good:
+        return {"n_consensus": 0, "n_total": H, "max_eps": None, "mean_eps": None}
+
+    rows = torch.stack([torch.stack([mem[n // H].layers[0].weight[n % H]
+                                     for n in c]).mean(0) for c in good])
+    bias = torch.stack([torch.stack([mem[n // H].layers[0].bias[n % H]
+                                     for n in c]).mean(0) for c in good])
+    outs = torch.stack([torch.stack([mem[n // H].layers[1].weight[:, n % H]
+                                     for n in c]).mean(0) for c in good])
+    # align consensus neurons to teacher (scale-normalized); greedy L1 match
+    t = teacher.clone(); scale_normalize_(t)
+    TF = torch.cat([t.layers[0].weight, t.layers[0].bias[:, None]], 1)
+    CF = torch.cat([rows, bias[:, None]], 1)
+    Dm = torch.cdist(CF.float(), TF.float(), p=1)
+    l0d, l1d = [], []                       # L0 = input weights+bias, L1 = output col
+    match_ti = [0] * len(good)              # teacher hidden neuron matched to cluster ci
+    for _ in range(len(good)):
+        flat = int(Dm.argmin()); ci, ti = flat // H, flat % H
+        l0d.append((rows[ci] - t.layers[0].weight[ti]).abs())
+        l0d.append((bias[ci] - t.layers[0].bias[ti]).abs().reshape(1))
+        l1d.append((outs[ci] - t.layers[1].weight[:, ti]).abs())
+        match_ti[ci] = ti
+        Dm[ci, :] = float("inf"); Dm[:, ti] = float("inf")
+    L0 = torch.cat(l0d); L1 = torch.cat(l1d); alld = torch.cat([L0, L1])
+    out = {"n_consensus": len(good), "n_total": H,
+           "max_eps": alld.max().item(), "mean_eps": alld.mean().item(),
+           "l0_max": L0.max().item(), "l0_mean": L0.mean().item(),
+           "l1_max": L1.max().item(), "l1_mean": L1.mean().item()}
+
+    # --- output-unit consensus: for each of the O output units, do the members
+    #     agree on its bias AND its weights to the consensus hidden neurons? ---
+    O = dims[2]
+    bias_out = torch.stack([r.layers[1].bias for r in mem])          # (P, O)
+    agree = (bias_out.max(0).values - bias_out.min(0).values) < eps  # (O,)
+    for c in good:
+        w = torch.stack([mem[n // H].layers[1].weight[:, n % H] for n in c])  # (|c|,O)
+        agree = agree & ((w.max(0).values - w.min(0).values) < eps)
+    n_out = int(agree.sum())
+    out["n_out_consensus"] = n_out
+    out["out_total"] = O
+    if n_out > 0:
+        ti_idx = torch.tensor(match_ti, device=outs.device)
+        bias_err = (bias_out.mean(0) - t.layers[1].bias).abs()       # (O,)
+        w_err = (outs.T - t.layers[1].weight[:, ti_idx]).abs()       # (O, K)
+        od = torch.cat([bias_err[agree].reshape(-1), w_err[agree].reshape(-1)])
+        out["out_max"] = od.max().item()
+        out["out_mean"] = od.mean().item()
+    else:
+        out["out_max"] = None
+        out["out_mean"] = None
+    return out
+
+
+@torch.no_grad()
 def cluster_consensus(pop, teacher, dims, losses=None, eps=0.02,
                       quorum_ratio=0.75, gate_kappa=10.0):
     """Diagnostic wrapper around build_consensus: returns the consensus net's
@@ -562,6 +655,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             cnet = build_consensus(pop, dims, quorum_ratio=cfg.cluster_quorum)
             cc = (param_errors(cnet, teacher)["max_eps"]
                   if cnet is not None else None)
+            cstats = consensus_neuron_stats(pop, teacher, dims,
+                                            quorum_ratio=cfg.cluster_quorum)
             combined_now = None
             if cfg.combine and not combined_done and cnet is not None:
                 polished = polish_consensus(
@@ -597,16 +692,51 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 "wall_s": round(time.time() - t0, 1),
                 "cluster_max_eps": cc,
             }
+            if cstats is not None:
+                rec["n_consensus"] = cstats["n_consensus"]
+                rec["n_total"] = cstats["n_total"]
+                rec["consensus_max_eps"] = cstats["max_eps"]
+                rec["consensus_mean_eps"] = cstats["mean_eps"]
+                for k in ("l0_max", "l0_mean", "l1_max", "l1_mean",
+                          "n_out_consensus", "out_total", "out_max", "out_mean"):
+                    if k in cstats:
+                        rec["consensus_" + k] = cstats[k]
             if souped is not None:
                 rec["soup_loss"] = souped
             if combined_now is not None:
                 rec["combined_iter"] = combined_now
             log.append(rec)
             cc_str = f"{cc:.2e}" if cc is not None else "  n/a  "
+            if cstats is not None and cstats["max_eps"] is not None:
+                cons_str = (f"{cstats['n_consensus']}/{cstats['n_total']} "
+                            f"L0[max {cstats['l0_max']:.2e} "
+                            f"mean {cstats['l0_mean']:.2e}] "
+                            f"L1[max {cstats['l1_max']:.2e} "
+                            f"mean {cstats['l1_mean']:.2e}]")
+                om = (f"max {cstats['out_max']:.2e} mean {cstats['out_mean']:.2e}"
+                      if cstats.get("out_max") is not None else "n/a")
+                cons_str += (f" | out {cstats['n_out_consensus']}/"
+                             f"{cstats['out_total']} [{om}]")
+            else:
+                cons_str = f"0/{dims[1]}"
             print(f"  it {t + 1:3d} | q {(t + 1) * cfg.q:6d} | "
                   f"loss {losses[bi]:.2e} | max_eps {errs['max_eps']:.2e} | "
-                  f"cluster {cc_str} | "
+                  f"mean_eps {rec['mean_eps']:.2e} | "
+                  f"cluster {cc_str} | cons {cons_str} | "
                   f"agree {rec['agree']:.4f} | {rec['wall_s']}s", flush=True)
+
+        # periodic population snapshot (inspect mid-run; no queries, overwrites)
+        if (cfg.pop_save_every and cfg.pop_save_path
+                and (t + 1) % cfg.pop_save_every == 0):
+            torch.save({
+                "dims": dims, "iter": t + 1,
+                "pop_states": [{k: v.detach().cpu() for k, v in
+                                m.state_dict().items()} for m in pop],
+                "teacher_state": {k: v.detach().cpu() for k, v in
+                                  teacher.state_dict().items()},
+            }, cfg.pop_save_path)
+            print(f"  [pop-save] iter {t + 1}: {cfg.p} members -> "
+                  f"{cfg.pop_save_path}", flush=True)
 
         # dump population + queries at a target iter (or first consensus), stop
         _hit = ((cfg.dump_at_iter and (t + 1) == cfg.dump_at_iter) or
