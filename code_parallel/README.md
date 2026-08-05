@@ -11,9 +11,10 @@ few extra flags.
   small per-step kernels). See `parallel_pool.py` (`WorkerPool`, `reconstruct_mp`).
 - **Query generation** — the committee-disagreement query batch is split
   `n / num_gpus` across GPUs and gathered (`gen_queries_parallel` in `method.py`).
-- **`--polish` endgame** — the float64 last-mile LBFGS shards the query set across
-  GPUs and sums per-shard gradients each closure (exact same math as single-GPU),
-  giving ~Nx on the fp64 forward/backward (`solver_polish_full_parallel_`).
+- **Endgame solve** — both the fast fp32 staged solve and the `--polish` float64
+  last-mile shard the query set across GPUs and sum per-shard gradients each LBFGS
+  closure (exact same math as single-GPU), giving ~Nx on the forward/backward
+  (`solver_polish_parallel_`, one closure for both dtypes).
 
 ## Extra flags (vs the serial code)
 - `--gpus 0,1,2` — GPU indices; members split across them (routes to `reconstruct_mp`).

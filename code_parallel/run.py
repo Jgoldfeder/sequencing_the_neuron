@@ -12,7 +12,7 @@ import torch
 
 from data import make_teacher, load_data
 from method import (Cfg, reconstruct, build_consensus, solver_polish_,
-                    solver_polish_full_, solver_polish_full_parallel_,
+                    solver_polish_full_, solver_polish_parallel_,
                     l1_on, agreement)
 from nets import count_params, MLP
 from align import param_errors
@@ -244,22 +244,31 @@ def main():
                       f"{param_errors(cons, teacher)['max_eps']:.3e} -> "
                       f"FULL float64 solve (--polish){par}...", flush=True)
                 if len(devices) > 1:
-                    solver_polish_full_parallel_(cons, Xf, teacher64, devices,
-                                                 mse_steps=40, mae_steps=300,
-                                                 report=20, verbose=args.verbose,
-                                                 tag=" polish")
+                    solver_polish_parallel_(cons, Xf, devices, teacher=teacher64,
+                                            dtype=torch.float64, mse_steps=40,
+                                            mae_steps=300, report=20,
+                                            verbose=args.verbose, tag=" polish")
                 else:
                     solver_polish_full_(cons, Xf, teacher64, mse_steps=40,
                                         mae_steps=300, report=20,
                                         verbose=args.verbose, tag=" polish")
                 meas_teacher, meas_pts = teacher64, eval_pts.double()
             else:
+                par = " (data-parallel across %d GPUs)" % len(devices) \
+                    if len(devices) > 1 else ""
                 print(f"[fast] consensus at iter {ck['iter']} ({len(Xf)} "
                       f"queries): max_eps "
                       f"{param_errors(cons, teacher)['max_eps']:.3e} -> "
-                      f"staged MSE->MAE solve...", flush=True)
-                solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,
-                               verbose=args.verbose, tag=" fast")
+                      f"staged MSE->MAE solve{par}...", flush=True)
+                if len(devices) > 1:
+                    # same fp32 staged solve as serial, sharded across GPUs
+                    solver_polish_parallel_(cons, Xf, devices, Y=Yf,
+                                            dtype=torch.float32, mse_steps=40,
+                                            mae_steps=40, verbose=args.verbose,
+                                            tag=" fast")
+                else:
+                    solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,
+                                   verbose=args.verbose, tag=" fast")
                 meas_teacher, meas_pts = teacher, eval_pts
             errs = param_errors(cons, meas_teacher)
             best = cons

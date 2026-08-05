@@ -553,27 +553,33 @@ def solver_polish_full_(net, X, teacher, mse_steps=40, mae_steps=300,
     return net
 
 
-def solver_polish_full_parallel_(net, X, teacher, devices, mse_steps=40,
-                                 mae_steps=300, report=0, verbose=False, tag=""):
-    """Data-parallel solver_polish_full_: identical math, sharded across GPUs.
+def solver_polish_parallel_(net, X, devices, Y=None, teacher=None,
+                            dtype=torch.float32, mse_steps=40, mae_steps=40,
+                            report=0, verbose=False, tag=""):
+    """Data-parallel staged MSE->MAE LBFGS, sharded across `devices`. Serves both
+    endgames:
+      * fast   -- pass stored `Y` (used as-is), dtype=float32  (== solver_polish_)
+      * polish -- pass `teacher` (RE-QUERIED on X in dtype, removing the fp32
+                  target-noise floor), dtype=float64          (== solver_polish_full_)
 
     LBFGS steps stay sequential on the master (devices[0]) -- they can't be
-    parallelized -- but each closure's fp64 forward/backward (the entire cost)
-    is split across `devices`: shard the query set, each GPU computes the SUM of
-    residuals on its shard, sum the per-shard gradients, divide by the total
-    element count. That sum-then-normalize is exactly the gradient/loss of the
-    single-GPU mean over the full set, so the result matches serial bit-for-bit
-    up to reduction order. The fp64 closure is a big compute-bound kernel that
-    releases the GIL, so plain threads give real ~Nx (unlike the tiny training
-    kernels, which needed processes). Casts net to float64 in place; returns it.
-    `teacher` must be float64."""
+    parallelized -- but each closure's forward/backward (the entire cost) is split
+    across `devices`: shard the query set, each GPU computes the SUM of residuals
+    on its shard, sum the per-shard gradients, divide by the total element count.
+    That sum-then-normalize is exactly the gradient/loss of the single-GPU mean
+    over the full set, so it matches serial up to reduction order. The closure is
+    a big compute-bound kernel that releases the GIL, so plain threads give real
+    ~Nx (unlike the tiny training kernels, which needed processes). Casts net to
+    `dtype` in place; returns it. Exactly one of `Y` / `teacher` must be given;
+    a float64 `teacher` must match dtype=float64."""
     import copy
+    assert (Y is None) != (teacher is None), "pass exactly one of Y / teacher"
     devs = [torch.device(d) for d in devices]
     master = devs[0]
-    net = net.double().to(master)
+    net = net.to(device=master, dtype=dtype)
+    Xm = X.to(device=master, dtype=dtype)
     with torch.no_grad():
-        Xm = X.double().to(master)
-        Ym = teacher(Xm)                    # fp64 targets, re-queried (query-only)
+        Ym = teacher(Xm) if teacher is not None else Y.to(device=master, dtype=dtype)
     N, O = Ym.shape[0], Ym.shape[1]
     denom = N * O                           # matches (r*r).mean() over the full set
     bnds = [(k * N) // len(devs) for k in range(len(devs) + 1)]
@@ -624,7 +630,7 @@ def solver_polish_full_parallel_(net, X, teacher, devices, mse_steps=40,
             if verbose and report and (s + 1) % report == 0:
                 with torch.no_grad():
                     r = net(Xm) - Ym
-                print(f"    [polish-full||]{tag} {kind} step {s+1:4d}: "
+                print(f"    [polish||]{tag} {kind} step {s+1:4d}: "
                       f"mse {(r * r).mean():.3e} mae {r.abs().mean():.3e}",
                       flush=True)
     return net
