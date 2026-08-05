@@ -85,8 +85,9 @@ class Cfg:
     solver_polish: bool = False   # at the end of each outer iter, tighten each
                                   # member with the staged LBFGS recipe
                                   # (MSE then MAE) -> faster committee agreement
-    solverwindow: int = 10        # polish on the last solverwindow iters of
-                                  # queries (0 = all)
+    solverwindow: int = 0         # every query-solver (in-loop polish, --fast
+                                  # endgame, lbfgs endgame) fits on the last
+                                  # solverwindow outer iters of queries; 0 = all
     verbose: bool = False         # print per-member polish detail (loss
                                   # before->after, #evals, time)
     dump_at_iter: int = 0         # >0: torch.save population+queries at this
@@ -437,13 +438,19 @@ def cluster_consensus(pop, teacher, dims, losses=None, eps=0.02,
 
 
 def solver_polish_(net, X, Y, mse_steps=15, mae_steps=15,
-                   verbose=False, tag=""):
+                   verbose=False, tag="", bs=8192):
     """Tighten a single net's fit in-place with the staged LBFGS recipe:
     MSE (descend into the basin) then MAE (constant gradient finishes the flat
     directions MSE's vanishing gradient abandons). Modifies net.parameters()
-    in place so the caller's optimizer stays valid. GPU float32."""
+    in place so the caller's optimizer stays valid. GPU float32.
+
+    X/Y may live on CPU: the full query matrix can exceed GPU memory at large
+    input dims, so the closure streams `bs`-row chunks to the net's device and
+    accumulates the gradient across all chunks into .grad before each LBFGS
+    step -- identical to one full-batch backward, just bounded in peak memory."""
     dev = next(net.parameters()).device
-    X, Y = X.to(dev), Y.to(dev)
+    dt = next(net.parameters()).dtype     # follow the net's precision (fp32/fp64)
+    denom = X.shape[0] * Y.shape[1]
     for kind, steps in (("mse", mse_steps), ("mae", mae_steps)):
         opt = torch.optim.LBFGS(net.parameters(), lr=1.0, max_iter=20,
                                 history_size=20, line_search_fn="strong_wolfe")
@@ -452,10 +459,14 @@ def solver_polish_(net, X, Y, mse_steps=15, mae_steps=15,
         def closure():
             n_eval[0] += 1
             opt.zero_grad()
-            r = net(X) - Y
-            loss = (r ** 2).mean() if kind == "mse" else r.abs().mean()
-            loss.backward()
-            return loss
+            total = 0.0
+            for i in range(0, X.shape[0], bs):
+                xb, yb = X[i:i + bs].to(dev, dt), Y[i:i + bs].to(dev, dt)
+                r = net(xb) - yb
+                loss = (r ** 2).sum() if kind == "mse" else r.abs().sum()
+                (loss / denom).backward()
+                total += loss.item() / denom
+            return total
         if verbose:
             t0 = time.time()
             l0 = l1_on([net], X, Y)[0]
@@ -500,9 +511,10 @@ def l1_on(pop, X, Y, bs=4096):
     losses = []
     for net in pop:
         dev = next(net.parameters()).device
+        dt = next(net.parameters()).dtype
         tot, n = 0.0, 0
         for i in range(0, len(X), bs):
-            xb, yb = X[i:i + bs].to(dev), Y[i:i + bs].to(dev)
+            xb, yb = X[i:i + bs].to(dev, dt), Y[i:i + bs].to(dev, dt)
             tot += (net(xb) - yb).abs().sum().item()
             n += yb.numel()
         losses.append(tot / n)
@@ -845,12 +857,20 @@ def polish_lbfgs(best, X, Y, cfg, max_samples=12000, steps=60):
     residual-proportional gradients + curvature, at float64 precision."""
     dev = next(best.parameters()).device
     net = best.clone().cpu().double()
-    n = len(X)
+    # solver window: restrict to the last cfg.solverwindow outer iters of queries
+    # (the most-recent tail), then cap to max_samples for float64 tractability.
+    # solverwindow=0 keeps the original behavior (random subsample of all).
+    Xw, Yw = X, Y
+    if cfg.solverwindow and cfg.solverwindow > 0:
+        keep = cfg.solverwindow * cfg.q
+        if keep < len(X):
+            Xw, Yw = X[-keep:], Y[-keep:]
+    n = len(Xw)
     if n > max_samples:
         idx = torch.randperm(n)[:max_samples]
-        Xs, Ys = X[idx].cpu().double(), Y[idx].cpu().double()
+        Xs, Ys = Xw[idx].cpu().double(), Yw[idx].cpu().double()
     else:
-        Xs, Ys = X.cpu().double(), Y.cpu().double()
+        Xs, Ys = Xw.cpu().double(), Yw.cpu().double()
     opt = torch.optim.LBFGS(net.parameters(), lr=0.5, max_iter=20,
                             history_size=10, line_search_fn="strong_wolfe")
 

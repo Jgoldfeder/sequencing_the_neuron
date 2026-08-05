@@ -116,8 +116,10 @@ def main():
                     help="at the end of each outer iter, tighten every member "
                          "with the staged LBFGS recipe (MSE then MAE).")
     ap.add_argument("--solverwindow", type=int, default=None,
-                    help="window (in outer iters) of recent queries to "
-                         "solver-polish on (default 10).")
+                    help="window (in outer iters) of most-recent queries every "
+                         "query-solver fits on -- the in-loop polish, the --fast "
+                         "endgame, and the lbfgs endgame. 0 = all queries "
+                         "(default).")
     ap.add_argument("--pop-save-every", type=int, default=0,
                     help="snapshot the committee population every k outer iters "
                          "to recon/_pop__ARCH__sSEED.pt (inspect mid-run).")
@@ -189,8 +191,20 @@ def main():
     if args.fast and os.path.exists(fast_dump):
         # reconstruct stopped + dumped at the first consensus; build it and run
         # the staged MSE->MAE solve on the queries collected so far.
-        ck = torch.load(fast_dump, map_location=device, weights_only=False)
-        Xf, Yf = ck["X"].to(device), ck["Y"].to(device)
+        ck = torch.load(fast_dump, map_location="cpu", weights_only=False)
+        # queries stay on CPU (the full matrix can dwarf GPU memory at large
+        # input dims); solver_polish_ streams them to the GPU in chunks.
+        Xf, Yf = ck["X"], ck["Y"]
+        n_total = len(Xf)
+        # solver window (the single --solverwindow knob): restrict the solve to the
+        # last cfg.solverwindow outer iters of queries (the most-recent tail,
+        # Xf[-N*q:], since queries are appended chronologically). 0 = full set.
+        if cfg.solverwindow and cfg.solverwindow > 0:
+            keep = cfg.solverwindow * cfg.q
+            if keep < n_total:
+                Xf, Yf = Xf[-keep:], Yf[-keep:]
+                print(f"[fast] solver window: last {cfg.solverwindow} iters "
+                      f"= {len(Xf)}/{n_total} most-recent queries", flush=True)
         pop = []
         for s in ck["pop_states"]:
             m = MLP(dims).to(device); m.load_state_dict(s); pop.append(m)
@@ -212,7 +226,7 @@ def main():
                 len(errs["mean_eps_per_matrix"]),
                 "final_max_eps_per_matrix": errs["max_eps_per_matrix"],
                 "final_agree": agreement(cons, teacher, eval_pts),
-                "queries": len(Xf), "stopped_iter": ck["iter"],
+                "queries": n_total, "stopped_iter": ck["iter"],
                 "wall_s": round(time.time() - t0, 1),
             }
         os.remove(fast_dump)

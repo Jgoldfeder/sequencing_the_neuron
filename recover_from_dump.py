@@ -16,7 +16,7 @@ import os
 import torch
 
 from nets import MLP
-from method import build_consensus, l1_on
+from method import build_consensus, l1_on, solver_polish_
 from align import param_errors
 
 
@@ -33,14 +33,32 @@ def main():
                     default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--quorum", type=float, default=0.625,
                     help="consensus quorum ratio (0.625 = 5/8, the --fast value)")
-    ap.add_argument("--samples", type=int, default=100000,
-                    help="query subsample for the full-batch LBFGS solve "
-                         "(memory-bound at high input dim)")
+    ap.add_argument("--samples", type=int, default=0,
+                    help="cap the LBFGS solve to a random subsample of this many "
+                         "queries; 0 (default) = use the FULL set (streamed to "
+                         "the GPU in chunks, so it never has to sit there at once)")
+    ap.add_argument("--solve-bs", type=int, default=8192,
+                    help="chunk size for streaming queries to the GPU in the solve")
+    ap.add_argument("--solverwindow", type=int, default=0,
+                    help="restrict the solve to the last N outer iters of queries "
+                         "(the most-recent tail, X[-N*q:]), mirroring the in-loop "
+                         "polish's solverwindow; 0 (default) = all collected "
+                         "queries. Applied before --samples.")
     ap.add_argument("--loss-samples", type=int, default=100000,
                     help="query subsample for reporting train L1 (full set is "
                          "slow at 1e6+ queries)")
     ap.add_argument("--mse-steps", type=int, default=40)
     ap.add_argument("--mae-steps", type=int, default=40)
+    ap.add_argument("--float64", action="store_true",
+                    help="after the float32 solve, run a float64 refinement pass "
+                         "to break the float32 precision floor. OFF by default "
+                         "(fp64 is ~40x slower on GeForce GPUs); opt in with "
+                         "--float64.")
+    ap.add_argument("--f64-samples", type=int, default=50000,
+                    help="query subsample for the float64 refine. fp64 is ~40x "
+                         "slower on GeForce GPUs, so the refine runs on a bounded "
+                         "subset of the already-fit set; 0 = the full selected set "
+                         "(hours at 12288-in). Default 50000.")
     ap.add_argument("--out", default="",
                     help="where to save the solved net (default: alongside dump)")
     args = ap.parse_args()
@@ -82,42 +100,71 @@ def main():
           f"train_L1={cons_loss:.3e}  max_eps={cons_eps:.3e}  "
           f"-> {verdict} than best member ({member_eps:.3e})", flush=True)
 
-    # --- staged MSE->MAE LBFGS solve on a memory-safe subsample ---
-    S = min(args.samples, N)
-    if S < N:
-        print(f"[solve ] NOTE: solving on a {S}/{N} random subsample of queries "
-              f"(full set is {N * dims[0] * 4 / 1024**3:.0f} GB, too big for GPU)",
-              flush=True)
-    gS = torch.Generator().manual_seed(1)
-    si = torch.randperm(N, generator=gS)[:S]
-    Xs, Ys = X[si].to(dev), Y[si].to(dev)
+    # --- staged MSE->MAE LBFGS solve. Queries stay on CPU; solver_polish_
+    #     streams `--solve-bs` chunks to the GPU and accumulates the full-batch
+    #     gradient, so the whole set (30 GB at 12288-in) never sits on the card.
+    #     Query selection: --solverwindow first (most-recent tail), then an
+    #     optional --samples random cap; default is the FULL set. ---
+    # (1) solver window: keep the last `solverwindow` outer iters of queries.
+    #     Queries are appended chronologically, so this is the tail X[-keep:],
+    #     matching the in-loop polish (method.py: X[-solverwindow*q:]).
+    Xw, Yw = X, Y
+    if args.solverwindow and args.solverwindow > 0:
+        q = max(1, N // max(1, ck["iter"]))
+        keep = args.solverwindow * q
+        if keep < N:
+            Xw, Yw = X[-keep:], Y[-keep:]
+            print(f"[solve ] solver window: last {args.solverwindow} iters "
+                  f"(~{q}/iter) = {len(Xw)}/{N} most-recent queries", flush=True)
+    W = len(Xw)
+    # (2) optional random subsample cap on top of the window.
+    if args.samples and args.samples < W:
+        S = args.samples
+        gS = torch.Generator().manual_seed(1)
+        si = torch.randperm(W, generator=gS)[:S]
+        Xs, Ys = Xw[si], Yw[si]
+        print(f"[solve ] NOTE: --samples capped the solve to a {S}/{W} random "
+              f"subsample of the windowed queries", flush=True)
+    else:
+        S = W
+        Xs, Ys = Xw, Yw               # streamed to the GPU in chunks
     net = cons
+    bs = args.solve_bs
 
     @torch.no_grad()
     def report(tag):
         me = param_errors(net, teacher)["max_eps"]
-        l = (net(Xs) - Ys).abs().mean().item()
+        l = l1_on([net], Xs, Ys, bs=bs)[0]
         print(f"  {tag:14s} L1={l:.3e}  max_eps={me:.3e}", flush=True)
         return me
 
-    def phase(kind, steps):
-        opt = torch.optim.LBFGS(net.parameters(), lr=1.0, max_iter=20,
-                                history_size=20, line_search_fn="strong_wolfe")
-
-        def closure():
-            opt.zero_grad()
-            r = net(Xs) - Ys
-            loss = (r ** 2).mean() if kind == "mse" else r.abs().mean()
-            loss.backward()
-            return loss
-        for _ in range(steps):
-            opt.step(closure)
-
-    print(f"[solve ] staged MSE->MAE on {S} queries (device={dev}):", flush=True)
+    print(f"[solve ] float32 staged MSE->MAE on {S} queries "
+          f"(device={dev}, chunk={bs}):", flush=True)
     report("consensus")
-    phase("mse", args.mse_steps); report("+LBFGS-MSE")
-    phase("mae", args.mae_steps)
+    solver_polish_(net, Xs, Ys, mse_steps=args.mse_steps, mae_steps=0, bs=bs)
+    report("+LBFGS-MSE")
+    solver_polish_(net, Xs, Ys, mse_steps=0, mae_steps=args.mae_steps, bs=bs)
     final_eps = report("+MAE")
+
+    # --- float64 refinement: the float32 solve floors around ~1e-2/1e-3 param
+    #     error; a float64 pass breaks that floor. fp64 is ~40x slower on GeForce
+    #     cards, so refine on a bounded subsample of the (already-fit) set. ---
+    if args.float64:
+        Sd = S if args.f64_samples <= 0 else min(args.f64_samples, S)
+        if Sd < S:
+            gd = torch.Generator().manual_seed(2)
+            di = torch.randperm(S, generator=gd)[:Sd]
+            Xd, Yd = Xs[di], Ys[di]
+        else:
+            Xd, Yd = Xs, Ys
+        net = net.double()            # promote params to fp64 to break the floor
+        print(f"[solve ] float64 refine on {Sd}/{S} queries "
+              f"(device={dev}, chunk={bs}):", flush=True)
+        solver_polish_(net, Xd, Yd, mse_steps=args.mse_steps, mae_steps=0, bs=bs)
+        report("+f64-MSE")
+        solver_polish_(net, Xd, Yd, mse_steps=0, mae_steps=args.mae_steps, bs=bs)
+        final_eps = report("+f64-MAE")
+        net = net.float()             # back to fp32 for saving (max_eps << fp32 eps)
 
     out = args.out or os.path.join(os.path.dirname(args.dump),
                                    "recovered_solved.pt")
@@ -129,6 +176,8 @@ def main():
         "best_member_max_eps": member_eps,
         "queries_total": N,
         "solve_samples": S,
+        "solve_window_iters": args.solverwindow,
+        "float64_refine": bool(args.float64),
     }, out)
     print(f"\n[save  ] solved reconstruction -> {out}", flush=True)
     print(f"[result] best_member={member_eps:.3e}  consensus={cons_eps:.3e}  "

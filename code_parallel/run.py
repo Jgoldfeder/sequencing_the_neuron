@@ -111,6 +111,10 @@ def main():
     ap.add_argument("--outer", type=int, default=40)
     ap.add_argument("--q", type=int, default=1500)
     ap.add_argument("--p", type=int, default=8)
+    ap.add_argument("--batch", type=int, default=None,
+                    help="training minibatch size (default 512). Smaller batches "
+                         "make the x4-slot GPU compute-bound so overlap fully hides "
+                         "its transfer -- useful for balanced multi-GPU scaling.")
     ap.add_argument("--window", type=int, default=None,
                     help="override variant's sample window (in outer iters; "
                          "0 = keep all). Default: use the variant's value.")
@@ -182,6 +186,8 @@ def main():
         overrides["solver_polish"] = True
     if args.solverwindow is not None:
         overrides["solverwindow"] = args.solverwindow
+    if args.batch is not None:
+        overrides["batch"] = args.batch
     if args.endgame_f64:
         overrides["endgame_f64"] = True
     if args.verbose:
@@ -209,7 +215,10 @@ def main():
         os.makedirs(recon_dir, exist_ok=True)
         save_recon = os.path.join(
             recon_dir, f"{args.variant}{tag}__{arch_tag}__s{args.seed}.pt")
-    if len(devices) > 1:
+    # Any explicit --gpus (even a single one) uses the worker/prefetch path, so a
+    # 1-GPU run is an apples-to-apples denominator for multi-GPU scaling. Bare
+    # --device stays on the original path.
+    if args.gpus:
         from parallel_pool import reconstruct_mp
         best, log, final = reconstruct_mp(teacher, dims, cfg, devices, eval_pts,
                                           seed=args.seed, save_recon=save_recon)

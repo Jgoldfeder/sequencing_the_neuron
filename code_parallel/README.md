@@ -6,11 +6,18 @@ directory is a drop-in parallel variant that takes the same command lines plus a
 few extra flags.
 
 ## What is parallelized
-- **Training** — the population of `--p` students is split across the GPUs given
-  by `--gpus` (one persistent worker process per GPU, so no GIL contention on the
-  small per-step kernels). See `parallel_pool.py` (`WorkerPool`, `reconstruct_mp`).
-- **Query generation** — the committee-disagreement query batch is split
-  `n / num_gpus` across GPUs and gathered (`gen_queries_parallel` in `method.py`).
+- **Training (the win)** — the population of `--p` students is split across the
+  GPUs given by `--gpus`: member `i` lives on GPU `i % ng` and trains there for all
+  epochs on a full local copy of the query buffer, with **zero cross-GPU
+  communication** (the members are independent — nothing to synchronize). One
+  persistent worker *process* per GPU (not a thread), so the tiny per-step kernels
+  don't contend on the GIL. This is the axis the problem is trivially parallel on:
+  `p` independent trainings → up to `ng`× faster. See `parallel_pool.py`
+  (`WorkerPool`, `reconstruct_mp`) and `parallel_bench.py` for the microbenchmark.
+- **Query generation** — runs on the master GPU with the full (gathered) committee.
+  The batch is small (`q ≈ 1500`), so replicating the committee onto every GPU each
+  call costs ~2× more than it saves; the committee is already gathered to master
+  for consensus anyway.
 - **Endgame solve** — both the fast fp32 staged solve and the `--polish` float64
   last-mile shard the query set across GPUs and sum per-shard gradients each LBFGS
   closure (exact same math as single-GPU), giving ~Nx on the forward/backward
