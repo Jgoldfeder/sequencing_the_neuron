@@ -45,9 +45,49 @@ def load_cifar100(device):
     return get(True), get(False)
 
 
+def _prepare_tinyimagenet_val(val_dir):
+    """The val split ships as a flat val/images/*.JPEG + val_annotations.txt;
+    reorganize into val/<wnid>/*.JPEG so ImageFolder can read it (idempotent)."""
+    img_dir = os.path.join(val_dir, "images")
+    ann = os.path.join(val_dir, "val_annotations.txt")
+    if not os.path.isdir(img_dir) or not os.path.exists(ann):
+        return                                    # already prepared
+    import shutil
+    with open(ann) as f:
+        for line in f:
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            fn, wnid = parts[0], parts[1]
+            cls = os.path.join(val_dir, wnid)
+            os.makedirs(cls, exist_ok=True)
+            src = os.path.join(img_dir, fn)
+            if os.path.exists(src):
+                shutil.move(src, os.path.join(cls, fn))
+    shutil.rmtree(img_dir, ignore_errors=True)
+
+
+def _ensure_tinyimagenet(root):
+    """Download + prepare TinyImageNet-200 into `root` if absent. torchvision has
+    no built-in downloader for it, so a fresh machine would otherwise error."""
+    train_dir = os.path.join(root, "train")
+    val_dir = os.path.join(root, "val")
+    if not os.path.isdir(train_dir):
+        from torchvision.datasets.utils import download_and_extract_archive
+        parent = os.path.dirname(root)            # = DATA_ROOT
+        os.makedirs(parent, exist_ok=True)
+        url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
+        print(f"[data] TinyImageNet-200 not found; downloading to {parent} "
+              f"(~240MB)...", flush=True)
+        download_and_extract_archive(url, download_root=parent,
+                                     remove_finished=True)
+    _prepare_tinyimagenet_val(val_dir)            # idempotent
+
+
 def load_tinyimagenet(device):
     """TinyImageNet-200: 64x64x3 (=12288) inputs, 200 classes. Decoded from the
-    ImageFolder once and cached as tensors (100k train JPEGs are slow to decode)."""
+    ImageFolder once and cached as tensors (100k train JPEGs are slow to decode).
+    Auto-downloads the dataset on first use if it isn't present."""
     cache = os.path.join(DATA_ROOT, "tinyimagenet_64.pt")
     if os.path.exists(cache):
         d = torch.load(cache, map_location="cpu")
@@ -56,6 +96,7 @@ def load_tinyimagenet(device):
     from torchvision import datasets, transforms
     from torch.utils.data import DataLoader
     root = os.path.join(DATA_ROOT, "tiny-imagenet-200")
+    _ensure_tinyimagenet(root)
     tf = transforms.Compose([
         transforms.Resize(64),
         transforms.ToTensor(),
