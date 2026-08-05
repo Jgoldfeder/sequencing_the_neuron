@@ -106,7 +106,8 @@ def main():
     ap.add_argument("--gpus", default=None,
                     help="comma-separated GPU indices for population parallelism, "
                          "e.g. --gpus 0,1,2 (members split across GPUs, query-gen "
-                         "chunked per GPU). Overrides --device; master = first.")
+                         "chunked per GPU). Or --gpus all to use every visible "
+                         "CUDA device. Overrides --device; master = first.")
     ap.add_argument("--outer", type=int, default=40)
     ap.add_argument("--q", type=int, default=1500)
     ap.add_argument("--p", type=int, default=8)
@@ -152,7 +153,13 @@ def main():
 
     dims = [int(x) for x in args.arch.split(",")]
     if args.gpus:
-        devices = [f"cuda:{i.strip()}" for i in args.gpus.split(",")]
+        if args.gpus.strip().lower() == "all":
+            n = torch.cuda.device_count()
+            if n == 0:
+                raise SystemExit("--gpus all: no CUDA devices visible")
+            devices = [f"cuda:{i}" for i in range(n)]
+        else:
+            devices = [f"cuda:{i.strip()}" for i in args.gpus.split(",")]
     else:
         devices = [args.device]
     device = devices[0]                     # master

@@ -12,8 +12,11 @@ from torchvision.datasets import MNIST, CIFAR100
 
 from nets import MLP
 
-DATA_ROOT = os.path.join(os.path.dirname(__file__), "..", "data")
-TEACHER_DIR = os.path.join(os.path.dirname(__file__), "teachers")
+# This dir is nested one level under the serial root code, so it reaches up an
+# extra level to share the SAME data/ and teachers/ the root code uses (avoids
+# re-downloading datasets and re-training teachers).
+DATA_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+TEACHER_DIR = os.path.join(os.path.dirname(__file__), "..", "teachers")
 
 MNIST_MEAN, MNIST_STD = 0.1307, 0.3081
 CIFAR_MEAN = torch.tensor([0.5071, 0.4865, 0.4409])

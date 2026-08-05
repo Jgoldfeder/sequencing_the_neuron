@@ -17,6 +17,7 @@ few extra flags.
 
 ## Extra flags (vs the serial code)
 - `--gpus 0,1,2` — GPU indices; members split across them (routes to `reconstruct_mp`).
+  `--gpus all` uses every visible CUDA device.
 - `--polish` — replace the fast fp32 consensus solve with the full float64
   endgame (push_precision recipe: re-query teacher in float64, staged MSE→MAE
   LBFGS). Auto data-parallel when `--gpus` has >1 device.
