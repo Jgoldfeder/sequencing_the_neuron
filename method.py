@@ -256,13 +256,123 @@ def soup_of(members):
 
 
 @torch.no_grad()
+def _largest_eps_ball(feats, eps):
+    """Indices of the largest set of rows all within `eps` (inf-norm) of some
+    anchor row -- the tight-agreement cluster at ONE aligned neuron position."""
+    D = torch.cdist(feats.float(), feats.float(), p=float("inf"))
+    best = []
+    for a in range(feats.shape[0]):
+        ball = (D[a] < eps).nonzero(as_tuple=True)[0].tolist()
+        if len(ball) > len(best):
+            best = ball
+    return best
+
+
+@torch.no_grad()
+def _align_members(pop, idxs, ref_idx):
+    """Scale-normalize + permutation-align every member[idxs] into the reference
+    member's frame. align_clone_to propagates each layer's permutation into the
+    next (permute_layer_), so after this a neuron's incoming row at any depth is
+    directly comparable across members. Returns (aligned clones, normalized ref)."""
+    ref = pop[ref_idx].clone(); scale_normalize_(ref)
+    aligned = [align_clone_to(pop[i], ref)[1] for i in idxs]
+    return aligned, ref
+
+
+@torch.no_grad()
+def _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum):
+    """Align members[idxs] into member[ref_idx]'s frame (align_clone_to propagates
+    each layer's permutation into the next), then take per-neuron quorum consensus.
+    Returns (net_or_None, per_layer) where per_layer[l] = (n_total, n_consensus)
+    for hidden layer l, and net is None unless EVERY hidden neuron reached quorum."""
+    aligned, ref = _align_members(pop, idxs, ref_idx)
+    net = ref.clone()
+    L = len(net.layers)
+    per_layer, full = [], True
+    for l in range(L):                              # every weight matrix
+        hidden = l < L - 1
+        H, nc = net.layers[l].weight.shape[0], 0
+        for k in range(H):
+            feats = torch.stack([torch.cat([a.layers[l].weight[k],
+                                            a.layers[l].bias[k:k + 1]])
+                                 for a in aligned])
+            S = _largest_eps_ball(feats, eps)
+            if len(S) >= quorum:
+                if hidden:
+                    nc += 1
+                net.layers[l].weight.data[k] = torch.stack(
+                    [aligned[s].layers[l].weight[k] for s in S]).mean(0)
+                net.layers[l].bias.data[k] = torch.stack(
+                    [aligned[s].layers[l].bias[k] for s in S]).mean(0)
+            elif hidden:
+                full = False                        # a hidden unit lacks quorum
+        if hidden:
+            per_layer.append((H, nc))
+    return (net if full else None), per_layer
+
+
+@torch.no_grad()
+def _build_consensus_deep(pop, dims, losses, eps, quorum_ratio, gate_kappa):
+    """build_consensus for nets with >1 hidden layer. Mutual-NN clustering doesn't
+    generalize cleanly across layers (a layer's permutation reindexes the next
+    layer's input columns), so instead align every gated member into one member's
+    frame, then take per-neuron quorum consensus layer by layer. Returns the
+    consensus net, or None unless EVERY hidden neuron reaches quorum (same
+    all-or-nothing contract as the single-layer path). Robust to a bad reference:
+    with losses known it aligns to the best member; without, it tries each member
+    as the frame and returns the first that yields full consensus."""
+    import math
+    P = len(pop)
+    quorum = math.ceil(quorum_ratio * P)
+    idxs = list(range(P))
+    if losses is not None and gate_kappa > 0:
+        bl = min(losses)
+        idxs = [i for i in range(P) if losses[i] <= gate_kappa * bl]
+    if len(idxs) < quorum:
+        return None
+    refs = [min(idxs, key=lambda i: losses[i])] if losses is not None else idxs
+    for ref_idx in refs:
+        net, _ = _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum)
+        if net is not None:
+            return net
+    return None
+
+
+@torch.no_grad()
+def _consensus_stats_deep(pop, teacher, dims, eps, quorum_ratio):
+    """consensus_neuron_stats for >1 hidden layer: per-hidden-layer quorum counts
+    (teacher-free; the reference giving the most agreement is used) plus the
+    consensus net's error vs the teacher for scoring."""
+    import math
+    P = len(pop)
+    quorum = math.ceil(quorum_ratio * P)
+    idxs = list(range(P))
+    best_pl, best_tot = [], -1
+    for ref_idx in idxs:                            # pick the most-agreeing frame
+        _, per_layer = _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum)
+        tot = sum(nc for _, nc in per_layer)
+        if tot > best_tot:
+            best_tot, best_pl = tot, per_layer
+    layers = [{"n_cons": nc, "n_tot": H} for H, nc in best_pl]
+    cnet = build_consensus(pop, dims, quorum_ratio=quorum_ratio, eps=eps)
+    if cnet is not None:
+        pe = param_errors(cnet, teacher)
+        max_eps = pe["max_eps"]
+        mean_eps = sum(pe["mean_eps_per_matrix"]) / len(pe["mean_eps_per_matrix"])
+    else:
+        max_eps = mean_eps = None
+    return {"n_consensus": sum(x["n_cons"] for x in layers),
+            "n_total": sum(x["n_tot"] for x in layers),
+            "max_eps": max_eps, "mean_eps": mean_eps, "layers": layers}
+
+
 def build_consensus(pop, dims, losses=None, eps=0.02,
                     quorum_ratio=0.75, gate_kappa=10.0):
     """Teacher-free tight-cluster alignment across the committee, then per-unit
     consensus. Returns the consensus NET (reconstructed from committee
     agreement instead of the single best member), or None (n/a) if the
     committee doesn't back it strongly enough. Fully teacher-free.
-    Single-hidden-layer nets only.
+    Handles any number of hidden layers (>1 hidden layer -> _build_consensus_deep).
 
     Robustness (prefer n/a over a shaky consensus):
       - loss-gate: only members within `gate_kappa` x the best training loss
@@ -277,8 +387,10 @@ def build_consensus(pop, dims, losses=None, eps=0.02,
     clusters (one per teacher unit), average each cluster. Stragglers are loners
     below quorum; collapsed members are gated out entirely."""
     import math
-    if len(dims) != 3 or len(pop) < 2:
+    if len(pop) < 2 or len(dims) < 3:
         return None
+    if len(dims) > 3:                                # >1 hidden layer
+        return _build_consensus_deep(pop, dims, losses, eps, quorum_ratio, gate_kappa)
     P, H = len(pop), dims[1]
     quorum = math.ceil(quorum_ratio * P)          # ratio of the FULL committee
 
@@ -346,8 +458,10 @@ def consensus_neuron_stats(pop, teacher, dims, eps=0.02, quorum_ratio=0.625):
     Returns {n_consensus, n_total, max_eps, mean_eps} or None."""
     import math
     from collections import defaultdict
-    if len(dims) != 3 or len(pop) < 2:
+    if len(pop) < 2 or len(dims) < 3:
         return None
+    if len(dims) > 3:                                # >1 hidden layer
+        return _consensus_stats_deep(pop, teacher, dims, eps, quorum_ratio)
     P, H = len(pop), dims[1]
     quorum = math.ceil(quorum_ratio * P)
     mem = [m.clone() for m in pop]
@@ -719,7 +833,14 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 rec["combined_iter"] = combined_now
             log.append(rec)
             cc_str = f"{cc:.2e}" if cc is not None else "  n/a  "
-            if cstats is not None and cstats["max_eps"] is not None:
+            if cstats is not None and "layers" in cstats:      # >1 hidden layer
+                parts = " ".join(f"L{li+1}:{x['n_cons']}/{x['n_tot']}"
+                                 for li, x in enumerate(cstats["layers"]))
+                e = (f"max {cstats['max_eps']:.2e} mean {cstats['mean_eps']:.2e}"
+                     if cstats.get("max_eps") is not None else "n/a")
+                cons_str = (f"{cstats['n_consensus']}/{cstats['n_total']} "
+                            f"[{parts}] {e}")
+            elif cstats is not None and cstats["max_eps"] is not None:
                 cons_str = (f"{cstats['n_consensus']}/{cstats['n_total']} "
                             f"L0[max {cstats['l0_max']:.2e} "
                             f"mean {cstats['l0_mean']:.2e}] "

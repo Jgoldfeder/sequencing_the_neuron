@@ -501,7 +501,13 @@ def reconstruct_mp(teacher, dims, cfg, devices, eval_pts, seed=0, save_recon=Non
                     rec["combined_iter"] = combined_now
                 log.append(rec)
                 cc_str = f"{cc:.2e}" if cc is not None else "  n/a  "
-                if cstats is not None and cstats["max_eps"] is not None:
+                if cstats is not None and "layers" in cstats:      # >1 hidden layer
+                    parts = " ".join(f"L{li+1}:{x['n_cons']}/{x['n_tot']}"
+                                     for li, x in enumerate(cstats["layers"]))
+                    e = (f"max {cstats['max_eps']:.2e} mean {cstats['mean_eps']:.2e}"
+                         if cstats.get("max_eps") is not None else "n/a")
+                    cons = f"{cstats['n_consensus']}/{cstats['n_total']} [{parts}] {e}"
+                elif cstats is not None and cstats["max_eps"] is not None:
                     cons = (f"{cstats['n_consensus']}/{cstats['n_total']} "
                             f"L0[max {cstats['l0_max']:.2e} mean {cstats['l0_mean']:.2e}] "
                             f"L1[max {cstats['l1_max']:.2e} mean {cstats['l1_mean']:.2e}]")
