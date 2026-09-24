@@ -2655,9 +2655,11 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     if pf not in partial_mask:
                         partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
                     wdt = partial_exact.layers[pf].weight.dtype
-                    for l in range(pf + 1):                              # exact prefix rows
-                        if l in frozen:
+                    for l in range(pf + 1):                              # exact prefix rows from
+                        if l in frozen:                                  # `frozen`, keeping our fp64 rows
                             fm = frozen[l][2].to(device)
+                            if l in partial_mask:
+                                fm = fm & ~partial_mask[l].to(device)
                             partial_exact.layers[l].weight.data[fm] = frozen[l][0].to(device)[fm].to(partial_exact.layers[l].weight.dtype)
                             partial_exact.layers[l].bias.data[fm] = frozen[l][1].to(device)[fm].to(partial_exact.layers[l].bias.dtype)
                     cand = (masks[pf].to(device) & ~_psolvedF(pf)).nonzero(as_tuple=True)[0].tolist()
@@ -3108,6 +3110,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                         try:
                             cnet, masks = _partial_consensus(
                                 pop, dims, cfg.cluster_eps, cfg.cluster_quorum)
+                            cnet = cnet.double()                 # fp64 record for the refined rows
                             # REFINE the consensus frontier to the kink solver's
                             # precision BEFORE freezing (non-cheat peel; the cheat
                             # branch above does the same). Refined rows come back
@@ -5246,9 +5249,11 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     if pf not in partial_mask:
                         partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
                     wdt = partial_exact.layers[pf].weight.dtype
-                    for l in range(pf + 1):                  # exact prefix rows
-                        if l in frozen:
+                    for l in range(pf + 1):                  # exact prefix rows from `frozen`,
+                        if l in frozen:                      # but keep our own fp64 solved rows
                             fm = frozen[l][2].to(device)
+                            if l in partial_mask:
+                                fm = fm & ~partial_mask[l].to(device)
                             partial_exact.layers[l].weight.data[fm] = frozen[l][0].to(device)[fm].to(wdt)
                             partial_exact.layers[l].bias.data[fm] = frozen[l][1].to(device)[fm].to(wdt)
                     cand = (masks[pf].to(device) & ~_psolvedQ(pf)).nonzero(as_tuple=True)[0].tolist()
@@ -5493,7 +5498,9 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             # exists -- seed from the single member).
                             seed_net = cons if cons is not None else best.clone()
                             if exact_net is None:
-                                exact_net = _copy.deepcopy(seed_net).to(device)
+                                exact_net = _copy.deepcopy(seed_net).to(device).double()   # fp64 record
+                            elif exact_net.layers[0].weight.dtype != torch.float64:
+                                exact_net = exact_net.double()
                             # rows already solved by --fast-peel-partial / --partial are
                             # SOLVED: take them from the fp64 record, never re-refine them
                             if partial_exact is not None:
