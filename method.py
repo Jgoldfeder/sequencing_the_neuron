@@ -2731,6 +2731,20 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
                         except Exception as e:
                             print(f"  [stored fp64] report skipped ({e})", flush=True)
+                    if ns == Cout:                           # audit: no duplicates among ALL solved rows
+                        Wa = partial_exact.layers[pf].weight.data; ba = partial_exact.layers[pf].bias.data
+                        _, dups_all = _dedupe_new_rows(list(range(Cout)), Wa, ba, None, None)
+                        if dups_all:
+                            partial_mask[pf][torch.tensor(dups_all, device=device)] = False
+                            for m_ in pop:
+                                key = (id(m_), pf)
+                                if key in partial_live:
+                                    partial_live[key][torch.tensor(dups_all, device=device)] = False
+                            _reroll_rows_(pop, opts, pf, dups_all, device)
+                            ns = int(_psolvedF(pf).sum())
+                            print(f"  [dedupe] L{pf + 1} completion audit: neurons {dups_all} duplicate "
+                                  f"another solved row -> un-solved + rerolled ({ns}/{Cout}); not advancing",
+                                  flush=True)
                     if ns == Cout and pf + 1 < Lh:
                         print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}; "
                               f"pinning L{pf + 2}'s consensus neurons first", flush=True)
@@ -5420,6 +5434,20 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
                         except Exception as e:
                             print(f"  [stored fp64] report skipped ({e})", flush=True)
+                    if ns == Cout:                           # audit: no duplicates among ALL solved rows
+                        Wa = partial_exact.layers[pf].weight.data; ba = partial_exact.layers[pf].bias.data
+                        _, dups_all = _dedupe_new_rows(list(range(Cout)), Wa, ba, None, None)
+                        if dups_all:
+                            partial_mask[pf][torch.tensor(dups_all, device=device)] = False
+                            for m_ in pop:
+                                key = (id(m_), pf)
+                                if key in partial_live:
+                                    partial_live[key][torch.tensor(dups_all, device=device)] = False
+                            _reroll_rows_(pop, opts, pf, dups_all, device)
+                            ns = int(_psolvedQ(pf).sum())
+                            print(f"  [dedupe] L{pf + 1} completion audit: channels {dups_all} duplicate "
+                                  f"another solved row -> un-solved + rerolled ({ns}/{Cout}); not advancing",
+                                  flush=True)
                     if ns == Cout and pf + 1 < Lh and pf + 1 < len(masks):
                         # BEFORE the full-layer peel freezes/reinits: pin the NEXT layer's
                         # consensus neurons now (same pass), so the reinit/refresh that

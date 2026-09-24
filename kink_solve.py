@@ -328,7 +328,8 @@ def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol
         straddle = (JU - ds).norm(dim=1) < 1e-3 * ds.norm(dim=1)
         # fingerprint: h-normalized perpendicular jump ratios
         r = (Jv.norm(dim=2) / dhV_s) / (JU.norm(dim=1) / dhU_s)[:, None]
-        good = single & straddle & (r < fp_tol).all(1)
+        fpt_ = fp_tol[sub][:, None] if torch.is_tensor(fp_tol) else fp_tol
+        good = single & straddle & (r < fpt_).all(1)
         if debug is not None:
             debug.append(dict(sub=sub, xs=xs, single=single, straddle=straddle, r=r, ds=ds, good=good))
         found[sub[good]] = True
@@ -551,6 +552,9 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
     chans = list(channels)
     got = {c: 0 for c in chans}; eps = {c: eps0 for c in chans}
     yld = {c: 0.5 for c in chans}                       # located / brackets, per channel
+    fpt = {c: 0.03 for c in chans}                      # fingerprint tol; a guess worse than
+                                                        # ~3e-2 fails its OWN kink at 0.03 ->
+                                                        # a zero-yield round relaxes it to 0.1
     Hs = {c: [] for c in chans}; Xp = {c: [] for c in chans}; Up = {c: [] for c in chans}
     Ts = {c: [] for c in chans}; tried = {c: 0 for c in chans}
     seeds = {c: 0 for c in chans}
@@ -594,8 +598,11 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
         ch = 2048 if full else 16384
         for a in range(0, len(X0), ch):                        # oracle chunks
             if full:                                           # scan + fingerprint (from a ~1e-2 guess)
+                ftol = torch.tensor([fpt[int(c_)] for c_ in M.channel(jk[a:a + ch]).tolist()],
+                                    device=dev, dtype=torch.float64)
                 xs_, ok_ = locate(oracle, X0[a:a + ch], U[a:a + ch], R[a:a + ch], gen, M, l,
-                                  M.rows(jk[a:a + ch])[0], K=25 + 12 * l, jidx=jk[a:a + ch])
+                                  M.rows(jk[a:a + ch])[0], K=25 + 12 * l, jidx=jk[a:a + ch],
+                                  fp_tol=ftol)
             else:                                              # 8-query light locate (from a ~1e-8 row)
                 xs_, ok_ = locate_light(oracle, X0[a:a + ch], U[a:a + ch], R[a:a + ch])
             Xs[a:a + ch] = xs_; ok[a:a + ch] = ok_
@@ -613,6 +620,8 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
             if k == 0:
                 if int(m.sum()) >= 40 and eps[c] < 8 * eps0:
                     eps[c] *= 2.0
+                if full and int(m.sum()) >= 20:
+                    fpt[c] = 0.1                           # poor guess: relax the fingerprint
                 continue
             take = min(k, need - got[c])
             Hs[c].append(H_all[mo][:take]); Xp[c].append(Xs[mo][:take]); Up[c].append(jk[mo][:take])
