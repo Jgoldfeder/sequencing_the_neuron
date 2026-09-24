@@ -1,0 +1,11 @@
+built
+COUPLED P=5 + trf+bounds + guess-init, 8 nets:
+  seed 0: #roots=89  true-found=0  bias err=3.13e-02
+  seed 1: #roots=89  true-found=0  bias err=2.55e-02
+  seed 2: #roots=59  true-found=0  bias err=6.21e-03
+  seed 3: #roots=70  true-found=1  bias err=9.98e-03
+  seed 4: #roots=27  true-found=0  bias err=4.14e-02
+  seed 5: #roots=78  true-found=0  bias err=1.64e-02
+  seed 6: #roots=67  true-found=0  bias err=4.50e-02
+  seed 7: #roots=90  true-found=0  bias err=1.96e-02
+SUMMARY: bias err median=2.26e-02 max=4.50e-02  frac<1e-4=0% frac<1e-6=0%

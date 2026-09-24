@@ -1,0 +1,38 @@
+[
+  {
+    "width": 100,
+    "neurons_tested": 4,
+    "points_target": 200,
+    "queries": 79388,
+    "seconds": 0.5780088901519775,
+    "maximum": 1.478331346227435e-14,
+    "accepted": 4
+  },
+  {
+    "width": 200,
+    "neurons_tested": 4,
+    "points_target": 400,
+    "queries": 132510,
+    "seconds": 1.27205228805542,
+    "maximum": 1.8762769116165146e-14,
+    "accepted": 4
+  },
+  {
+    "width": 400,
+    "neurons_tested": 4,
+    "points_target": 800,
+    "queries": 281050,
+    "seconds": 5.777793645858765,
+    "maximum": 2.343264471349471e-14,
+    "accepted": 4
+  },
+  {
+    "width": 800,
+    "neurons_tested": 4,
+    "points_target": 1600,
+    "queries": 595480,
+    "seconds": 65.04178237915039,
+    "maximum": 2.6395552410463097e-14,
+    "accepted": 4
+  }
+]

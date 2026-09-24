@@ -1,0 +1,11 @@
+  after   6 random restarts:   0/128 distinct neurons recovered (<0.1 deg)
+  after  12 random restarts:   0/128 distinct neurons recovered (<0.1 deg)
+  after  18 random restarts:   0/128 distinct neurons recovered (<0.1 deg)
+  after  24 random restarts:   0/128 distinct neurons recovered (<0.1 deg)
+  after  30 random restarts:   0/128 distinct neurons recovered (<0.1 deg)
+/opt/miniconda3/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/miniconda3/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+
+GUESS-FREE result: 0/128 neurons found from 30 random restarts; median dir-err on found = nan deg

@@ -1,0 +1,6 @@
+CP-8 on REAL tensor: fit=0.9761 recovery min-cos=0.2324 mean-cos=0.8962  (init for refinement)
+  refine it0: loss=4.080e-06 recovery min-cos=0.2230 mean-cos=0.8933
+  refine it1000: loss=4.863e-08 recovery min-cos=0.2204 mean-cos=0.8933
+  refine it2000: loss=1.151e-07 recovery min-cos=0.2222 mean-cos=0.8904
+  refine it3000: loss=3.685e-08 recovery min-cos=0.2216 mean-cos=0.8900
+  refine it3999: loss=3.454e-08 recovery min-cos=0.2266 mean-cos=0.8894

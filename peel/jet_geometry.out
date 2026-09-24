@@ -1,0 +1,10 @@
+h geometry: cube mixture, h mean 0.500  frac<0.05or>0.95 0.44
+committee cons 69/80  init W-err mean 0.0875 max 0.2678  (N=600)
+control(m=128) true+1e-6 -> 7.63e-09
+
+ m (jet span)  W mean after  W max after    <5%    <2%    <1%   ratio
+    0 (value)        0.0710       0.1980     21      0      0   0.853
+           16        0.0105       0.0610     68     62     47   0.098
+           32        0.0053       0.0520     68     66     61   0.040
+           64        0.0025       0.0391     69     68     67   0.015
+128 (fullJac)        0.0004       0.0094     69     69     69   0.003

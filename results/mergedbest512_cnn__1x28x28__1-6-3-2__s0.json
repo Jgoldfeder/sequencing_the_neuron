@@ -1,0 +1,34 @@
+{
+ "variant": "mergedbest512",
+ "model": "cnn",
+ "input_shape": [
+  1,
+  28,
+  28
+ ],
+ "conv_cfgs": [
+  [
+   1,
+   6,
+   3,
+   2
+  ]
+ ],
+ "out_dim": 10,
+ "act": "relu",
+ "seed": 0,
+ "log": [
+  {
+   "iter": 3,
+   "queries": 4500,
+   "best_loss": 0.6600679036458333,
+   "best_max_eps": 1.5506700277328491,
+   "best_mean_eps": 0.12220227206125855,
+   "cons_max_eps": 1.567366123199463,
+   "cons_mean_eps": 0.13517281273379922,
+   "wall_s": 1.7
+  }
+ ],
+ "final_max_eps": 1.5506700277328491,
+ "wall_s": 1.7
+}

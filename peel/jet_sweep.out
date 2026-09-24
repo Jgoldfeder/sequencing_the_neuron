@@ -1,0 +1,7 @@
+committee cons 69/80  init W-err mean 0.0875  (jet dirs m=16)
+      N    objective  W mean after     <5%     <2%   ratio
+   1500        value        0.0721      24       0   0.906
+   1500         jet1        0.0616      32       1   0.752
+   1500         jet2        0.0566      39       1   0.659
+   6000        value        0.0665      28       0   0.797
+   6000         jet1        0.0605      34       0   0.744

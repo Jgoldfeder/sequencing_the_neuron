@@ -1,0 +1,7 @@
+committee W-consensus: 69/80 neurons  init W-err mean 0.0875 max 0.2678
+control true+1e-6 -> W-err mean 6.88e-07 loss 1.81e-15  (solver check)
+
+COMMITTEE consensus refine (N=30000, b2/downstream=true):
+  W-err mean 0.0875 -> 0.0523   max 0.2678 -> 0.2439   loss 5.43e-06
+  neurons improved to <2%: 3/69 ; <5%: 42/69
+  reduction ratio (after/before, per-neuron median): 0.576

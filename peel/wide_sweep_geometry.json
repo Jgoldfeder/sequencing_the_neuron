@@ -1,0 +1,82 @@
+[
+  {
+    "layer": 0,
+    "channel": 0,
+    "attempt": 0,
+    "target_crossed": true,
+    "other_neurons_crossed": 4,
+    "max_input": 319.41290099575593,
+    "guess_target_residual": 2.7070123920225342e-11,
+    "true_target_center": -0.5909771396982755
+  },
+  {
+    "layer": 0,
+    "channel": 0,
+    "attempt": 1,
+    "target_crossed": false,
+    "other_neurons_crossed": 3,
+    "max_input": 803.1796935371638,
+    "guess_target_residual": 9.36184463284917e-11,
+    "true_target_center": 2.3608123712981945
+  },
+  {
+    "layer": 0,
+    "channel": 1,
+    "attempt": 0,
+    "target_crossed": true,
+    "other_neurons_crossed": 2,
+    "max_input": 288.1781601780984,
+    "guess_target_residual": 3.1160407587549344e-11,
+    "true_target_center": 0.5280347481329911
+  },
+  {
+    "layer": 0,
+    "channel": 1,
+    "attempt": 1,
+    "target_crossed": false,
+    "other_neurons_crossed": 9,
+    "max_input": 494.15594811085793,
+    "guess_target_residual": 5.183498075211901e-11,
+    "true_target_center": -2.1222508899800987
+  },
+  {
+    "layer": 1,
+    "channel": 0,
+    "attempt": 0,
+    "target_crossed": false,
+    "other_neurons_crossed": 13,
+    "max_input": 767.9386534406331,
+    "guess_target_residual": 9.525225053153008e-11,
+    "true_target_center": 2.565457500432482
+  },
+  {
+    "layer": 1,
+    "channel": 0,
+    "attempt": 1,
+    "target_crossed": false,
+    "other_neurons_crossed": 30,
+    "max_input": 643.6487090125265,
+    "guess_target_residual": 5.759437371466447e-11,
+    "true_target_center": 2.1061563249376563
+  },
+  {
+    "layer": 1,
+    "channel": 1,
+    "attempt": 0,
+    "target_crossed": true,
+    "other_neurons_crossed": 9,
+    "max_input": 371.7365433421232,
+    "guess_target_residual": 3.801625680921461e-11,
+    "true_target_center": -0.7032178155243273
+  },
+  {
+    "layer": 1,
+    "channel": 1,
+    "attempt": 1,
+    "target_crossed": false,
+    "other_neurons_crossed": 5,
+    "max_input": 1231.3030919300247,
+    "guess_target_residual": 1.0123724081267937e-10,
+    "true_target_center": 5.3775140580264615
+  }
+]

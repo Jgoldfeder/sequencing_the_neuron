@@ -1,0 +1,5 @@
+cons 69  non-cons 11  (full Jacobian, full-cube, N=600)
+INIT  cons: mean 0.0875 max 0.2678 | non-cons: mean 0.3918 max 0.7006
+AFTER cons: mean 0.00010 max 0.00286 <1% 69/69
+AFTER non-cons: mean 0.00004 max 0.00008 <1% 11/11 <2% 11/11 <5% 11/11
+  per non-cons neuron  init->after:  0.220->0.000  0.345->0.000  0.309->0.000  0.516->0.000  0.439->0.000  0.082->0.000  0.249->0.000  0.191->0.000  0.701->0.000  0.683->0.000  0.574->0.000

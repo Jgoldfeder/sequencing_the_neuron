@@ -1,0 +1,25 @@
+built
+CONTROL (b fixed at true, optimize 4 downstream from random, 5 nets x 15 restarts):
+/tmp/claude-1001/-home-judah/480010f4-8e92-4a50-8319-7f2f544ea513/scratchpad/global5.py:35: RuntimeWarning: invalid value encountered in scalar divide
+  for j,n in enumerate(range(2,7)): r.append(Ff[n](sp_,w2v,w3v,Pp,Qp,av)/F1 - Rm[i,j])
+/tmp/claude-1001/-home-judah/480010f4-8e92-4a50-8319-7f2f544ea513/scratchpad/global5.py:21: RuntimeWarning: overflow encountered in exp
+  sig=lambda z:1/(1+np.exp(-z)); print('built')
+  net 0: best residual cost (b fixed true) = 2.94e-31
+  net 1: best residual cost (b fixed true) = 2.65e-30
+  net 2: best residual cost (b fixed true) = 1.10e-31
+  net 3: best residual cost (b fixed true) = 3.63e-31
+  net 4: best residual cost (b fixed true) = 3.61e-17
+FULL (b init=guess+/-0.05, downstream random, 12 nets x 25 restarts):
+  net 0: bias err=2.59e-12  (final residual 8.4e-28)
+  net 1: bias err=8.60e-13  (final residual 1.6e-27)
+  net 2: bias err=4.10e-13  (final residual 1.7e-28)
+  net 3: bias err=5.29e-13  (final residual 3.4e-28)
+  net 4: bias err=5.55e-04  (final residual 3.7e-19)
+  net 5: bias err=1.27e-12  (final residual 1.0e-27)
+  net 6: bias err=1.11e-05  (final residual 1.8e-17)
+  net 7: bias err=4.36e-13  (final residual 1.4e-27)
+  net 8: bias err=8.16e-13  (final residual 1.1e-27)
+  net 9: bias err=2.82e-12  (final residual 1.1e-26)
+  net 10: bias err=6.31e-12  (final residual 2.4e-27)
+  net 11: bias err=4.93e-04  (final residual 3.3e-20)
+SUMMARY full: bias err median=1.93e-12 max=5.55e-04 frac<1e-4=83% frac<1e-6=75%

@@ -1,0 +1,7 @@
+full-cube + full-Jacobian basin sweep (correspondence kept; true b2+downstream; N=600). target <1e-4.
+              init  init mean   aft mean    aft max   <1e-4   <1e-2       loss
+         committee     0.1293   4.20e-05   1.29e-03    77/80    80/80   5.59e-08
+       aligned+1.0     1.0000   4.93e-02   6.35e-01     0/80     0/80   1.47e-01
+       aligned+2.0     2.0000   3.13e-01   1.98e+00     0/80     0/80   2.73e+00
+ random(true-norm)     1.4103   1.77e-01   1.36e+00     0/80     0/80   6.46e-01
+ random(shuf-norm)     1.4173   2.01e-01   1.51e+00     0/80     0/80   7.36e-01

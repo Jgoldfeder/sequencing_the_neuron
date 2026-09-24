@@ -1,0 +1,339 @@
+{
+ "variant": "v18_lbfgs",
+ "cfg": {
+  "p": 8,
+  "q": 4500,
+  "outer": 60,
+  "act": "sigmoid",
+  "epochs": 10,
+  "lr": 0.001,
+  "lr_sched": [
+   0.6,
+   0.85
+  ],
+  "batch": 512,
+  "qg_steps": 30,
+  "qg_lr": 0.01,
+  "qg_sched": [
+   0.5,
+   0.8
+  ],
+  "qg_init_std": 0.5,
+  "qg_dist": "l1",
+  "qg_init": "gauss",
+  "qg_range": 1.0,
+  "disagree": "median_pair",
+  "query_box": 0.0,
+  "query_div_w": 0.0,
+  "window": 60,
+  "maint_every": 0,
+  "restart_worst": 0,
+  "polish_f64": false,
+  "polish_epochs": 3,
+  "warmstart_iters": 5,
+  "fit_delta": 0.0,
+  "stop_loss": 0.0,
+  "stop_agree": 0.0,
+  "stop_patience": 3,
+  "fit_loss": "mse",
+  "lastlayer_every": 0,
+  "popavg_kappa": 0.0,
+  "lbfgs_polish": true,
+  "gate_kappa": 3.0,
+  "cluster_quorum": 0.625,
+  "cluster_gate": 10.0,
+  "combine": true,
+  "solver_polish": false,
+  "solverwindow": 0,
+  "verbose": false,
+  "dump_at_iter": 0,
+  "dump_path": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/recon/_fast__v18_lbfgs_sigmoid__3072x256x100__s0.pt",
+  "stop_on_consensus": true,
+  "combine_polish_lr": 0.0001,
+  "combine_polish_steps": 200,
+  "verify": false,
+  "verify_refine": false,
+  "verify_max": 0,
+  "verify_eps_offset": 0.01,
+  "verify_eps_angle": 1.0,
+  "verify_k": 16,
+  "log_every": 5,
+  "eval_pts": 2000,
+  "pop_save_every": 5,
+  "pop_save_path": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/recon/_pop__v18_lbfgs_sigmoid__3072x256x100__s0.pt",
+  "freeze_reinit": false,
+  "freeze_thresh": 0.9,
+  "freeze_precision": 0.0,
+  "extract_freeze": false,
+  "extract_max_angle": 5.0,
+  "extract_jump_ratio": 50.0,
+  "extract_s": 0.001,
+  "extract_r": 0.0001,
+  "extract_tries": 8,
+  "extract_base_scale": 1.0
+ },
+ "arch": [
+  3072,
+  256,
+  100
+ ],
+ "n_params": 812388,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cuda",
+ "log": [
+  {
+   "iter": 5,
+   "queries": 22500,
+   "best_loss": 0.2670964722222222,
+   "med_loss": 0.2686810347222222,
+   "worst_loss": 0.2694673645833333,
+   "max_eps": 6.299134254455566,
+   "mean_eps": 0.47552840784192085,
+   "agree": 0.2735000252723694,
+   "wall_s": 13.6,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    1.4840883016586304,
+    6.299134254455566
+   ],
+   "eps_per_layer_mean": [
+    0.08328808844089508,
+    0.19006431102752686
+   ]
+  },
+  {
+   "iter": 10,
+   "queries": 45000,
+   "best_loss": 0.310613640625,
+   "med_loss": 0.31128003645833335,
+   "worst_loss": 0.3116890451388889,
+   "max_eps": 7.574089050292969,
+   "mean_eps": 0.5177525132894516,
+   "agree": 0.32600000500679016,
+   "wall_s": 48.2,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    1.582343339920044,
+    7.574089050292969
+   ],
+   "eps_per_layer_mean": [
+    0.08014312386512756,
+    0.20198512077331543
+   ]
+  },
+  {
+   "iter": 15,
+   "queries": 67500,
+   "best_loss": 0.3240229085648148,
+   "med_loss": 0.32468511342592593,
+   "worst_loss": 0.32592371180555557,
+   "max_eps": 8.04476547241211,
+   "mean_eps": 0.5607494227588177,
+   "agree": 0.3460000157356262,
+   "wall_s": 101.0,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    1.515968918800354,
+    8.04476547241211
+   ],
+   "eps_per_layer_mean": [
+    0.0739867091178894,
+    0.20932038128376007
+   ]
+  },
+  {
+   "iter": 20,
+   "queries": 90000,
+   "best_loss": 0.3096424704861111,
+   "med_loss": 0.3182702595486111,
+   "worst_loss": 0.32281958854166665,
+   "max_eps": 6.059979438781738,
+   "mean_eps": 0.5370287019759417,
+   "agree": 0.398000031709671,
+   "wall_s": 179.6,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    1.4027372598648071,
+    6.059979438781738
+   ],
+   "eps_per_layer_mean": [
+    0.06374069303274155,
+    0.1871517151594162
+   ]
+  },
+  {
+   "iter": 25,
+   "queries": 112500,
+   "best_loss": 0.24534657118055556,
+   "med_loss": 0.2525050006944444,
+   "worst_loss": 0.26397755729166666,
+   "max_eps": 5.207001686096191,
+   "mean_eps": 0.34941946528851986,
+   "agree": 0.5370000004768372,
+   "wall_s": 279.7,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    1.8700251579284668,
+    5.207001686096191
+   ],
+   "eps_per_layer_mean": [
+    0.04364701360464096,
+    0.12503808736801147
+   ]
+  },
+  {
+   "iter": 30,
+   "queries": 135000,
+   "best_loss": 0.08036506452546296,
+   "med_loss": 0.10615734172453704,
+   "worst_loss": 0.13219208796296297,
+   "max_eps": 2.1279685497283936,
+   "mean_eps": 0.16460503125563264,
+   "agree": 0.8570000529289246,
+   "wall_s": 400.5,
+   "cluster_max_eps": null,
+   "n_consensus": 0,
+   "n_total": 256,
+   "consensus_max_eps": null,
+   "consensus_mean_eps": null,
+   "eps_per_layer_max": [
+    0.9036713242530823,
+    2.1279685497283936
+   ],
+   "eps_per_layer_mean": [
+    0.010336697101593018,
+    0.026673728600144386
+   ]
+  },
+  {
+   "iter": 35,
+   "queries": 157500,
+   "best_loss": 0.040794994171626985,
+   "med_loss": 0.0513984308655754,
+   "worst_loss": 0.05816158023313492,
+   "max_eps": 0.9848372936248779,
+   "mean_eps": 0.06786977325100452,
+   "agree": 0.9690000414848328,
+   "wall_s": 543.5,
+   "cluster_max_eps": null,
+   "n_consensus": 244,
+   "n_total": 256,
+   "consensus_max_eps": 0.11044156551361084,
+   "consensus_mean_eps": 0.0024010860361158848,
+   "consensus_l0_max": 0.0773618221282959,
+   "consensus_l0_mean": 0.00233773747459054,
+   "consensus_l1_max": 0.11044156551361084,
+   "consensus_l1_mean": 0.004347791895270348,
+   "consensus_n_out_consensus": 0,
+   "consensus_out_total": 100,
+   "consensus_out_max": null,
+   "consensus_out_mean": null,
+   "eps_per_layer_max": [
+    0.41391611099243164,
+    0.9848372936248779
+   ],
+   "eps_per_layer_mean": [
+    0.0038499473594129086,
+    0.007873761467635632
+   ]
+  },
+  {
+   "iter": 40,
+   "queries": 180000,
+   "best_loss": 0.009223378309461806,
+   "med_loss": 0.0295657578125,
+   "worst_loss": 0.038055851345486114,
+   "max_eps": 0.1859525442123413,
+   "mean_eps": 0.01303904302767478,
+   "agree": 0.9890000224113464,
+   "wall_s": 707.3,
+   "cluster_max_eps": null,
+   "n_consensus": 255,
+   "n_total": 256,
+   "consensus_max_eps": 0.1900164633989334,
+   "consensus_mean_eps": 0.000685902195982635,
+   "consensus_l0_max": 0.02388620376586914,
+   "consensus_l0_mean": 0.0006404039449989796,
+   "consensus_l1_max": 0.1900164633989334,
+   "consensus_l1_mean": 0.0020840640645474195,
+   "consensus_n_out_consensus": 0,
+   "consensus_out_total": 100,
+   "consensus_out_max": null,
+   "consensus_out_mean": null,
+   "eps_per_layer_max": [
+    0.02887880802154541,
+    0.1859525442123413
+   ],
+   "eps_per_layer_mean": [
+    0.0007544647669419646,
+    0.0029507195577025414
+   ]
+  },
+  {
+   "iter": 45,
+   "queries": 202500,
+   "best_loss": 0.006028980342158565,
+   "med_loss": 0.02542353778452932,
+   "worst_loss": 0.028916921875,
+   "max_eps": 0.10781681537628174,
+   "mean_eps": 0.006201198601047508,
+   "agree": 0.9920000433921814,
+   "wall_s": 893.6,
+   "cluster_max_eps": 1.1720446348190308,
+   "n_consensus": 256,
+   "n_total": 256,
+   "consensus_max_eps": 0.08998358249664307,
+   "consensus_mean_eps": 0.0006096274591982365,
+   "consensus_l0_max": 0.015494227409362793,
+   "consensus_l0_mean": 0.0005820520455017686,
+   "consensus_l1_max": 0.08998358249664307,
+   "consensus_l1_mean": 0.0014570197090506554,
+   "consensus_n_out_consensus": 0,
+   "consensus_out_total": 100,
+   "consensus_out_max": null,
+   "consensus_out_mean": null,
+   "combined_iter": 45,
+   "eps_per_layer_max": [
+    0.018967032432556152,
+    0.10781681537628174
+   ],
+   "eps_per_layer_mean": [
+    0.0005167723284102976,
+    0.0013957166811451316
+   ]
+  }
+ ],
+ "final_max_eps": 0.029022216796875,
+ "final_mean_eps": 0.0011043594759030384,
+ "final_max_eps_per_matrix": [
+  0.0003250241279602051,
+  0.00034880638122558594,
+  0.0008383989334106445,
+  0.029022216796875
+ ],
+ "final_agree": 0.999500036239624,
+ "queries": 202500,
+ "stopped_iter": 45,
+ "wall_s": 1418.7
+}

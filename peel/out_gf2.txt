@@ -1,0 +1,6 @@
+  after   6 random restarts:   1/128 distinct neurons recovered (<0.1 deg)
+  after  12 random restarts:   3/128 distinct neurons recovered (<0.1 deg)
+  after  18 random restarts:   4/128 distinct neurons recovered (<0.1 deg)
+  after  24 random restarts:   5/128 distinct neurons recovered (<0.1 deg)
+
+GUESS-FREE result: 5/128 neurons found from 24 random restarts; median dir-err on found = 3.05e-01 deg

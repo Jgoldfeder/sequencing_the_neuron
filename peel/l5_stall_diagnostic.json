@@ -1,0 +1,64 @@
+{
+  "spectra": [
+    {
+      "layer": 1,
+      "smallest": 0.017514636357469412,
+      "condition": 219.76289384720673
+    },
+    {
+      "layer": 2,
+      "smallest": 0.006065942981791041,
+      "condition": 671.7094216328603
+    },
+    {
+      "layer": 3,
+      "smallest": 0.005669465685528837,
+      "condition": 760.9998671276836
+    },
+    {
+      "layer": 4,
+      "smallest": 2.2548750161982183e-05,
+      "condition": 177238.195537342
+    },
+    {
+      "layer": 5,
+      "smallest": 0.004875677546141851,
+      "condition": 838.7294099813361
+    },
+    {
+      "layer": 6,
+      "smallest": 0.0112625200179725,
+      "condition": 336.4656667896535
+    }
+  ],
+  "results": [
+    {
+      "control_l4_floor": false,
+      "inverse": "current",
+      "max_input": 336670570823845.44,
+      "hidden_relative": 4.293978414587624,
+      "output_relative": 1.349131853797741
+    },
+    {
+      "control_l4_floor": false,
+      "inverse": "linear_solve",
+      "max_input": 336669412603148.6,
+      "hidden_relative": 0.28614544092597005,
+      "output_relative": 0.15192818503552752
+    },
+    {
+      "control_l4_floor": true,
+      "inverse": "current",
+      "max_input": 1858670486309.9153,
+      "hidden_relative": 0.026255292720889424,
+      "output_relative": 0.015016853726385494
+    },
+    {
+      "control_l4_floor": true,
+      "inverse": "linear_solve",
+      "max_input": 1858670486217.8416,
+      "hidden_relative": 0.0015862082217265277,
+      "output_relative": 0.0009732376169944003
+    }
+  ]
+}

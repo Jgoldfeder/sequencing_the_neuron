@@ -1,0 +1,75 @@
+{
+ "variant": "mergedbest512",
+ "model": "cnn",
+ "input_shape": [
+  1,
+  28,
+  28
+ ],
+ "conv_cfgs": [
+  [
+   1,
+   8,
+   3,
+   2
+  ],
+  [
+   8,
+   16,
+   3,
+   2
+  ]
+ ],
+ "fc_dims": [],
+ "out_dim": 10,
+ "act": "relu",
+ "seed": 0,
+ "log": [
+  {
+   "iter": 5,
+   "queries": 15000,
+   "best_loss": 0.3940979947916667,
+   "best_max_eps": 1.2886555194854736,
+   "best_mean_eps": 0.10496554818625252,
+   "n_consensus": 0,
+   "n_total": 24,
+   "cons_max_eps": null,
+   "cons_mean_eps": null,
+   "cons_layers": [
+    [
+     8,
+     0
+    ],
+    [
+     16,
+     0
+    ]
+   ],
+   "wall_s": 23.0
+  },
+  {
+   "iter": 6,
+   "queries": 18000,
+   "best_loss": 0.4127329318576389,
+   "best_max_eps": 1.2883104085922241,
+   "best_mean_eps": 0.10487117540712158,
+   "n_consensus": 0,
+   "n_total": 24,
+   "cons_max_eps": null,
+   "cons_mean_eps": null,
+   "cons_layers": [
+    [
+     8,
+     0
+    ],
+    [
+     16,
+     0
+    ]
+   ],
+   "wall_s": 40.8
+  }
+ ],
+ "final_max_eps": 1.2883104085922241,
+ "wall_s": 40.8
+}

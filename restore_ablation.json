@@ -1,0 +1,7 @@
+{
+  "shared": {"arch": "784,128,64,10", "q": 8000, "maxq": 8000, "outer": 30, "p": 8},
+  "experiments": [
+    {"variant": "vR_steps"}, {"variant": "vR_dist"},
+    {"variant": "vR_init"}, {"variant": "vR_agg"}
+  ]
+}

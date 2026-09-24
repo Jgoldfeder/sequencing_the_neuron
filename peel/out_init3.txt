@@ -1,0 +1,9 @@
+METRIC CHECK: exact perm/complement copy -> functional |dF|max=3.3e-16, aligned eps_z2=0.00e+00 eps_z3=2.16e-16 (both must be ~0)
+
+CLEANUP: I/O-fit vs JET-fit initializers (fixed alignment, held-out errors, explicit thresholds)
+  seed0 IO  (trainMSE=1.8e-07): eps_z2=1.194 eps_z3=3.703 | heldout_IO=7.16e-04 heldout_jet=1.83e-02 | jointLM bias=FAIL(9.1e-03)
+  seed0 JET (fitres2=7.3e-05): eps_z2=1.183 eps_z3=0.264 | heldout_IO=1.20e+00 heldout_jet=1.41e-04 | jointLM bias=FAIL(1.3e-02)
+  seed1 IO  (trainMSE=3.3e-06): eps_z2=1.560 eps_z3=2.730 | heldout_IO=2.05e-03 heldout_jet=5.57e-02 | jointLM bias=FAIL(2.2e-02)
+  seed1 JET (fitres2=1.9e-04): eps_z2=0.187 eps_z3=0.863 | heldout_IO=1.43e+00 heldout_jet=2.51e-04 | jointLM bias=FAIL(5.7e-03)
+  seed2 IO  (trainMSE=4.9e-07): eps_z2=2.633 eps_z3=3.176 | heldout_IO=1.13e-03 heldout_jet=2.76e-02 | jointLM bias=FAIL(1.6e-02)
+  seed2 JET (fitres2=3.8e-04): eps_z2=0.917 eps_z3=0.333 | heldout_IO=1.41e+00 heldout_jet=2.97e-04 | jointLM bias=FAIL(3.4e-03)

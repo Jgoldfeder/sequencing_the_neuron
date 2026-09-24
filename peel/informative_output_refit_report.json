@@ -1,0 +1,8 @@
+{
+  "layer": 7,
+  "description": "Fresh output-layer refit from the saved hidden-layer checkpoint; original output fit mean/time were not saved",
+  "queries": 4000,
+  "seconds": 0.10834848880767822,
+  "mean_absolute_parameter_error": 8.556758802416017e-12,
+  "maximum": 3.1277745671243196e-10
+}

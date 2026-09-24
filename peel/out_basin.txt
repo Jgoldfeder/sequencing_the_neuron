@@ -1,0 +1,23 @@
+BASIN-SIZE: P(bias err<1e-4) vs relative downstream perturbation alpha (b0=truth+0.05)
+ [3, 4, 3, 2] seed0: alpha  P_b(frozen)  P_b(joint)
+   a=1e-03: 0.20       1.00
+   a=3e-03: 0.00       1.00
+   a=1e-02: 0.00       0.50
+   a=3e-02: 0.00       0.00
+   a=1e-01: 0.00       0.00
+   a=3e-01: 0.00       0.00
+   a=1e+00: 0.00       0.00
+ [3, 4, 3, 2] seed1: alpha  P_b(frozen)  P_b(joint)
+   a=1e-03: 0.00       0.00
+   a=3e-03: 0.00       0.00
+   a=1e-02: 0.00       0.00
+   a=3e-02: 0.00       0.00
+   a=1e-01: 0.00       0.00
+   a=3e-01: 0.00       0.00
+   a=1e+00: 0.00       0.00
+ [6, 8, 4, 4] seed0: alpha  P_b(frozen)  P_b(joint)
+   a=1e-03: 0.00       0.00
+   a=1e-02: 0.00       0.30
+   a=3e-02: 0.00       0.10
+   a=1e-01: 0.00       0.00
+   a=3e-01: 0.00       0.00

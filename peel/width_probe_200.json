@@ -1,0 +1,73 @@
+[
+  {
+    "dims": [
+      200,
+      200,
+      200,
+      200,
+      100
+    ],
+    "seed": 0,
+    "recursive": false,
+    "layer": 2,
+    "selection": "design",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 4,
+    "channels": 4,
+    "mean_absolute_parameter_error": 5.332184666437039e-16,
+    "mean_neuron_max_error": 7.597655143909421e-15,
+    "maximum": 1.8762769116165146e-14,
+    "median": 3.760880495917718e-15,
+    "accepted_max": 1.8762769116165146e-14,
+    "below_1e12": 4,
+    "below_1e10": 4,
+    "queries": 132510,
+    "seconds": 1.27205228805542,
+    "diagnostics": {
+      "0": {
+        "points": 447,
+        "round_budget": 160,
+        "cond": 1230.6573470843427,
+        "gap": 1.5374225853875915e-13,
+        "uncertainty": 5.513538668054487e-13,
+        "validation_fraction": 1.0,
+        "residual": 1.078998002057574e-14,
+        "accepted": true
+      },
+      "1": {
+        "points": 451,
+        "round_budget": 160,
+        "cond": 1150.7671699850462,
+        "gap": 1.2602130579618665e-13,
+        "uncertainty": 5.094090522036215e-13,
+        "validation_fraction": 1.0,
+        "residual": 1.0547118733938987e-14,
+        "accepted": true
+      },
+      "2": {
+        "points": 445,
+        "round_budget": 160,
+        "cond": 1083.6369463914327,
+        "gap": 1.5608932580721997e-13,
+        "uncertainty": 4.991101956042342e-13,
+        "validation_fraction": 1.0,
+        "residual": 1.1685097334179773e-14,
+        "accepted": true
+      },
+      "3": {
+        "points": 446,
+        "round_budget": 160,
+        "cond": 1212.550248347443,
+        "gap": 1.2273938223698968e-13,
+        "uncertainty": 5.488814703439175e-13,
+        "validation_fraction": 1.0,
+        "residual": 1.157754447866921e-14,
+        "accepted": true
+      }
+    }
+  }
+]

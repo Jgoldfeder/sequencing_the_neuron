@@ -1,0 +1,9 @@
+built
+COUPLED multi-probe (P=3 (shared w2,w3 + s-coupling), 6 nets:
+  seed 0: #distinct s1-roots= 2  true-found=0  bias err=2.96e-02
+  seed 1: none
+  seed 2: #distinct s1-roots= 2  true-found=0  bias err=2.18e-01
+  seed 3: #distinct s1-roots= 2  true-found=0  bias err=3.93e-01
+  seed 4: none
+  seed 5: none
+SUMMARY: median #roots=2  bias err median=2.18e-01 max=3.93e-01  frac<1e-4=0%

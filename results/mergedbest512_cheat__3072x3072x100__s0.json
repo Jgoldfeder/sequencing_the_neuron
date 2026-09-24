@@ -1,0 +1,353 @@
+{
+ "variant": "mergedbest512",
+ "cfg": {
+  "p": 1,
+  "q": 24000,
+  "outer": 60,
+  "factor_tail": false,
+  "factor_inner": 1.0,
+  "factor_lr_mult": 0.25,
+  "factor_mode": "residual",
+  "factor_rank": 256,
+  "factor_layers": "tail",
+  "qg_chunk": 0,
+  "expand": 1.0,
+  "act": "leaky_relu",
+  "epochs": 10,
+  "lr": 0.001,
+  "lr_sched": [
+   0.6,
+   0.85
+  ],
+  "batch": 512,
+  "qg_steps": 30,
+  "qg_lr": 0.1,
+  "qg_sched": [
+   0.5,
+   0.8
+  ],
+  "qg_init_std": 0.5,
+  "qg_dist": "l1",
+  "qg_init": "uniform",
+  "qg_range": 1.0,
+  "disagree": "median_pair",
+  "query_box": 0.0,
+  "query_div_w": 0.0,
+  "window": 60,
+  "maint_every": 0,
+  "restart_worst": 0,
+  "polish_f64": false,
+  "polish_epochs": 3,
+  "warmstart_iters": 5,
+  "fit_delta": 0.0,
+  "stop_loss": 0.0,
+  "stop_agree": 0.0,
+  "stop_patience": 3,
+  "fit_loss": "l1",
+  "hard": false,
+  "lastlayer_every": 0,
+  "popavg_kappa": 0.0,
+  "lbfgs_polish": false,
+  "gate_kappa": 0.0,
+  "cheat": true,
+  "cluster_quorum": 0.625,
+  "cluster_eps": 0.02,
+  "cluster_gate": 10.0,
+  "combine": false,
+  "solver_polish": false,
+  "solverwindow": 0,
+  "verbose": false,
+  "dump_at_iter": 0,
+  "dump_path": "",
+  "stop_on_consensus": false,
+  "stop_layer": -1,
+  "combine_polish_lr": 0.0001,
+  "combine_polish_steps": 200,
+  "verify": false,
+  "verify_refine": false,
+  "verify_max": 0,
+  "verify_eps_offset": 0.01,
+  "verify_eps_angle": 1.0,
+  "verify_k": 16,
+  "log_every": 5,
+  "eval_pts": 2000,
+  "pop_save_every": 5,
+  "pop_save_path": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/recon/_pop__mergedbest512_cheat__3072x3072x100__s0.pt",
+  "freeze_reinit": false,
+  "freeze_thresh": 0.9,
+  "freeze_precision": 0.0,
+  "layer_space_init": true,
+  "spatial_boundary_seed": false,
+  "extract_freeze": false,
+  "extract_max_angle": 5.0,
+  "extract_jump_ratio": 50.0,
+  "extract_s": 0.001,
+  "extract_r": 0.0001,
+  "extract_tries": 8,
+  "extract_base_scale": 1.0
+ },
+ "arch": [
+  3072,
+  3072,
+  100
+ ],
+ "n_params": 9747556,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cuda",
+ "log": [
+  {
+   "iter": 5,
+   "queries": 120000,
+   "best_loss": 0.36587361555989584,
+   "med_loss": 0.36587361555989584,
+   "worst_loss": 0.36587361555989584,
+   "max_eps": 1.045637607574463,
+   "mean_eps": 0.10191810829564929,
+   "agree": 0.21650001406669617,
+   "wall_s": 23.3,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.40800362825393677,
+    1.045637607574463
+   ],
+   "eps_per_layer_mean": [
+    0.018548069521784782,
+    0.09525391459465027
+   ]
+  },
+  {
+   "iter": 10,
+   "queries": 240000,
+   "best_loss": 0.7432623138020833,
+   "med_loss": 0.7432623138020833,
+   "worst_loss": 0.7432623138020833,
+   "max_eps": 1.0659458637237549,
+   "mean_eps": 0.07601687917485833,
+   "agree": 0.3775000274181366,
+   "wall_s": 108.4,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.6256788372993469,
+    1.0659458637237549
+   ],
+   "eps_per_layer_mean": [
+    0.01742786355316639,
+    0.09856615215539932
+   ]
+  },
+  {
+   "iter": 15,
+   "queries": 360000,
+   "best_loss": 0.4776584696180556,
+   "med_loss": 0.4776584696180556,
+   "worst_loss": 0.4776584696180556,
+   "max_eps": 1.3474383354187012,
+   "mean_eps": 0.10734675661660731,
+   "agree": 0.5850000381469727,
+   "wall_s": 232.8,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    1.3474383354187012,
+    0.8479596972465515
+   ],
+   "eps_per_layer_mean": [
+    0.012941711582243443,
+    0.07338088750839233
+   ]
+  },
+  {
+   "iter": 20,
+   "queries": 480000,
+   "best_loss": 0.30656723885091147,
+   "med_loss": 0.30656723885091147,
+   "worst_loss": 0.30656723885091147,
+   "max_eps": 3.796278953552246,
+   "mean_eps": 0.09401386347599328,
+   "agree": 0.7350000143051147,
+   "wall_s": 395.2,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    1.1530717611312866,
+    3.796278953552246
+   ],
+   "eps_per_layer_mean": [
+    0.007963349111378193,
+    0.04706592857837677
+   ]
+  },
+  {
+   "iter": 25,
+   "queries": 600000,
+   "best_loss": 0.18389579954427082,
+   "med_loss": 0.18389579954427082,
+   "worst_loss": 0.18389579954427082,
+   "max_eps": 3.615910768508911,
+   "mean_eps": 0.051973938127048314,
+   "agree": 0.8365000486373901,
+   "wall_s": 595.1,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    1.6264079809188843,
+    3.615910768508911
+   ],
+   "eps_per_layer_mean": [
+    0.003876600880175829,
+    0.022251375019550323
+   ]
+  },
+  {
+   "iter": 30,
+   "queries": 720000,
+   "best_loss": 0.14182798063151042,
+   "med_loss": 0.14182798063151042,
+   "worst_loss": 0.14182798063151042,
+   "max_eps": 3.0716986656188965,
+   "mean_eps": 0.022001307137543336,
+   "agree": 0.8740000128746033,
+   "wall_s": 832.6,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    3.0716986656188965,
+    0.33025062084198
+   ],
+   "eps_per_layer_mean": [
+    0.0018833928043022752,
+    0.010779702104628086
+   ]
+  },
+  {
+   "iter": 35,
+   "queries": 840000,
+   "best_loss": 0.13779704827299571,
+   "med_loss": 0.13779704827299571,
+   "worst_loss": 0.13779704827299571,
+   "max_eps": 2.6436338424682617,
+   "mean_eps": 0.017414835456293076,
+   "agree": 0.8615000247955322,
+   "wall_s": 1106.1,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    2.6436338424682617,
+    0.17194725573062897
+   ],
+   "eps_per_layer_mean": [
+    0.001804405590519309,
+    0.010707306675612926
+   ]
+  },
+  {
+   "iter": 40,
+   "queries": 960000,
+   "best_loss": 0.014283493115743002,
+   "med_loss": 0.014283493115743002,
+   "worst_loss": 0.014283493115743002,
+   "max_eps": 1.7488945722579956,
+   "mean_eps": 0.001122487195971189,
+   "agree": 0.9890000224113464,
+   "wall_s": 1417.6,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    1.7488945722579956,
+    0.2521308660507202
+   ],
+   "eps_per_layer_mean": [
+    0.00018045950855594128,
+    0.0010654139332473278
+   ]
+  },
+  {
+   "iter": 45,
+   "queries": 1080000,
+   "best_loss": 0.01392836462854456,
+   "med_loss": 0.01392836462854456,
+   "worst_loss": 0.01392836462854456,
+   "max_eps": 0.01295393705368042,
+   "mean_eps": 0.0003881954507960472,
+   "agree": 0.9880000352859497,
+   "wall_s": 1765.8,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.01295393705368042,
+    0.0074390750378370285
+   ],
+   "eps_per_layer_mean": [
+    0.000160441457410343,
+    0.0009413146181032062
+   ]
+  },
+  {
+   "iter": 50,
+   "queries": 1200000,
+   "best_loss": 0.013627935091145833,
+   "med_loss": 0.013627935091145833,
+   "worst_loss": 0.013627935091145833,
+   "max_eps": 0.010477602481842041,
+   "mean_eps": 0.0003571091983758379,
+   "agree": 0.9880000352859497,
+   "wall_s": 2151.0,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.010477602481842041,
+    0.0067188674584031105
+   ],
+   "eps_per_layer_mean": [
+    0.00015816258382983506,
+    0.0008621752494946122
+   ]
+  },
+  {
+   "iter": 55,
+   "queries": 1320000,
+   "best_loss": 0.001486666269013376,
+   "med_loss": 0.001486666269013376,
+   "worst_loss": 0.001486666269013376,
+   "max_eps": 0.0005355551838874817,
+   "mean_eps": 2.7661795115818677e-05,
+   "agree": 0.999000072479248,
+   "wall_s": 2573.5,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.0002673547714948654,
+    0.0005355551838874817
+   ],
+   "eps_per_layer_mean": [
+    1.5409688785439357e-05,
+    7.785563502693549e-05
+   ]
+  },
+  {
+   "iter": 60,
+   "queries": 1440000,
+   "best_loss": 0.0013988629302978516,
+   "med_loss": 0.0013988629302978516,
+   "worst_loss": 0.0013988629302978516,
+   "max_eps": 0.00047248415648937225,
+   "mean_eps": 2.572154107838287e-05,
+   "agree": 0.999000072479248,
+   "wall_s": 3033.2,
+   "cluster_max_eps": null,
+   "eps_per_layer_max": [
+    0.0002471655607223511,
+    0.00047248415648937225
+   ],
+   "eps_per_layer_mean": [
+    1.5140727555262856e-05,
+    7.099109643604606e-05
+   ]
+  }
+ ],
+ "final_max_eps": 0.00047248415648937225,
+ "final_mean_eps": 2.572154107838287e-05,
+ "final_max_eps_per_matrix": [
+  0.0002471655607223511,
+  0.00011721253395080566,
+  0.00047248415648937225,
+  3.1113624572753906e-05
+ ],
+ "final_agree": 0.999000072479248,
+ "final_mae": 0.0013988629302978516,
+ "final_mse": 3.900876536551449e-06,
+ "queries": 1440000,
+ "wall_s": 3055.4
+}

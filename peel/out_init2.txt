@@ -1,0 +1,4 @@
+Order-2 JET-matching student fit (S=I,beta=guess frozen; random-init, restarts) -> eps_z & joint LM
+seed0: jetfit_resid^2=5.01e-05 eps_z2=1.718 eps_z3=0.742 | joint LM bias=5.04e-05 (MACHINE) resid^2=1.3e-09
+seed1: jetfit_resid^2=9.65e-05 eps_z2=1.336 eps_z3=1.993 | joint LM bias=5.57e-04 (other) resid^2=1.8e-07
+seed2: jetfit_resid^2=2.91e-04 eps_z2=1.591 eps_z3=1.273 | joint LM bias=6.81e-03 (other) resid^2=2.9e-05

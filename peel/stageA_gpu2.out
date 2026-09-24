@@ -1,0 +1,12 @@
+
+=== N=30000 queries (residuals 300000 vs params 10240) ===
+        init   loss@init  W before   W after  loss after
+   true+1e-6    1.54e-09    0.0000   0.00000    1.65e-15
+   true+0.02    5.90e-01    0.0200   0.01286    6.31e-07
+   consensus    6.93e+01    0.1581   0.10093    2.28e-05
+
+=== N=100000 queries (residuals 1000000 vs params 10240) ===
+        init   loss@init  W before   W after  loss after
+   true+1e-6    5.12e-09    0.0000   0.00000    5.26e-15
+   true+0.02    1.97e+00    0.0200   0.01272    2.06e-06
+   consensus    2.33e+02    0.1581   0.10090    8.43e-05

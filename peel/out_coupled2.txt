@@ -1,0 +1,11 @@
+built
+COUPLED + GUESS-INIT (P=3), 8 nets:
+  seed 0: #roots=3  true-found=0  bias err=3.95e-03
+  seed 1: #roots=2  true-found=0  bias err=8.84e-03
+  seed 2: #roots=3  true-found=0  bias err=5.31e-02
+  seed 3: #roots=1  true-found=0  bias err=1.98e-02
+  seed 4: #roots=1  true-found=0  bias err=1.44e-02
+  seed 5: none found
+  seed 6: #roots=2  true-found=0  bias err=6.83e-03
+  seed 7: #roots=1  true-found=0  bias err=3.61e-02
+SUMMARY: bias err median=1.44e-02 max=5.31e-02  frac<1e-4=0% frac<1e-6=0%

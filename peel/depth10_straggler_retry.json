@@ -1,0 +1,1850 @@
+{
+  "layer": 6,
+  "queries": 3144564,
+  "neurons": {
+    "168": {
+      "error": 2.196069714965887e-11,
+      "points": 400,
+      "round_budget": 160,
+      "cond": 7994.91284671486,
+      "gap": 4.0785619626315356e-11,
+      "uncertainty": 2.824859320079811e-11,
+      "validation_fraction": 0.9827586206896551,
+      "residual": 8.385653282871885e-14,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 11,
+          "single": 313,
+          "straddle": 297,
+          "good": 11
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 340,
+          "straddle": 323,
+          "good": 19
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 345,
+          "straddle": 327,
+          "good": 21
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 17,
+          "single": 333,
+          "straddle": 306,
+          "good": 17
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 13,
+          "single": 312,
+          "straddle": 294,
+          "good": 13
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 10,
+          "single": 338,
+          "straddle": 322,
+          "good": 10
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 10,
+          "single": 324,
+          "straddle": 305,
+          "good": 10
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 13,
+          "single": 330,
+          "straddle": 312,
+          "good": 13
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 4,
+          "single": 351,
+          "straddle": 308,
+          "good": 4
+        },
+        {
+          "round": 9,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 204,
+          "straddle": 167,
+          "good": 0
+        },
+        {
+          "round": 10,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 134,
+          "straddle": 104,
+          "good": 0
+        },
+        {
+          "round": 11,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 7,
+          "single": 229,
+          "straddle": 223,
+          "good": 7
+        },
+        {
+          "round": 12,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 147,
+          "straddle": 143,
+          "good": 4
+        },
+        {
+          "round": 13,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 5,
+          "single": 42,
+          "straddle": 42,
+          "good": 5
+        },
+        {
+          "round": 14,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 12,
+          "single": 334,
+          "straddle": 318,
+          "good": 12
+        },
+        {
+          "round": 15,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 328,
+          "straddle": 310,
+          "good": 21
+        },
+        {
+          "round": 16,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 5,
+          "single": 344,
+          "straddle": 309,
+          "good": 5
+        },
+        {
+          "round": 17,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 215,
+          "straddle": 185,
+          "good": 0
+        },
+        {
+          "round": 18,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 147,
+          "straddle": 112,
+          "good": 0
+        },
+        {
+          "round": 19,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 10,
+          "single": 259,
+          "straddle": 248,
+          "good": 10
+        },
+        {
+          "round": 20,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 15,
+          "single": 228,
+          "straddle": 225,
+          "good": 15
+        },
+        {
+          "round": 21,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 10,
+          "single": 251,
+          "straddle": 244,
+          "good": 10
+        },
+        {
+          "round": 22,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 15,
+          "single": 261,
+          "straddle": 252,
+          "good": 15
+        },
+        {
+          "round": 23,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 7,
+          "single": 236,
+          "straddle": 226,
+          "good": 7
+        },
+        {
+          "round": 24,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 105,
+          "straddle": 100,
+          "good": 4
+        },
+        {
+          "round": 25,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 2,
+          "single": 52,
+          "straddle": 52,
+          "good": 2
+        },
+        {
+          "round": 26,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 12,
+          "single": 318,
+          "straddle": 307,
+          "good": 12
+        },
+        {
+          "round": 27,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 324,
+          "straddle": 310,
+          "good": 7
+        },
+        {
+          "round": 28,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 4,
+          "single": 336,
+          "straddle": 308,
+          "good": 4
+        },
+        {
+          "round": 29,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 253,
+          "straddle": 214,
+          "good": 0
+        },
+        {
+          "round": 30,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 153,
+          "straddle": 112,
+          "good": 0
+        },
+        {
+          "round": 31,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 8,
+          "single": 246,
+          "straddle": 240,
+          "good": 8
+        },
+        {
+          "round": 32,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 9,
+          "single": 124,
+          "straddle": 125,
+          "good": 9
+        },
+        {
+          "round": 33,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 4,
+          "single": 47,
+          "straddle": 47,
+          "good": 4
+        },
+        {
+          "round": 34,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 14,
+          "single": 335,
+          "straddle": 317,
+          "good": 14
+        },
+        {
+          "round": 35,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 13,
+          "single": 327,
+          "straddle": 308,
+          "good": 13
+        },
+        {
+          "round": 36,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 15,
+          "single": 331,
+          "straddle": 309,
+          "good": 15
+        },
+        {
+          "round": 37,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 11,
+          "single": 341,
+          "straddle": 326,
+          "good": 11
+        },
+        {
+          "round": 38,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 8,
+          "single": 312,
+          "straddle": 300,
+          "good": 8
+        },
+        {
+          "round": 39,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 365,
+          "straddle": 325,
+          "good": 1
+        },
+        {
+          "round": 40,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 229,
+          "straddle": 193,
+          "good": 0
+        },
+        {
+          "round": 41,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 138,
+          "straddle": 111,
+          "good": 0
+        },
+        {
+          "round": 42,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 9,
+          "single": 222,
+          "straddle": 219,
+          "good": 9
+        },
+        {
+          "round": 43,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 11,
+          "single": 148,
+          "straddle": 147,
+          "good": 11
+        },
+        {
+          "round": 44,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 8,
+          "single": 146,
+          "straddle": 145,
+          "good": 8
+        },
+        {
+          "round": 45,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 6,
+          "single": 43,
+          "straddle": 43,
+          "good": 6
+        },
+        {
+          "round": 46,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 8,
+          "single": 313,
+          "straddle": 300,
+          "good": 8
+        },
+        {
+          "round": 47,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 2,
+          "single": 353,
+          "straddle": 320,
+          "good": 2
+        },
+        {
+          "round": 48,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 229,
+          "straddle": 196,
+          "good": 0
+        },
+        {
+          "round": 49,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 138,
+          "straddle": 105,
+          "good": 0
+        },
+        {
+          "round": 50,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 9,
+          "single": 227,
+          "straddle": 222,
+          "good": 9
+        },
+        {
+          "round": 51,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 6,
+          "single": 133,
+          "straddle": 131,
+          "good": 6
+        }
+      ]
+    },
+    "172": {
+      "error": 1.5758672144983166e-11,
+      "points": 400,
+      "round_budget": 160,
+      "cond": 10677.523902255989,
+      "gap": 4.73677349509834e-11,
+      "uncertainty": 3.6421648535750514e-11,
+      "validation_fraction": 1.0,
+      "residual": 8.526512829121202e-14,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 10,
+          "single": 329,
+          "straddle": 305,
+          "good": 10
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 8,
+          "single": 348,
+          "straddle": 325,
+          "good": 8
+        },
+        {
+          "round": 2,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 335,
+          "straddle": 297,
+          "good": 0
+        },
+        {
+          "round": 3,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 240,
+          "straddle": 204,
+          "good": 0
+        },
+        {
+          "round": 4,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 138,
+          "straddle": 100,
+          "good": 0
+        },
+        {
+          "round": 5,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 7,
+          "single": 280,
+          "straddle": 270,
+          "good": 7
+        },
+        {
+          "round": 6,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 5,
+          "single": 150,
+          "straddle": 150,
+          "good": 5
+        },
+        {
+          "round": 7,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 4,
+          "single": 48,
+          "straddle": 48,
+          "good": 4
+        },
+        {
+          "round": 8,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 342,
+          "straddle": 318,
+          "good": 7
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 345,
+          "straddle": 303,
+          "good": 0
+        },
+        {
+          "round": 10,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 217,
+          "straddle": 179,
+          "good": 0
+        },
+        {
+          "round": 11,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 142,
+          "straddle": 105,
+          "good": 0
+        },
+        {
+          "round": 12,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 4,
+          "single": 253,
+          "straddle": 246,
+          "good": 4
+        },
+        {
+          "round": 13,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 156,
+          "straddle": 154,
+          "good": 4
+        },
+        {
+          "round": 14,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 2,
+          "single": 51,
+          "straddle": 51,
+          "good": 2
+        },
+        {
+          "round": 15,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 11,
+          "single": 328,
+          "straddle": 306,
+          "good": 11
+        },
+        {
+          "round": 16,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 318,
+          "straddle": 290,
+          "good": 0
+        },
+        {
+          "round": 17,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 214,
+          "straddle": 183,
+          "good": 0
+        },
+        {
+          "round": 18,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 106,
+          "straddle": 79,
+          "good": 0
+        },
+        {
+          "round": 19,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 5,
+          "single": 277,
+          "straddle": 274,
+          "good": 5
+        },
+        {
+          "round": 20,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 6,
+          "single": 155,
+          "straddle": 153,
+          "good": 6
+        },
+        {
+          "round": 21,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 8,
+          "single": 80,
+          "straddle": 78,
+          "good": 8
+        },
+        {
+          "round": 22,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 6,
+          "single": 350,
+          "straddle": 331,
+          "good": 6
+        },
+        {
+          "round": 23,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 348,
+          "straddle": 312,
+          "good": 0
+        },
+        {
+          "round": 24,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 214,
+          "straddle": 180,
+          "good": 0
+        },
+        {
+          "round": 25,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 115,
+          "straddle": 82,
+          "good": 0
+        },
+        {
+          "round": 26,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 5,
+          "single": 261,
+          "straddle": 253,
+          "good": 5
+        },
+        {
+          "round": 27,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 5,
+          "single": 160,
+          "straddle": 157,
+          "good": 5
+        },
+        {
+          "round": 28,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 9,
+          "single": 53,
+          "straddle": 53,
+          "good": 9
+        },
+        {
+          "round": 29,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 10,
+          "single": 344,
+          "straddle": 332,
+          "good": 10
+        },
+        {
+          "round": 30,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 330,
+          "straddle": 316,
+          "good": 7
+        },
+        {
+          "round": 31,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 324,
+          "straddle": 287,
+          "good": 1
+        },
+        {
+          "round": 32,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 219,
+          "straddle": 182,
+          "good": 0
+        },
+        {
+          "round": 33,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 102,
+          "straddle": 82,
+          "good": 0
+        },
+        {
+          "round": 34,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 7,
+          "single": 263,
+          "straddle": 255,
+          "good": 7
+        },
+        {
+          "round": 35,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 6,
+          "single": 143,
+          "straddle": 141,
+          "good": 6
+        },
+        {
+          "round": 36,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 2,
+          "single": 61,
+          "straddle": 59,
+          "good": 2
+        },
+        {
+          "round": 37,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 5,
+          "single": 345,
+          "straddle": 321,
+          "good": 5
+        },
+        {
+          "round": 38,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 327,
+          "straddle": 293,
+          "good": 1
+        },
+        {
+          "round": 39,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 223,
+          "straddle": 191,
+          "good": 0
+        },
+        {
+          "round": 40,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 129,
+          "straddle": 89,
+          "good": 0
+        },
+        {
+          "round": 41,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 6,
+          "single": 255,
+          "straddle": 254,
+          "good": 6
+        },
+        {
+          "round": 42,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 5,
+          "single": 156,
+          "straddle": 157,
+          "good": 5
+        },
+        {
+          "round": 43,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 52,
+          "straddle": 52,
+          "good": 1
+        },
+        {
+          "round": 44,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 5,
+          "single": 324,
+          "straddle": 304,
+          "good": 5
+        },
+        {
+          "round": 45,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 333,
+          "straddle": 296,
+          "good": 0
+        },
+        {
+          "round": 46,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 203,
+          "straddle": 174,
+          "good": 0
+        },
+        {
+          "round": 47,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 139,
+          "straddle": 101,
+          "good": 0
+        },
+        {
+          "round": 48,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 6,
+          "single": 270,
+          "straddle": 259,
+          "good": 6
+        },
+        {
+          "round": 49,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 7,
+          "single": 168,
+          "straddle": 165,
+          "good": 7
+        },
+        {
+          "round": 50,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 2,
+          "single": 46,
+          "straddle": 46,
+          "good": 2
+        },
+        {
+          "round": 51,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 6,
+          "single": 340,
+          "straddle": 331,
+          "good": 6
+        },
+        {
+          "round": 52,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 346,
+          "straddle": 311,
+          "good": 0
+        },
+        {
+          "round": 53,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 225,
+          "straddle": 198,
+          "good": 0
+        },
+        {
+          "round": 54,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 103,
+          "straddle": 78,
+          "good": 0
+        },
+        {
+          "round": 55,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 4,
+          "single": 251,
+          "straddle": 242,
+          "good": 4
+        },
+        {
+          "round": 56,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 5,
+          "single": 183,
+          "straddle": 174,
+          "good": 5
+        },
+        {
+          "round": 57,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 5,
+          "single": 60,
+          "straddle": 60,
+          "good": 5
+        },
+        {
+          "round": 58,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 339,
+          "straddle": 319,
+          "good": 7
+        },
+        {
+          "round": 59,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 331,
+          "straddle": 300,
+          "good": 0
+        },
+        {
+          "round": 60,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 229,
+          "straddle": 191,
+          "good": 0
+        },
+        {
+          "round": 61,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 149,
+          "straddle": 109,
+          "good": 0
+        },
+        {
+          "round": 62,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 5,
+          "single": 239,
+          "straddle": 230,
+          "good": 5
+        },
+        {
+          "round": 63,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 140,
+          "straddle": 138,
+          "good": 2
+        },
+        {
+          "round": 64,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 6,
+          "single": 53,
+          "straddle": 51,
+          "good": 6
+        },
+        {
+          "round": 65,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 3,
+          "single": 318,
+          "straddle": 298,
+          "good": 3
+        },
+        {
+          "round": 66,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 349,
+          "straddle": 311,
+          "good": 0
+        },
+        {
+          "round": 67,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 239,
+          "straddle": 205,
+          "good": 0
+        },
+        {
+          "round": 68,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 150,
+          "straddle": 105,
+          "good": 0
+        },
+        {
+          "round": 69,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 3,
+          "single": 241,
+          "straddle": 237,
+          "good": 3
+        },
+        {
+          "round": 70,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 152,
+          "straddle": 150,
+          "good": 4
+        },
+        {
+          "round": 71,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 64,
+          "straddle": 63,
+          "good": 1
+        },
+        {
+          "round": 72,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 6,
+          "single": 313,
+          "straddle": 298,
+          "good": 6
+        },
+        {
+          "round": 73,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 346,
+          "straddle": 318,
+          "good": 0
+        },
+        {
+          "round": 74,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 243,
+          "straddle": 207,
+          "good": 0
+        },
+        {
+          "round": 75,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 142,
+          "straddle": 104,
+          "good": 0
+        },
+        {
+          "round": 76,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 5,
+          "single": 237,
+          "straddle": 230,
+          "good": 5
+        },
+        {
+          "round": 77,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 150,
+          "straddle": 150,
+          "good": 4
+        },
+        {
+          "round": 78,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 47,
+          "straddle": 47,
+          "good": 1
+        },
+        {
+          "round": 79,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 315,
+          "straddle": 295,
+          "good": 7
+        },
+        {
+          "round": 80,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 330,
+          "straddle": 302,
+          "good": 0
+        },
+        {
+          "round": 81,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 247,
+          "straddle": 216,
+          "good": 0
+        },
+        {
+          "round": 82,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 145,
+          "straddle": 115,
+          "good": 0
+        },
+        {
+          "round": 83,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 2,
+          "single": 243,
+          "straddle": 233,
+          "good": 2
+        },
+        {
+          "round": 84,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 136,
+          "straddle": 136,
+          "good": 2
+        },
+        {
+          "round": 85,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 54,
+          "straddle": 54,
+          "good": 1
+        },
+        {
+          "round": 86,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 4,
+          "single": 340,
+          "straddle": 313,
+          "good": 4
+        },
+        {
+          "round": 87,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 358,
+          "straddle": 323,
+          "good": 1
+        },
+        {
+          "round": 88,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 239,
+          "straddle": 206,
+          "good": 0
+        },
+        {
+          "round": 89,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 131,
+          "straddle": 100,
+          "good": 0
+        },
+        {
+          "round": 90,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 2,
+          "single": 242,
+          "straddle": 232,
+          "good": 2
+        },
+        {
+          "round": 91,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 138,
+          "straddle": 134,
+          "good": 2
+        },
+        {
+          "round": 92,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 3,
+          "single": 48,
+          "straddle": 48,
+          "good": 3
+        },
+        {
+          "round": 93,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 5,
+          "single": 324,
+          "straddle": 308,
+          "good": 5
+        },
+        {
+          "round": 94,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 345,
+          "straddle": 310,
+          "good": 1
+        },
+        {
+          "round": 95,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 232,
+          "straddle": 207,
+          "good": 0
+        },
+        {
+          "round": 96,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 139,
+          "straddle": 110,
+          "good": 0
+        },
+        {
+          "round": 97,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 3,
+          "single": 249,
+          "straddle": 244,
+          "good": 3
+        },
+        {
+          "round": 98,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 139,
+          "straddle": 135,
+          "good": 2
+        },
+        {
+          "round": 99,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 2,
+          "single": 48,
+          "straddle": 48,
+          "good": 2
+        },
+        {
+          "round": 100,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 9,
+          "single": 309,
+          "straddle": 293,
+          "good": 9
+        },
+        {
+          "round": 101,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 1,
+          "single": 317,
+          "straddle": 282,
+          "good": 1
+        },
+        {
+          "round": 102,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 245,
+          "straddle": 207,
+          "good": 0
+        },
+        {
+          "round": 103,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 130,
+          "straddle": 100,
+          "good": 0
+        },
+        {
+          "round": 104,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 10,
+          "single": 253,
+          "straddle": 247,
+          "good": 10
+        },
+        {
+          "round": 105,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 8,
+          "single": 243,
+          "straddle": 238,
+          "good": 8
+        },
+        {
+          "round": 106,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 7,
+          "single": 147,
+          "straddle": 145,
+          "good": 7
+        },
+        {
+          "round": 107,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 57,
+          "straddle": 55,
+          "good": 1
+        },
+        {
+          "round": 108,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 8,
+          "single": 337,
+          "straddle": 325,
+          "good": 8
+        },
+        {
+          "round": 109,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 341,
+          "straddle": 297,
+          "good": 0
+        },
+        {
+          "round": 110,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 224,
+          "straddle": 184,
+          "good": 0
+        },
+        {
+          "round": 111,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 158,
+          "straddle": 117,
+          "good": 0
+        },
+        {
+          "round": 112,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 1,
+          "single": 256,
+          "straddle": 247,
+          "good": 1
+        },
+        {
+          "round": 113,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 159,
+          "straddle": 157,
+          "good": 2
+        },
+        {
+          "round": 114,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 5,
+          "single": 49,
+          "straddle": 49,
+          "good": 5
+        },
+        {
+          "round": 115,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 3,
+          "single": 328,
+          "straddle": 309,
+          "good": 3
+        },
+        {
+          "round": 116,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 323,
+          "straddle": 290,
+          "good": 0
+        },
+        {
+          "round": 117,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 247,
+          "straddle": 201,
+          "good": 0
+        },
+        {
+          "round": 118,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 132,
+          "straddle": 103,
+          "good": 0
+        },
+        {
+          "round": 119,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 3,
+          "single": 259,
+          "straddle": 250,
+          "good": 3
+        },
+        {
+          "round": 120,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 2,
+          "single": 138,
+          "straddle": 137,
+          "good": 2
+        },
+        {
+          "round": 121,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 3,
+          "single": 42,
+          "straddle": 41,
+          "good": 3
+        },
+        {
+          "round": 122,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 6,
+          "single": 334,
+          "straddle": 320,
+          "good": 6
+        },
+        {
+          "round": 123,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 336,
+          "straddle": 305,
+          "good": 0
+        },
+        {
+          "round": 124,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 244,
+          "straddle": 213,
+          "good": 0
+        },
+        {
+          "round": 125,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 148,
+          "straddle": 114,
+          "good": 0
+        },
+        {
+          "round": 126,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 4,
+          "single": 260,
+          "straddle": 253,
+          "good": 4
+        },
+        {
+          "round": 127,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 3,
+          "single": 153,
+          "straddle": 152,
+          "good": 3
+        },
+        {
+          "round": 128,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 51,
+          "straddle": 51,
+          "good": 1
+        },
+        {
+          "round": 129,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 7,
+          "single": 347,
+          "straddle": 329,
+          "good": 7
+        },
+        {
+          "round": 130,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 346,
+          "straddle": 309,
+          "good": 0
+        },
+        {
+          "round": 131,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 269,
+          "straddle": 220,
+          "good": 0
+        },
+        {
+          "round": 132,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 136,
+          "straddle": 109,
+          "good": 0
+        },
+        {
+          "round": 133,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 4,
+          "single": 289,
+          "straddle": 278,
+          "good": 4
+        },
+        {
+          "round": 134,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 5,
+          "single": 149,
+          "straddle": 144,
+          "good": 5
+        },
+        {
+          "round": 135,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 3,
+          "single": 41,
+          "straddle": 40,
+          "good": 3
+        },
+        {
+          "round": 136,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 4,
+          "single": 331,
+          "straddle": 318,
+          "good": 4
+        },
+        {
+          "round": 137,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 354,
+          "straddle": 311,
+          "good": 0
+        },
+        {
+          "round": 138,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 246,
+          "straddle": 199,
+          "good": 0
+        },
+        {
+          "round": 139,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 129,
+          "straddle": 102,
+          "good": 0
+        },
+        {
+          "round": 140,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 3,
+          "single": 248,
+          "straddle": 241,
+          "good": 3
+        },
+        {
+          "round": 141,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 4,
+          "single": 168,
+          "straddle": 162,
+          "good": 4
+        },
+        {
+          "round": 142,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 1,
+          "single": 48,
+          "straddle": 47,
+          "good": 1
+        },
+        {
+          "round": 143,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 2,
+          "single": 348,
+          "straddle": 329,
+          "good": 2
+        },
+        {
+          "round": 144,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 0,
+          "single": 319,
+          "straddle": 289,
+          "good": 0
+        },
+        {
+          "round": 145,
+          "eps": 0.005,
+          "attempted": 96,
+          "found": 0,
+          "single": 238,
+          "straddle": 200,
+          "good": 0
+        },
+        {
+          "round": 146,
+          "eps": 0.0025,
+          "attempted": 96,
+          "found": 0,
+          "single": 158,
+          "straddle": 111,
+          "good": 0
+        },
+        {
+          "round": 147,
+          "eps": 0.04,
+          "attempted": 96,
+          "found": 2,
+          "single": 249,
+          "straddle": 238,
+          "good": 2
+        },
+        {
+          "round": 148,
+          "eps": 0.08,
+          "attempted": 96,
+          "found": 3,
+          "single": 147,
+          "straddle": 144,
+          "good": 3
+        },
+        {
+          "round": 149,
+          "eps": 0.16,
+          "attempted": 96,
+          "found": 4,
+          "single": 57,
+          "straddle": 57,
+          "good": 4
+        }
+      ]
+    }
+  }
+}

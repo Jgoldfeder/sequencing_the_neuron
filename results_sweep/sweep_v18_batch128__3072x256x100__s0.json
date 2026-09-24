@@ -1,0 +1,199 @@
+{
+ "variant": "v18_batch128",
+ "arch": [
+  3072,
+  256,
+  100
+ ],
+ "n_params": 812388,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cuda",
+ "outer": 60,
+ "p": 8,
+ "start_q": 1500,
+ "maxq": 1500,
+ "success_threshold": 0.001,
+ "combine": true,
+ "fast": true,
+ "cfg_overrides": {
+  "disagree": "median_pair",
+  "warmstart_iters": 5,
+  "fit_loss": "mse",
+  "gate_kappa": 3.0,
+  "lbfgs_polish": true,
+  "batch": 128,
+  "window": 60,
+  "combine": true
+ },
+ "succeeded": false,
+ "success_q": null,
+ "n_attempts": 1,
+ "total_wall_s": 638.6,
+ "total_samples_all_attempts": 45000,
+ "attempts": [
+  {
+   "q": 1500,
+   "outer": 60,
+   "budget": 90000,
+   "wall_s": 638.6,
+   "stdout": "  it   5 | q   7500 | loss 2.13e-01 | max_eps 1.50e+00 | mean_eps 1.71e-01 | cluster   n/a   | cons 0/256 | agree 0.1010 | 15.8s\n  it  10 | q  15000 | loss 4.93e-01 | max_eps 1.76e+00 | mean_eps 1.58e-01 | cluster   n/a   | cons 0/256 | agree 0.1080 | 58.0s\n  it  15 | q  22500 | loss 5.46e-01 | max_eps 1.74e+00 | mean_eps 1.35e-01 | cluster   n/a   | cons 0/256 | agree 0.1255 | 122.0s\n  it  20 | q  30000 | loss 5.36e-01 | max_eps 1.66e+00 | mean_eps 1.17e-01 | cluster   n/a   | cons 0/256 | agree 0.1855 | 213.9s\n  it  25 | q  37500 | loss 3.79e-01 | max_eps 1.27e+00 | mean_eps 7.76e-02 | cluster   n/a   | cons 28/256 L0[max 8.37e-02 mean 3.00e-03] L1[max 1.24e-01 mean 2.11e-02] | out 0/100 [n/a] | agree 0.4235 | 327.9s\n  [combine] iter 30: replaced worst member 0 (loss 1.18e-01) with polished consensus (max_eps 6.42e-02->6.20e-02, loss 7.91e-03)\n  it  30 | q  45000 | loss 7.91e-03 | max_eps 6.20e-02 | mean_eps 4.13e-03 | cluster 6.42e-02 | cons 256/256 L0[max 1.12e-02 mean 3.66e-04] L1[max 2.06e-02 mean 3.44e-03] | out 0/100 [n/a] | agree 0.9890 | 469.2s\n  [dump] iter 30 population + 45000 queries -> /home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/recon/_fast__v18_batch128__3072x256x100__s0__q1500.pt\n[fast] consensus at iter 30 (45000 queries): max_eps 6.196e-02 -> staged MSE->MAE solve...\n",
+   "total_samples": 45000,
+   "network": {
+    "max_eps": 0.0020236968994140625,
+    "mean_eps": 9.315553484157135e-08,
+    "n_params": 812388
+   },
+   "per_layer": [
+    {
+     "layer": 0,
+     "weight": {
+      "max_eps": 3.8743019104003906e-07,
+      "mean_eps": 3.062370623752031e-08,
+      "count": 786432
+     },
+     "bias": {
+      "max_eps": 1.2069940567016602e-06,
+      "mean_eps": 2.542540187278064e-07,
+      "count": 256
+     }
+    },
+    {
+     "layer": 1,
+     "weight": {
+      "max_eps": 0.0003935471177101135,
+      "mean_eps": 1.765957563293341e-06,
+      "count": 25600
+     },
+     "bias": {
+      "max_eps": 0.0020236968994140625,
+      "mean_eps": 6.321370165096596e-05,
+      "count": 100
+     }
+    }
+   ],
+   "mae_queryset": 1.0355269061194526e-05,
+   "mse_queryset": 2.4088242531029713e-09,
+   "mae_testset": 0.00015795506477355958,
+   "mse_testset": 4.6156391501426697e-07,
+   "agree": 1.0,
+   "log": [
+    {
+     "iter": 5,
+     "queries": 7500,
+     "best_loss": 0.21291085416666666,
+     "med_loss": 0.21377879166666666,
+     "worst_loss": 0.21393272916666667,
+     "max_eps": 1.4986766576766968,
+     "mean_eps": 0.17055511008948088,
+     "agree": 0.10100000351667404,
+     "wall_s": 15.8,
+     "cluster_max_eps": null,
+     "n_consensus": 0,
+     "n_total": 256,
+     "consensus_max_eps": null,
+     "consensus_mean_eps": null
+    },
+    {
+     "iter": 10,
+     "queries": 15000,
+     "best_loss": 0.49337274479166665,
+     "med_loss": 0.49636013020833336,
+     "worst_loss": 0.498278609375,
+     "max_eps": 1.7595702409744263,
+     "mean_eps": 0.1580433421768248,
+     "agree": 0.1080000028014183,
+     "wall_s": 58.0,
+     "cluster_max_eps": null,
+     "n_consensus": 0,
+     "n_total": 256,
+     "consensus_max_eps": null,
+     "consensus_mean_eps": null
+    },
+    {
+     "iter": 15,
+     "queries": 22500,
+     "best_loss": 0.5464164513888888,
+     "med_loss": 0.5506274236111112,
+     "worst_loss": 0.5541520694444444,
+     "max_eps": 1.7395012378692627,
+     "mean_eps": 0.1345497900620103,
+     "agree": 0.12550000846385956,
+     "wall_s": 122.0,
+     "cluster_max_eps": null,
+     "n_consensus": 0,
+     "n_total": 256,
+     "consensus_max_eps": null,
+     "consensus_mean_eps": null
+    },
+    {
+     "iter": 20,
+     "queries": 30000,
+     "best_loss": 0.5364976875,
+     "med_loss": 0.5536544088541666,
+     "worst_loss": 0.5590565963541667,
+     "max_eps": 1.6595144271850586,
+     "mean_eps": 0.11743251490406692,
+     "agree": 0.18550001084804535,
+     "wall_s": 213.9,
+     "cluster_max_eps": null,
+     "n_consensus": 0,
+     "n_total": 256,
+     "consensus_max_eps": null,
+     "consensus_mean_eps": null
+    },
+    {
+     "iter": 25,
+     "queries": 37500,
+     "best_loss": 0.37881818958333335,
+     "med_loss": 0.4134239333333333,
+     "worst_loss": 0.44043095,
+     "max_eps": 1.2741973400115967,
+     "mean_eps": 0.07760558207519352,
+     "agree": 0.42350003123283386,
+     "wall_s": 327.9,
+     "cluster_max_eps": null,
+     "n_consensus": 28,
+     "n_total": 256,
+     "consensus_max_eps": 0.12419542670249939,
+     "consensus_mean_eps": 0.0035750772804021835,
+     "consensus_l0_max": 0.08365825563669205,
+     "consensus_l0_mean": 0.003004822414368391,
+     "consensus_l1_max": 0.12419542670249939,
+     "consensus_l1_mean": 0.021099014207720757,
+     "consensus_n_out_consensus": 0,
+     "consensus_out_total": 100,
+     "consensus_out_max": null,
+     "consensus_out_mean": null
+    },
+    {
+     "iter": 30,
+     "queries": 45000,
+     "best_loss": 0.007914484320746528,
+     "med_loss": 0.07727340321180555,
+     "worst_loss": 0.09248611892361111,
+     "max_eps": 0.061959683895111084,
+     "mean_eps": 0.004126015297515551,
+     "agree": 0.9890000224113464,
+     "wall_s": 469.2,
+     "cluster_max_eps": 0.06416821479797363,
+     "n_consensus": 256,
+     "n_total": 256,
+     "consensus_max_eps": 0.020647108554840088,
+     "consensus_mean_eps": 0.0004623655404429883,
+     "consensus_l0_max": 0.011215243488550186,
+     "consensus_l0_mean": 0.0003655795590020716,
+     "consensus_l1_max": 0.020647108554840088,
+     "consensus_l1_mean": 0.0034365993924438953,
+     "consensus_n_out_consensus": 0,
+     "consensus_out_total": 100,
+     "consensus_out_max": null,
+     "consensus_out_mean": null,
+     "combined_iter": 30
+    }
+   ],
+   "stopped_iter": 30,
+   "success": false
+  }
+ ]
+}

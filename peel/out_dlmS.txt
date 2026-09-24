@@ -1,0 +1,7 @@
+DIRECT-LM with (S,beta,theta), S0=I, toy 6->8->4->4:
+  s0 a=0.05: P(bias<1e-4)=1.00 med-bias=3.1e-15 max||S-S*||=7.6e-15
+  s0 a=0.1: P(bias<1e-4)=1.00 med-bias=1.0e-15 max||S-S*||=1.0e-15
+  s0 a=0.2: P(bias<1e-4)=1.00 med-bias=1.1e-15 max||S-S*||=2.3e-05
+  s1 a=0.05: P(bias<1e-4)=1.00 med-bias=1.1e-15 max||S-S*||=1.6e-15
+  s1 a=0.1: P(bias<1e-4)=1.00 med-bias=1.5e-15 max||S-S*||=2.7e-15
+  s1 a=0.2: P(bias<1e-4)=0.60 med-bias=5.2e-05 max||S-S*||=1.9e-04

@@ -1,0 +1,9 @@
+Preactivation calibration: LM success vs functional preact error (108 inits)
+  ez3 in [0.00,0.05): n=27  success=1.00  ez2 range=[0.01,0.09]
+  ez3 in [0.05,0.10): n=21  success=1.00  ez2 range=[0.03,0.17]
+  ez3 in [0.10,0.15): n=16  success=0.94  ez2 range=[0.04,0.24]
+  ez3 in [0.15,0.25): n=24  success=0.83  ez2 range=[0.09,0.27]
+  ez3 in [0.25,0.50): n=19  success=0.79  ez2 range=[0.12,0.32]
+  ez3 in [0.50,10.00): n= 1  success=1.00  ez2 range=[0.30,0.30]
+  SUCCESS: max ez2=0.30 max ez3=0.55; 95pct ez2=0.26 ez3=0.40
+  FAIL: min ez2=0.13 min ez3=0.14

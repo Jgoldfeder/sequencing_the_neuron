@@ -1,0 +1,107 @@
+[
+  {
+    "method": "jump",
+    "width": 40,
+    "layer": 2,
+    "prefix_noise": 0.0,
+    "seconds": 0.37501993775367737,
+    "queries": 4176,
+    "entries": [
+      {
+        "channel": 0,
+        "diagnostics": {
+          "regions": 8,
+          "rejected": 0,
+          "queries": 4176,
+          "measurements": [
+            {
+              "step": 4.132059424812639e-05,
+              "agreement": 7.395571760077487e-10,
+              "rank_error": 6.621895701871864e-10,
+              "attempts": 1
+            },
+            {
+              "step": 4.241328012108557e-05,
+              "agreement": 7.384439957371517e-10,
+              "rank_error": 6.104345214403178e-10,
+              "attempts": 1
+            },
+            {
+              "step": 4.6304099358511974e-05,
+              "agreement": 7.554415941147198e-10,
+              "rank_error": 6.436610177704552e-10,
+              "attempts": 1
+            },
+            {
+              "step": 2.5413165034791313e-05,
+              "agreement": 7.033913171660752e-10,
+              "rank_error": 6.099062776654036e-10,
+              "attempts": 1
+            },
+            {
+              "step": 5.185787215233641e-05,
+              "agreement": 7.601998031305213e-10,
+              "rank_error": 6.580371290758666e-10,
+              "attempts": 1
+            },
+            {
+              "step": 0.0001541819705956284,
+              "agreement": 8.08626257834717e-10,
+              "rank_error": 6.87481323040234e-10,
+              "attempts": 1
+            },
+            {
+              "step": 0.00014619270741368821,
+              "agreement": 8.081617018848888e-10,
+              "rank_error": 6.957674727346593e-10,
+              "attempts": 1
+            },
+            {
+              "step": 0.0001942421513791476,
+              "agreement": 7.864988232950547e-10,
+              "rank_error": 6.488229820428049e-10,
+              "attempts": 1
+            }
+          ],
+          "dense": {
+            "rank": 40,
+            "condition": 335.41875711832716,
+            "seconds": 0.0064062438905239105
+          },
+          "iterative": {
+            "stop": 2,
+            "iterations": 96,
+            "residual": 1.0570112124914817e-09,
+            "seconds": 0.026669614017009735
+          }
+        },
+        "dense_error": {
+          "mean": 1.6759166679975376e-10,
+          "maximum": 3.6267177039306375e-09
+        },
+        "iterative_error": {
+          "mean": 1.6759175288540626e-10,
+          "maximum": 3.6267198133543843e-09
+        }
+      }
+    ]
+  },
+  {
+    "method": "points",
+    "width": 40,
+    "layer": 2,
+    "prefix_noise": 0.0,
+    "seconds": 0.2524382211267948,
+    "queries": 33830,
+    "entries": [
+      {
+        "channel": 0,
+        "accepted": true,
+        "error": {
+          "mean": 3.6815274744739493e-16,
+          "maximum": 1.27675647831893e-15
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,1236 @@
+[
+  {
+    "dims": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      100
+    ],
+    "seed": 0,
+    "recursive": false,
+    "layer": 0,
+    "selection": "design",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 0,
+    "channels": 200,
+    "mean_absolute_parameter_error": 0.0005760871250145654,
+    "mean_neuron_max_error": 0.00410348108274916,
+    "maximum": 0.013508325076936325,
+    "median": 0.0026845551854200733,
+    "accepted_max": null,
+    "below_1e12": 0,
+    "below_1e10": 0,
+    "queries": 1080650,
+    "seconds": 9.306349277496338,
+    "diagnostics": {
+      "0": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "1": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "2": {
+        "points": 58,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "3": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "4": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "5": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "6": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "7": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "8": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "9": {
+        "points": 61,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "10": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "11": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "12": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "13": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "14": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "15": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "16": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "17": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "18": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "19": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "20": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "21": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "22": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "23": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "24": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "25": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "26": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "27": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "28": {
+        "points": 80,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "29": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "30": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "31": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "32": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "33": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "34": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "35": {
+        "points": 63,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "36": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "37": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "38": {
+        "points": 78,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "39": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "40": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "41": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "42": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "43": {
+        "points": 83,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "44": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "45": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "46": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "47": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "48": {
+        "points": 78,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "49": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "50": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "51": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "52": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "53": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "54": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "55": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "56": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "57": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "58": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "59": {
+        "points": 59,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "60": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "61": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "62": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "63": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "64": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "65": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "66": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "67": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "68": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "69": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "70": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "71": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "72": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "73": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "74": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "75": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "76": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "77": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "78": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "79": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "80": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "81": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "82": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "83": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "84": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "85": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "86": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "87": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "88": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "89": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "90": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "91": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "92": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "93": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "94": {
+        "points": 62,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "95": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "96": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "97": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "98": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "99": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "100": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "101": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "102": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "103": {
+        "points": 61,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "104": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "105": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "106": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "107": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "108": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "109": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "110": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "111": {
+        "points": 80,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "112": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "113": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "114": {
+        "points": 63,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "115": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "116": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "117": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "118": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "119": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "120": {
+        "points": 63,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "121": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "122": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "123": {
+        "points": 63,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "124": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "125": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "126": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "127": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "128": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "129": {
+        "points": 62,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "130": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "131": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "132": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "133": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "134": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "135": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "136": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "137": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "138": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "139": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "140": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "141": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "142": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "143": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "144": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "145": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "146": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "147": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "148": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "149": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "150": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "151": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "152": {
+        "points": 60,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "153": {
+        "points": 78,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "154": {
+        "points": 81,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "155": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "156": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "157": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "158": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "159": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "160": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "161": {
+        "points": 74,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "162": {
+        "points": 61,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "163": {
+        "points": 64,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "164": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "165": {
+        "points": 79,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "166": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "167": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "168": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "169": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "170": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "171": {
+        "points": 65,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "172": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "173": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "174": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "175": {
+        "points": 64,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "176": {
+        "points": 78,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "177": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "178": {
+        "points": 75,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "179": {
+        "points": 67,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "180": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "181": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "182": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "183": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "184": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "185": {
+        "points": 70,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "186": {
+        "points": 78,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "187": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "188": {
+        "points": 69,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "189": {
+        "points": 79,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "190": {
+        "points": 68,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "191": {
+        "points": 71,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "192": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "193": {
+        "points": 77,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "194": {
+        "points": 66,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "195": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "196": {
+        "points": 72,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "197": {
+        "points": 57,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "198": {
+        "points": 73,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      },
+      "199": {
+        "points": 76,
+        "accepted": false,
+        "reason": "too_few_points",
+        "round_budget": 1
+      }
+    }
+  }
+]

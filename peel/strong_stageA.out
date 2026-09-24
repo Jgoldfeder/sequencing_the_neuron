@@ -1,0 +1,5 @@
+HEAVY GN-LM (3000 samples, CG150, 120 outer). loss@true=0.0e+00
+            init W-err before  W-err after   loss after
+       true+1e-6       0.0000      0.00000     6.67e-16
+       true+0.02       0.0200      0.01683     1.70e-07
+       true+0.05       0.0500      0.04225     1.17e-06

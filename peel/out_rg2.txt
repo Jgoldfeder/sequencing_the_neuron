@@ -1,0 +1,4 @@
+JOINT (S,beta,theta) GN-CG-LM, S0=I (non-oracle coords):
+TOY 6->8->4->4 multi-direction basin:
+  [6, 8, 4, 4] s0 a=0.05: P(bias<1e-4)=0.20 med-bias=1.4e-04 max||S-S*||=1.6e-04
+  [6, 8, 4, 4] s0 a=0.10: P(bias<1e-4)=0.00 med-bias=6.5e-04 max||S-S*||=4.2e-04

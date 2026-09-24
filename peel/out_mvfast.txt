@@ -1,0 +1,9 @@
+MULTIVARIATE closed-form-jet full-net fit (biases guess, downstream random):
+  [3, 4, 3, 2]: downstream=39p  bias err=1.12e-02  (resid 7.3e-05)
+  [3, 4, 3, 2]: downstream=39p  bias err=1.97e-02  (resid 3.1e-04)
+  [3, 4, 3, 2]: downstream=39p  bias err=1.15e-02  (resid 1.2e-06)
+  [6, 8, 4, 4]: downstream=112p  bias err=7.70e-02  (resid 1.2e-03)
+  [6, 8, 4, 4]: downstream=112p  bias err=7.22e-02  (resid 7.3e-05)
+  [6, 8, 4, 4]: downstream=112p  bias err=1.05e-01  (resid 4.9e-03)
+  [8, 12, 8, 4]: downstream=248p  bias err=5.07e-01  (resid 8.6e-03)
+  [8, 12, 8, 4]: downstream=248p  bias err=9.69e-02  (resid 2.6e-03)

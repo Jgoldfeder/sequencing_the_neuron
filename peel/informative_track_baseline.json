@@ -1,0 +1,107 @@
+[
+  {
+    "seed": 0,
+    "recursive": true,
+    "layer": 0,
+    "selection": "track",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 200,
+    "channels": 200,
+    "maximum": 7.891534647974652e-13,
+    "median": 1.8826606940081092e-13,
+    "accepted_max": 7.891534647974652e-13,
+    "below_1e12": 200,
+    "below_1e10": 200,
+    "queries": 1097280,
+    "seconds": 6.34924578666687,
+    "diagnostics": {}
+  },
+  {
+    "seed": 0,
+    "recursive": true,
+    "layer": 1,
+    "selection": "track",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 200,
+    "channels": 200,
+    "maximum": 1.6288852211499005e-11,
+    "median": 4.491393368333263e-12,
+    "accepted_max": 1.6288852211499005e-11,
+    "below_1e12": 0,
+    "below_1e10": 200,
+    "queries": 1377974,
+    "seconds": 10.33199691772461,
+    "diagnostics": {}
+  },
+  {
+    "seed": 0,
+    "recursive": true,
+    "layer": 2,
+    "selection": "track",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 200,
+    "channels": 200,
+    "maximum": 5.552429759025923e-09,
+    "median": 1.2195386853153245e-09,
+    "accepted_max": 5.552429759025923e-09,
+    "below_1e12": 0,
+    "below_1e10": 6,
+    "queries": 1614734,
+    "seconds": 12.484136819839478,
+    "diagnostics": {}
+  },
+  {
+    "seed": 0,
+    "recursive": true,
+    "layer": 3,
+    "selection": "track",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 200,
+    "channels": 200,
+    "maximum": 0.000512954813060764,
+    "median": 4.019531440330182e-08,
+    "accepted_max": 0.000512954813060764,
+    "below_1e12": 0,
+    "below_1e10": 0,
+    "queries": 1855488,
+    "seconds": 14.092217206954956,
+    "diagnostics": {}
+  },
+  {
+    "seed": 0,
+    "recursive": true,
+    "layer": 4,
+    "selection": "track",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 191,
+    "channels": 200,
+    "maximum": 0.08240678968787658,
+    "median": 0.009494852124159077,
+    "accepted_max": 0.08240678968787658,
+    "below_1e12": 0,
+    "below_1e10": 0,
+    "queries": 2516057,
+    "seconds": 31.489227056503296,
+    "diagnostics": {}
+  }
+]

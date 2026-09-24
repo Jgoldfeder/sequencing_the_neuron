@@ -1,0 +1,9 @@
+{
+  "shared": {"arch": "3072,256,100", "outer": 60, "q": 1500, "maxq": 1500, "window": 60, "combine": true, "fast": true, "p": 8},
+  "experiments": [
+    {"variant": "v18_nowarm"},
+    {"variant": "v18_nogate"},
+    {"variant": "v18_batch128"},
+    {"variant": "v18_inituni_nowarm"}
+  ]
+}

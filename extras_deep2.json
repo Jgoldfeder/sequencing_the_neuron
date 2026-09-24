@@ -1,0 +1,6 @@
+{
+  "shared": {"arch": "784,128,64,10", "q": 8000, "maxq": 8000, "outer": 30, "window": 0, "p": 8},
+  "experiments": [
+    {"variant": "v18_inituni_nowarm"}
+  ]
+}

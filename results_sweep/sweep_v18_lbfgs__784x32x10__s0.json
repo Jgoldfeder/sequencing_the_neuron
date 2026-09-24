@@ -1,0 +1,174 @@
+{
+ "variant": "v18_lbfgs",
+ "arch": [
+  784,
+  32,
+  10
+ ],
+ "n_params": 25450,
+ "seed": 0,
+ "teacher_seed": 0,
+ "device": "cuda",
+ "outer": 60,
+ "p": 8,
+ "start_q": 1500,
+ "maxq": 48000,
+ "success_threshold": 0.001,
+ "combine": true,
+ "fast": true,
+ "cfg_overrides": {
+  "disagree": "median_pair",
+  "window": 60,
+  "warmstart_iters": 5,
+  "fit_loss": "mse",
+  "gate_kappa": 3.0,
+  "lbfgs_polish": true,
+  "combine": true
+ },
+ "succeeded": true,
+ "success_q": 1500,
+ "n_attempts": 1,
+ "total_wall_s": 101.7,
+ "total_samples_all_attempts": 30000,
+ "attempts": [
+  {
+   "q": 1500,
+   "outer": 60,
+   "budget": 90000,
+   "wall_s": 101.7,
+   "stdout": "  it   5 | q   7500 | loss 5.99e-01 | max_eps 2.97e+00 | mean_eps 2.23e-01 | cluster   n/a   | cons 0/32 | agree 0.5710 | 7.3s\n  it  10 | q  15000 | loss 4.38e-01 | max_eps 1.76e+00 | mean_eps 9.89e-02 | cluster   n/a   | cons 3/32 L0[max 3.91e-02 mean 4.46e-03] L1[max 1.85e-01 mean 5.61e-02] | out 0/10 [n/a] | agree 0.9440 | 25.8s\n  it  15 | q  22500 | loss 1.10e-02 | max_eps 7.96e-02 | mean_eps 7.18e-03 | cluster   n/a   | cons 31/32 L0[max 1.53e-02 mean 6.23e-04] L1[max 5.57e-02 mean 5.07e-03] | out 0/10 [n/a] | agree 0.9990 | 55.0s\n  [combine] iter 20: replaced worst member 5 (loss 4.12e-05) with polished consensus (max_eps 5.54e-05->2.03e-05, loss 4.72e-06)\n  it  20 | q  30000 | loss 4.72e-06 | max_eps 2.03e-05 | mean_eps 2.55e-06 | cluster 5.54e-05 | cons 32/32 L0[max 1.65e-05 mean 1.86e-07] L1[max 6.68e-06 mean 9.24e-07] | out 10/10 [max 4.61e-05 mean 1.28e-06] | agree 1.0000 | 94.6s\n  [dump] iter 20 population + 30000 queries -> /home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/recon/_fast__v18_lbfgs__784x32x10__s0__q1500.pt\n[fast] consensus at iter 20 (30000 queries): max_eps 5.535e-05 -> staged MSE->MAE solve...\n",
+   "total_samples": 30000,
+   "network": {
+    "max_eps": 1.6689300537109375e-06,
+    "mean_eps": 1.041980990379443e-08,
+    "n_params": 25450
+   },
+   "per_layer": [
+    {
+     "layer": 0,
+     "weight": {
+      "max_eps": 5.960464477539063e-08,
+      "mean_eps": 8.871533729859493e-09,
+      "count": 25088
+     },
+     "bias": {
+      "max_eps": 1.5459954738616943e-07,
+      "mean_eps": 4.545563569990918e-08,
+      "count": 32
+     }
+    },
+    {
+     "layer": 1,
+     "weight": {
+      "max_eps": 1.6689300537109375e-06,
+      "mean_eps": 1.2788659375928546e-07,
+      "count": 320
+     },
+     "bias": {
+      "max_eps": 9.872019290924072e-08,
+      "mean_eps": 2.3678877525412645e-08,
+      "count": 10
+     }
+    }
+   ],
+   "mae_queryset": 8.13939617946744e-07,
+   "mse_queryset": 1.3361756915723315e-12,
+   "mae_testset": 2.2717468440532685e-06,
+   "mse_testset": 9.011134238789965e-12,
+   "agree": 1.0,
+   "log": [
+    {
+     "iter": 5,
+     "queries": 7500,
+     "best_loss": 0.5986411458333334,
+     "med_loss": 0.60449015625,
+     "worst_loss": 0.6172686458333333,
+     "max_eps": 2.965210437774658,
+     "mean_eps": 0.22299012914299965,
+     "agree": 0.5710000395774841,
+     "wall_s": 7.3,
+     "cluster_max_eps": null,
+     "n_consensus": 0,
+     "n_total": 32,
+     "consensus_max_eps": null,
+     "consensus_mean_eps": null
+    },
+    {
+     "iter": 10,
+     "queries": 15000,
+     "best_loss": 0.43834092447916667,
+     "med_loss": 0.49434360677083333,
+     "worst_loss": 0.54321240234375,
+     "max_eps": 1.7615220546722412,
+     "mean_eps": 0.09885624889284372,
+     "agree": 0.9440000653266907,
+     "wall_s": 25.8,
+     "cluster_max_eps": null,
+     "n_consensus": 3,
+     "n_total": 32,
+     "consensus_max_eps": 0.18459022045135498,
+     "consensus_mean_eps": 0.005113255698233843,
+     "consensus_l0_max": 0.039110828191041946,
+     "consensus_l0_mean": 0.004463516641408205,
+     "consensus_l1_max": 0.18459022045135498,
+     "consensus_l1_mean": 0.056117743253707886,
+     "consensus_n_out_consensus": 0,
+     "consensus_out_total": 10,
+     "consensus_out_max": null,
+     "consensus_out_mean": null
+    },
+    {
+     "iter": 15,
+     "queries": 22500,
+     "best_loss": 0.010995810885959202,
+     "med_loss": 0.03578882568359375,
+     "worst_loss": 0.28715938151041664,
+     "max_eps": 0.07960910350084305,
+     "mean_eps": 0.00717577865725616,
+     "agree": 0.999000072479248,
+     "wall_s": 55.0,
+     "cluster_max_eps": null,
+     "n_consensus": 31,
+     "n_total": 32,
+     "consensus_max_eps": 0.05574154853820801,
+     "consensus_mean_eps": 0.0006786958547309041,
+     "consensus_l0_max": 0.015278764069080353,
+     "consensus_l0_mean": 0.0006227385601960123,
+     "consensus_l1_max": 0.05574154853820801,
+     "consensus_l1_mean": 0.0050713419914245605,
+     "consensus_n_out_consensus": 0,
+     "consensus_out_total": 10,
+     "consensus_out_max": null,
+     "consensus_out_mean": null
+    },
+    {
+     "iter": 20,
+     "queries": 30000,
+     "best_loss": 4.720954323808352e-06,
+     "med_loss": 9.864625285069147e-06,
+     "worst_loss": 3.4888155062993365e-05,
+     "max_eps": 2.025812864303589e-05,
+     "mean_eps": 2.5455079120106916e-06,
+     "agree": 1.0,
+     "wall_s": 94.6,
+     "cluster_max_eps": 5.535036325454712e-05,
+     "n_consensus": 32,
+     "n_total": 32,
+     "consensus_max_eps": 1.6452744603157043e-05,
+     "consensus_mean_eps": 1.9498597225720005e-07,
+     "consensus_l0_max": 1.6452744603157043e-05,
+     "consensus_l0_mean": 1.85692968557305e-07,
+     "consensus_l1_max": 6.67572021484375e-06,
+     "consensus_l1_mean": 9.244875514013984e-07,
+     "consensus_n_out_consensus": 10,
+     "consensus_out_total": 10,
+     "consensus_out_max": 4.607439041137695e-05,
+     "consensus_out_mean": 1.2769863815265126e-06,
+     "combined_iter": 20
+    }
+   ],
+   "stopped_iter": 20,
+   "success": true
+  }
+ ]
+}

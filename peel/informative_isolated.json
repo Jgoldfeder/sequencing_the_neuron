@@ -1,0 +1,21 @@
+[
+  {
+    "layer": 6,
+    "selection": "isolated",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 0,
+    "channels": 12,
+    "maximum": 0.010308791896966901,
+    "median": 0.002332191300640839,
+    "accepted_max": null,
+    "below_1e12": 0,
+    "below_1e10": 0,
+    "queries": 0,
+    "seconds": 32.16145920753479,
+    "diagnostics": {}
+  }
+]

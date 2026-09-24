@@ -1,0 +1,167 @@
+{
+  "config": {
+    "width": 200,
+    "channels": 2,
+    "attempts": 2,
+    "device": "cpu",
+    "noise": 0.01,
+    "seed": 0,
+    "cases": [
+      "first_full",
+      "second_direct",
+      "second_simulated"
+    ],
+    "output": "peel/deep_shallow_sweep_200.json"
+  },
+  "dims": [
+    200,
+    200,
+    200,
+    200
+  ],
+  "results": [
+    {
+      "case": "first_full",
+      "layer": 0,
+      "seconds": 0.06485404819250107,
+      "queries": 1624,
+      "accepted": 0,
+      "channels": 2,
+      "maximum_returned_error": 0.006903952643026984,
+      "accepted_max": null,
+      "mean_returned_error": 0.0006194955850541774,
+      "diagnostics": {
+        "0": {
+          "accepted": false,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 0.577681967992924,
+              "angle": 36.741326052068445,
+              "offset": 0.4998450406318571
+            },
+            {
+              "rank_error": 1.7682439737143303,
+              "angle": 78.58785419914116,
+              "offset": 0.2583881125884246
+            }
+          ]
+        },
+        "1": {
+          "accepted": false,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 1.4025017299706672,
+              "angle": 5.593838152067528,
+              "offset": -0.39095221605311115
+            },
+            {
+              "rank_error": 1.2389837077222894,
+              "angle": 7.3381392621160275,
+              "offset": 0.07246520164164615
+            }
+          ]
+        }
+      },
+      "prefix_roundtrip_relative": 4.499568067912028e-12,
+      "peak_gpu_bytes": null
+    },
+    {
+      "case": "second_direct",
+      "layer": 1,
+      "seconds": 0.05557083711028099,
+      "queries": 1624,
+      "accepted": 2,
+      "channels": 2,
+      "maximum_returned_error": 4.181169299677379e-12,
+      "accepted_max": 4.181169299677379e-12,
+      "mean_returned_error": 1.958178608206281e-14,
+      "diagnostics": {
+        "0": {
+          "accepted": true,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 1.163753587154849e-12,
+              "angle": 0.5654166810880153,
+              "offset": -0.05207998667755053
+            },
+            {
+              "rank_error": 8.50728007665396e-13,
+              "angle": 0.5654166810873709,
+              "offset": -0.052393859550975135,
+              "independent_disagreement": 9.99555993530521e-12
+            }
+          ]
+        },
+        "1": {
+          "accepted": true,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 5.072568312028457e-13,
+              "angle": 0.6046504582427734,
+              "offset": -0.16082635678598764
+            },
+            {
+              "rank_error": 1.2703314501763453e-12,
+              "angle": 0.604650458243979,
+              "offset": 0.07607183936601575,
+              "independent_disagreement": 1.4281908988778014e-12
+            }
+          ]
+        }
+      },
+      "prefix_roundtrip_relative": 4.499568067912028e-12,
+      "peak_gpu_bytes": null
+    },
+    {
+      "case": "second_simulated",
+      "layer": 1,
+      "seconds": 0.07124021649360657,
+      "queries": 1624,
+      "accepted": 0,
+      "channels": 2,
+      "maximum_returned_error": 0.014694578744213533,
+      "accepted_max": null,
+      "mean_returned_error": 0.0006159164197806801,
+      "diagnostics": {
+        "0": {
+          "accepted": false,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 3.601645745654465e-09,
+              "angle": 0.5654166785134616,
+              "offset": -0.05207998667564506
+            },
+            {
+              "rank_error": 1.1151886468004528e-08,
+              "angle": 0.5654166771430305,
+              "offset": -0.052393859492861954
+            }
+          ]
+        },
+        "1": {
+          "accepted": false,
+          "queries": 812,
+          "attempts": [
+            {
+              "rank_error": 5.5402065913513585e-09,
+              "angle": 0.6046504585309025,
+              "offset": -0.16082635684900798
+            },
+            {
+              "rank_error": 5.347474919948342e-09,
+              "angle": 0.6046504586297585,
+              "offset": 0.07607183931158999
+            }
+          ]
+        }
+      },
+      "prefix_roundtrip_relative": 4.499568067912028e-12,
+      "peak_gpu_bytes": null
+    }
+  ]
+}

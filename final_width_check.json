@@ -1,0 +1,4 @@
+{
+  "shared": {"arch": "3072,256,100", "outer": 90, "q": 1500, "maxq": 1500, "window": 90, "p": 8},
+  "experiments": [{"variant": "vR_init"}]
+}

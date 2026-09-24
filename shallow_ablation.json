@@ -1,0 +1,11 @@
+{
+  "shared": {"arch": "3072,256,100", "outer": 60, "q": 1500, "maxq": 1500, "window": 60, "combine": true, "fast": true, "p": 8},
+  "experiments": [
+    {"variant": "v18_lbfgs"},
+    {"variant": "v0_baseline"},
+    {"variant": "v18_mean"},
+    {"variant": "v18_l1loss"},
+    {"variant": "v18_nolbfgs"},
+    {"variant": "v18_authkern"}
+  ]
+}

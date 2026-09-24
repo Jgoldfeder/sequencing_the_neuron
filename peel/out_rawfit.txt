@@ -1,0 +1,7 @@
+RAW-JET fit (non-oracle) 3 controls: [1]true-b/rand-down [2]guess-b/true-down [3]guess-b/rand-down
+  [3, 4, 3, 2] s0: [1] resid=1.2e-05 | [2] resid=2.7e-10 biaserr=4.3e-05 | [3] resid=9.4e-06 biaserr=6.0e-03
+  [3, 4, 3, 2] s1: [1] resid=5.2e-05 | [2] resid=6.4e-09 biaserr=5.6e-04 | [3] resid=2.6e-05 biaserr=1.1e-01
+  [3, 4, 3, 2] s2: [1] resid=1.2e-06 | [2] resid=1.5e-10 biaserr=1.8e-04 | [3] resid=9.5e-07 biaserr=1.7e-02
+  [6, 8, 4, 4] s0: [1] resid=2.1e-03 | [2] resid=1.8e-08 biaserr=1.7e-04 | [3] resid=1.2e-03 biaserr=1.3e-02
+  [6, 8, 4, 4] s1: [1] resid=1.7e-04 | [2] resid=4.3e-09 biaserr=4.1e-04 | [3] resid=1.8e-04 biaserr=2.8e-02
+  [6, 8, 4, 4] s2: [1] resid=1.3e-03 | [2] resid=7.5e-09 biaserr=1.5e-04 | [3] resid=1.0e-03 biaserr=1.7e-02

@@ -1,0 +1,110 @@
+[
+  {
+    "layer": 6,
+    "selection": "design",
+    "scales": [
+      1.0
+    ],
+    "refined": 10,
+    "channels": 12,
+    "maximum": 0.010308791896966901,
+    "median": 4.221067939624845e-13,
+    "accepted_max": 8.43394798444308e-13,
+    "below_1e12": 10,
+    "below_1e10": 10,
+    "queries": 2091476,
+    "seconds": 57.0978422164917,
+    "diagnostics": {
+      "0": {
+        "points": 414,
+        "cond": 18454.50510519633,
+        "gap": 9.07699541792733e-12,
+        "uncertainty": 5.503333382945755e-12,
+        "validation_fraction": 0.9833333333333333,
+        "residual": 2.220446049250313e-16,
+        "accepted": true
+      },
+      "1": {
+        "points": 437,
+        "cond": 14955.362653956407,
+        "gap": 7.147797705494406e-12,
+        "uncertainty": 4.5686293907885544e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.255140518769849e-16,
+        "accepted": true
+      },
+      "2": {
+        "points": 406,
+        "cond": 20218.836394756356,
+        "gap": 3.790683816412082e-12,
+        "uncertainty": 6.649110035021276e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.740863092043355e-16,
+        "accepted": true
+      },
+      "3": {
+        "points": 427,
+        "cond": 16055.374390702998,
+        "gap": 9.275187763245646e-12,
+        "uncertainty": 5.378160131726711e-12,
+        "validation_fraction": 1.0,
+        "residual": 3.0531133177191805e-16,
+        "accepted": true
+      },
+      "4": {
+        "points": 408,
+        "cond": 14643.430737793738,
+        "gap": 2.862094597881068e-12,
+        "uncertainty": 4.735308417891133e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.7755575615628914e-16,
+        "accepted": true
+      },
+      "5": {
+        "points": 429,
+        "cond": 14470.120940359653,
+        "gap": 9.031119495932782e-12,
+        "uncertainty": 4.6649639914952725e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.671474153004283e-16,
+        "accepted": true
+      },
+      "6": {
+        "points": 432,
+        "cond": 14852.105947295906,
+        "gap": 2.8488694218759394e-12,
+        "uncertainty": 5.066247128342165e-12,
+        "validation_fraction": 1.0,
+        "residual": 3.191891195797325e-16,
+        "accepted": true
+      },
+      "7": {
+        "points": 422,
+        "cond": 17235.93841204808,
+        "gap": 8.096588533670498e-12,
+        "uncertainty": 5.7480507991972515e-12,
+        "validation_fraction": 1.0,
+        "residual": 3.191891195797325e-16,
+        "accepted": true
+      },
+      "8": {
+        "points": 442,
+        "cond": 15706.537594701318,
+        "gap": 8.759282433840251e-12,
+        "uncertainty": 5.0319050971842115e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.636779683484747e-16,
+        "accepted": true
+      },
+      "9": {
+        "points": 442,
+        "cond": 15550.987454802626,
+        "gap": 8.257802906462963e-12,
+        "uncertainty": 5.329113642230894e-12,
+        "validation_fraction": 1.0,
+        "residual": 3.3306690738754696e-16,
+        "accepted": true
+      }
+    }
+  }
+]

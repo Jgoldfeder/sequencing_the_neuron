@@ -1,0 +1,73 @@
+[
+  {
+    "dims": [
+      800,
+      800,
+      800,
+      800,
+      100
+    ],
+    "seed": 0,
+    "recursive": false,
+    "layer": 2,
+    "selection": "design",
+    "scales": [
+      1,
+      4,
+      16
+    ],
+    "refined": 4,
+    "channels": 4,
+    "mean_absolute_parameter_error": 9.630578268320345e-16,
+    "mean_neuron_max_error": 1.9011268254098823e-14,
+    "maximum": 2.6395552410463097e-14,
+    "median": 1.5568275835153855e-14,
+    "accepted_max": 2.6395552410463097e-14,
+    "below_1e12": 4,
+    "below_1e10": 4,
+    "queries": 595480,
+    "seconds": 65.04178237915039,
+    "diagnostics": {
+      "0": {
+        "points": 1658,
+        "round_budget": 167,
+        "cond": 2323.929517992642,
+        "gap": 2.7723655833755736e-13,
+        "uncertainty": 1.1172128854281508e-12,
+        "validation_fraction": 0.9999999999999999,
+        "residual": 2.638340934613126e-14,
+        "accepted": true
+      },
+      "1": {
+        "points": 1658,
+        "round_budget": 167,
+        "cond": 2614.8924647245094,
+        "gap": 3.3003435090622457e-13,
+        "uncertainty": 1.2903990575626232e-12,
+        "validation_fraction": 0.9999999999999999,
+        "residual": 2.8324564915749306e-14,
+        "accepted": true
+      },
+      "2": {
+        "points": 1657,
+        "round_budget": 167,
+        "cond": 2661.6305657509656,
+        "gap": 4.1302899824918503e-13,
+        "uncertainty": 1.272574260664519e-12,
+        "validation_fraction": 0.9999999999999999,
+        "residual": 2.594799375366108e-14,
+        "accepted": true
+      },
+      "3": {
+        "points": 1642,
+        "round_budget": 167,
+        "cond": 2482.009254810505,
+        "gap": 3.3082045865809034e-13,
+        "uncertainty": 1.1993749932409895e-12,
+        "validation_fraction": 1.0,
+        "residual": 2.657249420501273e-14,
+        "accepted": true
+      }
+    }
+  }
+]

@@ -1,0 +1,8 @@
+VALIDATE GN-CG-LM on 6->8->4->4 (alpha=0, should be machine):
+  seed0: bias err=2.17e-06 resid=5.7e-12
+  seed1: bias err=1.57e-07 resid=1.7e-14
+REAL 24->32->16->8 GN-CG-LM, oracle warm-start (b0=truth+0.05, downstream truth+alpha):
+  alpha=0.00: bias err=3.47e-07 resid=3.2e-12
+  alpha=0.01: bias err=3.76e-06 resid=3.0e-09
+  alpha=0.05: bias err=2.16e-05 resid=7.5e-08
+  alpha=0.10: bias err=3.68e-05 resid=3.1e-07

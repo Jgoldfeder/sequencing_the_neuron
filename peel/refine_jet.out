@@ -1,0 +1,4 @@
+committee cons 69/80  init W-err mean 0.0875 max 0.2678  (N=1500, m=24 jet dirs)
+control(jet) true+1e-6 -> 7.09e-07
+ VALUE-only: W-err mean 0.0875->0.0721  max 0.2678->0.2466  <5%:24/69 <2%:0/69  ratio 0.906
+  VALUE+JET: W-err mean 0.0875->0.0555  max 0.2678->0.2454  <5%:37/69 <2%:2/69  ratio 0.631

@@ -1,0 +1,182 @@
+[
+  {
+    "gauge": "original",
+    "prefix": 1,
+    "mode": "current",
+    "max_x": 3098.2400628822143,
+    "h_max_error": 3.423515915201847e-10,
+    "h_relative": 3.4223765399535094e-11,
+    "output_relative": 1.8519412813592434e-11
+  },
+  {
+    "gauge": "original",
+    "prefix": 1,
+    "mode": "solve",
+    "max_x": 3098.24006286846,
+    "h_max_error": 1.190081366786444e-11,
+    "h_relative": 1.3054650187107461e-12,
+    "output_relative": 7.23084681244946e-13
+  },
+  {
+    "gauge": "original",
+    "prefix": 2,
+    "mode": "current",
+    "max_x": 3658976.908346432,
+    "h_max_error": 3.2733655619399116e-07,
+    "h_relative": 3.252082045056875e-08,
+    "output_relative": 2.1229083992542005e-08
+  },
+  {
+    "gauge": "original",
+    "prefix": 2,
+    "mode": "solve",
+    "max_x": 3658976.9082238893,
+    "h_max_error": 1.8497996578936693e-08,
+    "h_relative": 1.4263568947248362e-09,
+    "output_relative": 1.0100068091691905e-09
+  },
+  {
+    "gauge": "original",
+    "prefix": 3,
+    "mode": "current",
+    "max_x": 1760308334.6351132,
+    "h_max_error": 0.00024346559019106095,
+    "h_relative": 1.9996531529227834e-05,
+    "output_relative": 1.4959124395900341e-05
+  },
+  {
+    "gauge": "original",
+    "prefix": 3,
+    "mode": "solve",
+    "max_x": 1760308334.5257616,
+    "h_max_error": 1.1543943867042827e-05,
+    "h_relative": 1.0295236193190416e-06,
+    "output_relative": 7.745792439082904e-07
+  },
+  {
+    "gauge": "original",
+    "prefix": 4,
+    "mode": "current",
+    "max_x": 674739665541869.5,
+    "h_max_error": 80.49969682926476,
+    "h_relative": 4.303820045155846,
+    "output_relative": 2.093264532489873
+  },
+  {
+    "gauge": "original",
+    "prefix": 4,
+    "mode": "solve",
+    "max_x": 674737344279305.9,
+    "h_max_error": 4.167951939374646,
+    "h_relative": 0.2797309947512786,
+    "output_relative": 0.2105055735458496
+  },
+  {
+    "gauge": "original",
+    "prefix": 5,
+    "mode": "current",
+    "max_x": 5.70091195335353e+17,
+    "h_max_error": 63179.16260577716,
+    "h_relative": 2967.103769926079,
+    "output_relative": 1710.2783048898261
+  },
+  {
+    "gauge": "original",
+    "prefix": 5,
+    "mode": "solve",
+    "max_x": 5.7008922585569434e+17,
+    "h_max_error": 4920.741131386279,
+    "h_relative": 276.8936744938224,
+    "output_relative": 147.60156800154644
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 1,
+    "mode": "current",
+    "max_x": 4409.094857103385,
+    "h_max_error": 3.278877169776706e-10,
+    "h_relative": 2.9968368813905775e-11,
+    "output_relative": 2.2583574052283446e-11
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 1,
+    "mode": "solve",
+    "max_x": 4409.094857107049,
+    "h_max_error": 1.1178502568043314e-11,
+    "h_relative": 1.2487839616093629e-12,
+    "output_relative": 1.0014757656978914e-12
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 2,
+    "mode": "current",
+    "max_x": 9248025.154173786,
+    "h_max_error": 3.432442094997157e-07,
+    "h_relative": 2.7629256811170566e-08,
+    "output_relative": 3.402961001708538e-08
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 2,
+    "mode": "solve",
+    "max_x": 9248025.15415594,
+    "h_max_error": 1.2708016944307232e-08,
+    "h_relative": 1.408998977638639e-09,
+    "output_relative": 1.7951613451050616e-09
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 3,
+    "mode": "current",
+    "max_x": 6765626058.597753,
+    "h_max_error": 0.00022131701726668673,
+    "h_relative": 1.911201905108393e-05,
+    "output_relative": 2.1982344906840637e-05
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 3,
+    "mode": "solve",
+    "max_x": 6765626058.674154,
+    "h_max_error": 9.807686912832736e-06,
+    "h_relative": 1.0048092955757453e-06,
+    "output_relative": 1.2728485510053543e-06
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 4,
+    "mode": "current",
+    "max_x": 4286873916300841.5,
+    "h_max_error": 68.85651556495321,
+    "h_relative": 3.7542481637374667,
+    "output_relative": 2.636869304520322
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 4,
+    "mode": "solve",
+    "max_x": 4286877402490939.0,
+    "h_max_error": 5.846782565782142,
+    "h_relative": 0.28931996750291517,
+    "output_relative": 0.2625236528963733
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 5,
+    "mode": "current",
+    "max_x": 5.773639450386048e+18,
+    "h_max_error": 53428.966148231106,
+    "h_relative": 2846.9152910042103,
+    "output_relative": 1426.6300833891498
+  },
+  {
+    "gauge": "normalized",
+    "prefix": 5,
+    "mode": "solve",
+    "max_x": 5.773644164328011e+18,
+    "h_max_error": 5605.050323834309,
+    "h_relative": 318.27941099333435,
+    "output_relative": 183.57500285422475
+  }
+]

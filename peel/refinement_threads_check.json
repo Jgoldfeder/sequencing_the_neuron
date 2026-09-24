@@ -1,0 +1,54 @@
+{
+  "pools": {
+    "/opt/miniconda3/lib/python3.12/site-packages/torch/lib/libgomp-c9fef706.so.1": 24,
+    "/opt/miniconda3/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-32a4b2a6.so": 48,
+    "/opt/miniconda3/lib/python3.12/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so": 48
+  },
+  "results": [
+    {
+      "mode": "limited_warmup",
+      "seconds": 0.8003917820751667,
+      "queries": 44170,
+      "points": [
+        72,
+        66,
+        67,
+        73,
+        77,
+        69,
+        58,
+        73
+      ]
+    },
+    {
+      "mode": "original",
+      "seconds": 17.99386925622821,
+      "queries": 44170,
+      "points": [
+        72,
+        66,
+        67,
+        73,
+        77,
+        69,
+        58,
+        73
+      ]
+    },
+    {
+      "mode": "limited",
+      "seconds": 0.34361449256539345,
+      "queries": 44170,
+      "points": [
+        72,
+        66,
+        67,
+        73,
+        77,
+        69,
+        58,
+        73
+      ]
+    }
+  ]
+}

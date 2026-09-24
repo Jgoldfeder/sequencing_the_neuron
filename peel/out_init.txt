@@ -1,0 +1,7 @@
+Query-access student-fit initializer -> joint LM.  (guess bias off by berr; can LM reach machine?)
+seed0 berr=0.01: student_res=1.47e-07 eps_z2=1.982 eps_z3=3.615 | LM bias=1.59e-02 (other) resid^2=5.5e-05
+seed0 berr=0.05: student_res=5.87e-08 eps_z2=2.690 eps_z3=3.266 | LM bias=1.69e-02 (other) resid^2=6.9e-05
+seed1 berr=0.01: student_res=7.49e-07 eps_z2=2.350 eps_z3=2.843 | LM bias=2.39e-02 (other) resid^2=2.4e-04
+seed1 berr=0.05: student_res=7.30e-07 eps_z2=2.717 eps_z3=1.485 | LM bias=6.14e-03 (other) resid^2=2.6e-05
+seed2 berr=0.01: student_res=3.17e-07 eps_z2=3.311 eps_z3=2.740 | LM bias=9.85e-03 (STUCK@guess) resid^2=1.3e-04
+seed2 berr=0.05: student_res=1.24e-06 eps_z2=3.047 eps_z3=5.742 | LM bias=1.65e-02 (other) resid^2=2.5e-04

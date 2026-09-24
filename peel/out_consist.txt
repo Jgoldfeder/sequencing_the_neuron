@@ -1,0 +1,4 @@
+1->1->1->1 CROSS-PROBE consistency (5 probes, no downstream init):
+  seed 0: bias err=1.53e-01 (grid 1.52e-01)  #roots/probe=[36, 33, 37, 39, 29]  dist(true)=1.4e-01
+  seed 1: bias err=2.62e-02 (grid 2.62e-02)  #roots/probe=[33, 33, 26, 28, 38]  dist(true)=4.9e-02
+  seed 2: bias err=1.28e-02 (grid 1.29e-02)  #roots/probe=[49, 31, 29, 30, 27]  dist(true)=5.0e-02
