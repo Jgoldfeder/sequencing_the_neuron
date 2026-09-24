@@ -18,8 +18,8 @@ def init_layer(layer: nn.Linear) -> None:
 
 
 class MLP(nn.Module):
-    """Feed-forward net, LeakyReLU (default) or sigmoid hidden activations,
-    linear output."""
+    """Feed-forward net, LeakyReLU (default), sigmoid or tanh hidden
+    activations, linear output."""
 
     def __init__(self, dims, negative_slope=0.01, act="leaky_relu"):
         super().__init__()
@@ -32,6 +32,8 @@ class MLP(nn.Module):
             self.act = nn.LeakyReLU(negative_slope=negative_slope)
         elif act == "sigmoid":
             self.act = nn.Sigmoid()
+        elif act == "tanh":
+            self.act = nn.Tanh()
         else:
             raise ValueError(f"unknown activation {act!r}")
         for layer in self.layers:
@@ -127,6 +129,11 @@ class ConvNet(nn.Module):
     def clone(self):
         new = ConvNet(self.input_shape, self.conv_cfgs, self.fc_dims,
                       self.out_dim, self.act_name)
+        p = next(self.parameters())
+        # match dtype BEFORE load_state_dict: loading fp64 weights into a fresh
+        # fp32 net truncates them (~1e-8), which silently capped every "exact
+        # prefix" at 1e-9 in the conv kink solver. (Same fix as MLP.clone.)
+        new = new.to(device=p.device, dtype=p.dtype)
         new.load_state_dict(self.state_dict())
         return new.to(next(self.parameters()).device)
 

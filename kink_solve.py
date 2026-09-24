@@ -28,6 +28,7 @@ Measured (7-layer 200-wide teacher, layer 1, 200 neurons): 200/200 in ~10s,
 ~4k queries/neuron, max err 3.8e-14 (exact prefix) / 7.6e-8 (1e-8 prefix).
 """
 import torch
+import torch.nn.functional as F
 
 
 def _phi(net, X, l):
@@ -48,75 +49,169 @@ def _preacts(net, X, l):
     return out
 
 
-def _gval(guess, X, l, wg, bg):
-    """wg.phi(X)+bg; wg may be one row (Din,) or one row per X row (n, Din)."""
-    P = _phi(guess, X, l)
+class MLPUnits:
+    """Unit view of hidden layer l of an MLP: unit = neuron (index j == channel),
+    feat(x) = the layer's input (prefix output), row j = (W[j], b[j])."""
+    def __init__(self, net, l):
+        self.net, self.l = net, l
+        L = net.layers[l]
+        self.W, self.B = L.weight, L.bias
+        self.n_channels = self.W.shape[0]; self.n_pos = 1; self.n_units = self.n_channels
+        self.din = self.W.shape[1]; self.d = net.layers[0].weight.shape[1]
+        self.device, self.dtype, self.act = self.W.device, self.W.dtype, net.act
+        self.has_preacts = True
+    def feat(self, X, jidx=None):
+        return _phi(self.net, X, self.l)
+    def rows(self, j):
+        return self.W[j], self.B[j]
+    def channel(self, j):
+        return j
+    def units_of(self, c, n, gen):
+        return torch.full((n,), int(c), device=self.device, dtype=torch.long)
+    def preacts(self, X):
+        return _preacts(self.net, X, self.l)
+    def weight_shape(self):
+        return tuple(self.net.layers[self.l].weight.shape)
+
+
+class ConvNetUnits:
+    """Unit view of layer `frontier` of a nets.ConvNet.
+    Conv frontier: unit = (channel c, output position p) encoded j = c*n_pos + p;
+      feat(x, j) = the receptive-field patch (C_in*k*k) of the prefix image at p;
+      row = flattened filter c. A kink of unit (c,p) gives w_c . patch + b_c = 0:
+      one linear constraint on the shared filter, from ANY position.
+    FC frontier: unit = neuron, feat = flattened prefix output."""
+    def __init__(self, net, frontier):
+        self.net, self.l = net, frontier
+        L = net.layers[frontier]
+        self.is_conv = frontier < net.n_conv
+        self.device, self.dtype, self.act = L.weight.device, L.weight.dtype, net.act
+        self.d = int(torch.tensor(net.input_shape).prod())
+        self.has_preacts = False
+        if self.is_conv:
+            self.k = L.kernel_size[0]; self.s = L.stride[0]; self.pad = L.padding[0]
+            with torch.no_grad():
+                x = torch.zeros(1, self.d, device=self.device, dtype=self.dtype)
+                self.hout = tuple(L(self._prefix(x)).shape[2:])
+            self.n_pos = self.hout[0] * self.hout[1]
+            self.n_channels = L.weight.shape[0]; self.din = L.weight[0].numel()
+            self.W = L.weight.reshape(self.n_channels, -1); self.B = L.bias
+        else:
+            self.n_pos = 1; self.n_channels = L.weight.shape[0]; self.din = L.weight.shape[1]
+            self.W, self.B = L.weight, L.bias
+        self.n_units = self.n_channels * self.n_pos
+    def _prefix(self, x):
+        net = self.net
+        x = x.view(x.shape[0], *net.input_shape)
+        for i in range(net.n_conv):
+            if i == self.l:
+                return x
+            x = net.act(net.layers[i](x))
+            if net.pools[i] > 0:
+                x = F.avg_pool2d(x, net.pools[i])
+        x = torch.flatten(x, 1)
+        for j in range(net.n_conv, len(net.layers) - 1):
+            if j == self.l:
+                return x
+            x = net.act(net.layers[j](x))
+        return x
+    def feat(self, X, jidx=None):
+        h = self._prefix(X)
+        if not self.is_conv:
+            return h
+        cols = F.unfold(h, self.k, padding=self.pad, stride=self.s)         # (n, Din, L)
+        p = (jidx % self.n_pos) if jidx is not None else torch.zeros(len(X), dtype=torch.long, device=X.device)
+        return cols[torch.arange(len(X), device=X.device), :, p]           # (n, Din)
+    def rows(self, j):
+        c = j // self.n_pos if torch.is_tensor(j) else int(j) // self.n_pos
+        return self.W[c], self.B[c]
+    def channel(self, j):
+        return j // self.n_pos
+    def units_of(self, c, n, gen):
+        p = torch.randint(self.n_pos, (n,), device=self.device, generator=gen)
+        return int(c) * self.n_pos + p
+    def weight_shape(self):
+        return tuple(self.net.layers[self.l].weight.shape)
+
+
+def _as_model(guess, l):
+    if isinstance(guess, (MLPUnits, ConvNetUnits)):
+        return guess
+    if hasattr(guess, "n_conv"):
+        return ConvNetUnits(guess, l)
+    return MLPUnits(guess, l)
+
+
+def _gval(guess, X, l, wg, bg, jidx=None):
+    """wg.feat(X)+bg; wg may be one row (Din,) or one row per X row (n, Din)."""
+    M = _as_model(guess, l)
+    P = M.feat(X, jidx)
     return (P @ wg + bg) if wg.dim() == 1 else ((P * wg).sum(1) + bg)
 
 
-def _g_and_normal(guess, X, l, wg, bg):
+def _g_and_normal(guess, X, l, wg, bg, jidx=None):
+    M = _as_model(guess, l)
     with torch.enable_grad():
         Xg = X.detach().requires_grad_(True)
-        g = _gval(guess, Xg, l, wg, bg)
+        g = _gval(M, Xg, l, wg, bg, jidx)
         n = torch.autograd.grad(g.sum(), Xg)[0]
     return g.detach(), n
 
 
 @torch.no_grad()
 def seed_brackets(guess, l, j, n_seed, gen, eps=0.02, margin=3.0, x_scale=1.0, isolate_prefix=True):
-    """(X0, U, R[, jidx]): points on neuron j's guessed kink, unit normal there,
-    and half-width R of an isolated bracket along U. j may be an int or a
-    LongTensor of per-seed target neurons (then n_seed = len(j), eps may be
-    per-seed, and the kept jidx is returned too)."""
-    dev = guess.layers[0].weight.device
-    d = guess.layers[0].weight.shape[1]
+    """(X0, U, R[, jidx]): points on unit j's guessed kink, unit normal there,
+    and half-width R of a bracket along U. j may be an int or a LongTensor of
+    per-seed target units (then n_seed = len(j), eps may be per-seed, and the
+    kept jidx is returned too). Works for MLP layers and ConvNet layers
+    (units = (channel, position)) through the unit model."""
+    M = _as_model(guess, l)
+    dev, d = M.device, M.d
     multi = torch.is_tensor(j)
+    jidx = j if multi else None
     if multi:
         n_seed = len(j)
-        wg = guess.layers[l].weight[j]; bg = guess.layers[l].bias[j]
-    else:
-        wg = guess.layers[l].weight[j]; bg = guess.layers[l].bias[j]
+    wg, bg = M.rows(j)
     X = x_scale * torch.randn(n_seed, d, device=dev, dtype=torch.float64, generator=gen)
     for _ in range(8):                                     # Newton on piecewise-linear g
-        g, n = _g_and_normal(guess, X, l, wg, bg)
+        g, n = _g_and_normal(M, X, l, wg, bg, jidx)
         nn2 = (n * n).sum(1).clamp_min(1e-30)
         X = X - (g / nn2)[:, None] * n
-    g, n = _g_and_normal(guess, X, l, wg, bg)
+    g, n = _g_and_normal(M, X, l, wg, bg, jidx)
     nrm = n.norm(dim=1)
     U = n / nrm.clamp_min(1e-30)[:, None]
     # finish with a model-only bisection along U so g(X0) = 0 to ~1e-15
     lo = torch.full_like(g, -1e-2); hi = torch.full_like(g, 1e-2)
-    glo = _gval(guess, X + lo[:, None] * U, l, wg, bg)
-    ghi = _gval(guess, X + hi[:, None] * U, l, wg, bg)
+    glo = _gval(M, X + lo[:, None] * U, l, wg, bg, jidx)
+    ghi = _gval(M, X + hi[:, None] * U, l, wg, bg, jidx)
     ok = (glo * ghi < 0) & (nrm > 1e-8)
     for _ in range(50):
         mid = 0.5 * (lo + hi)
-        gm = _gval(guess, X + mid[:, None] * U, l, wg, bg)
+        gm = _gval(M, X + mid[:, None] * U, l, wg, bg, jidx)
         left = gm * glo > 0
         lo = torch.where(left, mid, lo); glo = torch.where(left, gm, glo)
         hi = torch.where(left, hi, mid)
     X0 = X + (0.5 * (lo + hi))[:, None] * U
-    H = _phi(guess, X0, l)
+    H = M.feat(X0, jidx)
     # |dg| = |dw.h + db| ~ eps*(|h|+1)/sqrt(Din) for a random-direction row
     # error of relative size eps; R = margin x that, divided by the slope |n|.
     Din = H.shape[1]
     R = margin * eps * (H.norm(dim=1) + 1.0) / (Din ** 0.5) / nrm.clamp_min(1e-30)
-    # isolation on the model: no other kink of layers <= l inside the bracket.
-    # prefix kinks are known exactly (margin R); siblings carry their own +-R
-    # uncertainty (margin 2R).
-    for i in range(l + 1):
-        if not isolate_prefix:
-            continue        # scan + fingerprint handle every other bend (earlier layers AND siblings)
-        m = R if i < l else 2 * R
-        zm = _preacts(guess, X0 - m[:, None] * U, l)[i]
-        zp = _preacts(guess, X0 + m[:, None] * U, l)[i]
-        s = torch.sign(zm) * torch.sign(zp) < 0
-        if i == l:
-            if multi:
-                s[torch.arange(len(j), device=dev), j] = False
-            else:
-                s[:, j] = False
-        ok &= ~s.any(1)
+    # optional model-only isolation (MLP only): no other kink of layers <= l
+    # inside the bracket. The scan + fingerprint handle every other bend, so
+    # this is off in the direct/fallback paths.
+    if isolate_prefix and M.has_preacts:
+        for i in range(l + 1):
+            m = R if i < l else 2 * R
+            zm = M.preacts(X0 - m[:, None] * U)[i]
+            zp = M.preacts(X0 + m[:, None] * U)[i]
+            sflip = torch.sign(zm) * torch.sign(zp) < 0
+            if i == l:
+                if multi:
+                    sflip[torch.arange(len(j), device=dev), j] = False
+                else:
+                    sflip[:, j] = False
+            ok &= ~sflip.any(1)
     if multi:
         return X0[ok], U[ok], R[ok], j[ok]
     return X0[ok], U[ok], R[ok]
@@ -131,16 +226,18 @@ def _linefit(T, Y):
     return a, s, res
 
 
-def _probe_dirs(guess, l, X, U, wg, gen, n_probe=3, fd=1e-6):
+def _probe_dirs(guess, l, X, U, wg, gen, n_probe=3, fd=1e-6, jidx=None):
     """n_probe unit x-directions v per row whose induced h-displacement
     dh_v = J_phi v is orthogonal to wg (v <- v - beta U with beta chosen so
     wg.dh_v = 0). Returns (V (n,p,d), |dh_v| (n,p), |dh_U| (n,)). Model only."""
     n, d = X.shape
-    H0 = _phi(guess, X, l)
-    dhU = (_phi(guess, X + fd * U, l) - H0) / fd
+    M = _as_model(guess, l)
+    H0 = M.feat(X, jidx)
+    dhU = (M.feat(X + fd * U, jidx) - H0) / fd
     V = torch.randn(n, n_probe, d, device=X.device, dtype=X.dtype, generator=gen)
     V = V / V.norm(dim=2, keepdim=True)
-    dhV = (_phi(guess, (X[:, None, :] + fd * V).reshape(-1, d), l).reshape(n, n_probe, -1) - H0[:, None, :]) / fd
+    jrep = jidx.repeat_interleave(n_probe) if jidx is not None else None
+    dhV = (M.feat((X[:, None, :] + fd * V).reshape(-1, d), jrep).reshape(n, n_probe, -1) - H0[:, None, :]) / fd
     if wg.dim() == 2:                                       # one row per seed
         beta = (dhV * wg[:, None, :]).sum(2) / (dhU * wg).sum(1)[:, None]
     else:
@@ -152,7 +249,7 @@ def _probe_dirs(guess, l, X, U, wg, gen, n_probe=3, fd=1e-6):
 
 
 @torch.no_grad()
-def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol=0.03, n_probe=3, max_cand=8, debug=None):
+def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol=0.03, n_probe=3, max_cand=8, debug=None, jidx=None):
     """Find neuron j's kink on the segment X0 + t U, |t| <= R, among the other
     (deeper-layer) bends on it.
       scan: K points; for every interval (i, i+1) fit the line through points
@@ -187,6 +284,7 @@ def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol
         tstar = ((aL - aR) * ds).sum(1) / (dsn ** 2).clamp_min(1e-300)
         ok = (dsn * sp > 1e3 * tol * scale) & (tstar > T[:, i]) & (tstar < T[:, i + 1])
         cand.append((tstar, ok, aL, sL, aR, sR, ds))
+    tolv_all = 1e-9 * torch.stack([c[6].norm(dim=1) for c in cand]) * sp[None, :]   # (I, n): per-bend tolerance
     cand_t = torch.stack([c[0] for c in cand], 1); cand_ok = torch.stack([c[1] for c in cand], 1)
     # (I, n, o) stacks so a candidate's line data is one advanced-indexing gather
     c_aL = torch.stack([c[2] for c in cand]); c_sL = torch.stack([c[3] for c in cand])
@@ -209,7 +307,8 @@ def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol
         xs = Xs0 + ts[:, None] * Us
         # probe directions at the CANDIDATE point (the prefix Jacobian differs
         # across any earlier-layer bend between X0 and x*)
-        Vs, dhV_s, dhU_s = _probe_dirs(guess, l, xs, Us, wg[sub] if wg.dim() == 2 else wg, gen, n_probe)
+        Vs, dhV_s, dhU_s = _probe_dirs(guess, l, xs, Us, wg[sub] if wg.dim() == 2 else wg, gen, n_probe,
+                                       jidx=jidx[sub] if jidx is not None else None)
         e = 1e-3 * sps; dl = 5e-5 * sps        # dl << e: the perpendicular step must not re-cross the kink
         xm = xs - e[:, None] * Us; xp = xs + e[:, None] * Us
         # probe set: x-, x+, then each shifted by dl*U (reference jump) and dl*v_p
@@ -220,7 +319,8 @@ def locate(oracle, X0, U, R, gen, guess, l, wg, K=15, span=0.6, tol=1e-9, fp_tol
         # single-bend verification: probes on their side lines
         resL = (Yf[:, 0] - (aL + sL * (ts - e)[:, None])).abs().amax(1)
         resR = (Yf[:, 1] - (aR + sR * (ts + e)[:, None])).abs().amax(1)
-        single = (resL < tol * scale[sub]) & (resR < tol * scale[sub])
+        tolv = torch.minimum(tol * scale[sub], tolv_all[ks, sub])
+        single = (resL < tolv) & (resR < tolv)
         # gradient jumps across the probe pair along U and the p perpendicular dirs
         J = (Yf[:, 3 + n_probe:] - Yf[:, 1, None] - Yf[:, 2:3 + n_probe] + Yf[:, 0, None]) / dl[:, None, None]  # (m,1+p,o)
         JU, Jv = J[:, 0], J[:, 1:]
@@ -366,10 +466,13 @@ def locate_light(oracle, X0, U, R, tol=1e-12):
     ds = sR - sL; dsn = ds.norm(dim=1)
     scale = Y.abs().amax(dim=(1, 2)).clamp_min(1e-300)
     tstar = ((aL - aR) * ds).sum(1) / (dsn ** 2).clamp_min(1e-300)
-    # bend exists AND is strong enough for a precise intersection: the
-    # intersection error is ~eps_mach*scale/dsn, so demand dsn*R > 1e-6*scale
-    # (-> t* error < ~1e-9*R); weak-bend points are retried elsewhere instead
-    ok = ((dsn * R > 1e-6 * scale) & (rL < tol * scale) & (rR < tol * scale)
+    # collinearity tolerance RELATIVE TO OUR BEND: an undetected foreign bend of
+    # slope change ds' biases t* by ~ds'*R/dsn, so allow only ds'*R < 1e-9*dsn*R.
+    # (1e-12*|Y| let the thousands of weak conv-unit bends through -> uniform
+    # ~1e-9 point errors.) The bend-strength gate dsn*R > 1e-6*|Y| keeps this
+    # tolerance above fp64 noise (~1e-16*|Y|).
+    tolv = torch.minimum(tol * scale, 1e-9 * dsn * R)
+    ok = ((dsn * R > 1e-6 * scale) & (rL < tolv) & (rR < tolv)
           & (tstar > T[:, 2]) & (tstar < T[:, 3]))
     # verification points hug t*: any second bend must lie inside (t*-e, t*+e) to
     # escape the check, and then the intersection error is < 2e. R/8 let ~2% of
@@ -380,7 +483,7 @@ def locate_light(oracle, X0, U, R, tol=1e-12):
     Yv = oracle(Pv.reshape(-1, d)).reshape(n, 2, -1)
     resL = (Yv[:, 0] - (aL + sL * tm[:, None])).abs().amax(1)
     resR = (Yv[:, 1] - (aR + sR * tp[:, None])).abs().amax(1)
-    ok &= (resL < tol * scale) & (resR < tol * scale)
+    ok &= (resL < tolv) & (resR < tolv)
     return X0 + tstar[:, None] * U, ok
 
 
@@ -433,19 +536,23 @@ def polish_neuron(oracle, guess, l, j, gen, eps=1e-5, need=None, verbose=False,
 @torch.no_grad()
 def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
                  max_rows=200000, max_rounds=60, verbose=False, full=False, trace=None,
-                 return_points=False):
-    """Stage 2 for MANY neurons at once: every round seeds brackets for all
-    channels still short of `need` kink points (per-channel eps), locates them
-    in ONE batched oracle pass (8 queries per bracket), and adapts each
-    channel's bracket width from its observed kink offsets. Returns
-    {c: (w, b, H)} for the channels that solved (missing = failed)."""
-    dev = guess.layers[0].weight.device
-    Din = guess.layers[l].weight.shape[1]
+                 return_points=False, scales=(1.0,)):
+    """Kink points for MANY channels at once: every round seeds brackets for
+    all channels still short of `need` points (per-channel eps; for a conv
+    layer each seed picks a random output position of the channel), locates
+    them in ONE batched oracle pass (full: scan+fingerprint from a ~1e-2 guess;
+    else the 8-query light locate from a ~1e-8 row), and adapts each channel's
+    bracket width from its observed kink offsets. Returns {c: (w, b, H)} for
+    the channels that solved, or with return_points {c: (X, units)}."""
+    M = _as_model(guess, l)
+    dev = M.device
+    Din = M.din
     need = need or Din + 40
     chans = list(channels)
     got = {c: 0 for c in chans}; eps = {c: eps0 for c in chans}
     yld = {c: 0.5 for c in chans}                       # located / brackets, per channel
-    Hs = {c: [] for c in chans}; Xp = {c: [] for c in chans}; Ts = {c: [] for c in chans}; tried = {c: 0 for c in chans}
+    Hs = {c: [] for c in chans}; Xp = {c: [] for c in chans}; Up = {c: [] for c in chans}
+    Ts = {c: [] for c in chans}; tried = {c: 0 for c in chans}
     seeds = {c: 0 for c in chans}
     for rnd in range(max_rounds):
         todo = [c for c in chans if got[c] < need and seeds[c] <= 200 * need]
@@ -457,24 +564,25 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
         if tot > max_rows:                                   # cap the round
             f = max_rows / tot
             per = {c: max(8, int(v * f)) for c, v in per.items()}
-        jidx = torch.cat([torch.full((per[c],), c, device=dev, dtype=torch.long) for c in todo])
+        jidx = torch.cat([M.units_of(c, per[c], gen) for c in todo])
         erow = torch.cat([torch.full((per[c],), eps[c], device=dev, dtype=torch.float64) for c in todo])
         for c in todo:
             seeds[c] += per[c]
-        X0, U, R, jk = seed_brackets(guess, l, jidx, len(jidx), gen, eps=erow,
-                                     isolate_prefix=not full)
+        X0, U, R, jk = seed_brackets(M, l, jidx, len(jidx), gen, eps=erow,
+                                     isolate_prefix=not full,
+                                     x_scale=scales[rnd % len(scales)])   # multiscale seeds
         if len(X0):
             # query only ~1.3x what each channel still needs (seeding overshoots)
-            order = torch.argsort(jk, stable=True)
-            jk_s = jk[order]
-            Cout_ = guess.layers[l].weight.shape[0]
-            cnt = torch.bincount(jk_s, minlength=Cout_)
+            ck = M.channel(jk)
+            order = torch.argsort(ck, stable=True)
+            ck_s = ck[order]
+            cnt = torch.bincount(ck_s, minlength=M.n_channels)
             first = torch.cumsum(cnt, 0) - cnt
-            rank = torch.arange(len(jk_s), device=dev) - first[jk_s]
-            lim = torch.zeros(Cout_, device=dev, dtype=torch.long)
+            rank = torch.arange(len(ck_s), device=dev) - first[ck_s]
+            lim = torch.zeros(M.n_channels, device=dev, dtype=torch.long)
             for c in todo:
                 lim[c] = int(1.3 * (need - got[c])) + 2
-            sel = order[rank < lim[jk_s]]
+            sel = order[rank < lim[ck_s]]
             X0, U, R, jk = X0[sel], U[sel], R[sel], jk[sel]
         if len(X0) == 0:
             for c in todo:
@@ -486,15 +594,16 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
         ch = 2048 if full else 16384
         for a in range(0, len(X0), ch):                        # oracle chunks
             if full:                                           # scan + fingerprint (from a ~1e-2 guess)
-                xs_, ok_ = locate(oracle, X0[a:a + ch], U[a:a + ch], R[a:a + ch], gen, guess, l,
-                                  guess.layers[l].weight[jk[a:a + ch]], K=25 + 12 * l)
+                xs_, ok_ = locate(oracle, X0[a:a + ch], U[a:a + ch], R[a:a + ch], gen, M, l,
+                                  M.rows(jk[a:a + ch])[0], K=25 + 12 * l, jidx=jk[a:a + ch])
             else:                                              # 8-query light locate (from a ~1e-8 row)
                 xs_, ok_ = locate_light(oracle, X0[a:a + ch], U[a:a + ch], R[a:a + ch])
             Xs[a:a + ch] = xs_; ok[a:a + ch] = ok_
-        H_all = _phi(guess, Xs, l)
+        H_all = M.feat(Xs, jk)
+        ck = M.channel(jk)
         toff = (((Xs - X0) * U).sum(1) / R).abs()
         for c in todo:
-            m = (jk == c)
+            m = (ck == c)
             mo = m & ok
             k = int(mo.sum())
             if trace is not None and c in trace:
@@ -506,14 +615,12 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
                     eps[c] *= 2.0
                 continue
             take = min(k, need - got[c])
-            Hs[c].append(H_all[mo][:take]); Xp[c].append(Xs[mo][:take]); got[c] += take
+            Hs[c].append(H_all[mo][:take]); Xp[c].append(Xs[mo][:take]); Up[c].append(jk[mo][:take])
+            got[c] += take
             Ts[c].append(toff[mo])
             t_all = torch.cat(Ts[c])
             if len(t_all) >= 30:
                 q95 = t_all.quantile(0.95).item()
-                # widening only in polish mode: in full (fallback) mode the
-                # bracket already matches the guess error, and a wider one
-                # collapses the sibling-isolation yield
                 if q95 > 0.4 and eps[c] < 8 * eps0:            # kinks piling at the scan edge
                     eps[c] *= 1.5; Ts[c] = []
                 elif q95 < 0.05 and not full:                    # (polish only) bracket far too wide
@@ -525,13 +632,13 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
                   f"{int(ok.sum())} located, {sum(1 for c in chans if got[c] >= need)}/{len(chans)} done",
                   flush=True)
     if return_points:
-        return {c: (torch.cat(Xp[c]) if Xp[c] else None) for c in chans}
+        return {c: ((torch.cat(Xp[c]), torch.cat(Up[c])) if Xp[c] else None) for c in chans}
     out = {}
     for c in chans:
         if got[c] < Din + 8:
             continue
         H = torch.cat(Hs[c])
-        w, b, kept, gap = solve_from_points(H, guess.layers[l].weight[c], gen=gen)
+        w, b, kept, gap = solve_from_points(H, M.W[c], gen=gen)
         out[c] = (w, b, H)
     return out
 
@@ -593,45 +700,40 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
     re-locate the true kink along the normal in a bracket sized by how much
     that offset can change over one step (~|dw| |dh| / sqrt(Din) / |n|),
     8 queries, no scan, no fingerprint, no re-identification. `par` walks per
-    channel, all channels in lockstep. Returns {c: H (n_c, Din)} for channels
-    that reached need."""
-    dev = guess.layers[0].weight.device
-    Din = guess.layers[l].weight.shape[1]
-    d = guess.layers[0].weight.shape[1]
+    channel, all channels in lockstep. anchors: {c: (X, units)}. Each tracked
+    point stays on the surface of the SAME unit (for a conv layer: the same
+    output position). Returns {c: H (n_c, Din)} for channels that reached need."""
+    M = _as_model(guess, l)
+    dev, d, Din = M.device, M.d, M.din
     need = need or Din + 40
     max_steps = max_steps or 4 * need
-    W = guess.layers[l].weight; B = guess.layers[l].bias
-    chans = [c for c, X in anchors.items() if X is not None and len(X)]
+    chans = [c for c, a in anchors.items() if a is not None and len(a[0])]
     P = torch.zeros(len(chans), need, d, device=dev, dtype=torch.float64)   # points per channel
+    PU = torch.zeros(len(chans), need, dtype=torch.long, device=dev)         # their units
     got = torch.zeros(len(chans), dtype=torch.long, device=dev)
     for i, c in enumerate(chans):
-        k = min(len(anchors[c]), need); P[i, :k] = anchors[c][:k]; got[i] = k
-    cidx = torch.tensor(chans, device=dev)
+        Xa, Ua = anchors[c]
+        k = min(len(Xa), need); P[i, :k] = Xa[:k]; PU[i, :k] = Ua[:k]; got[i] = k
     for it in range(max_steps):
         act = (got < need).nonzero()[:, 0]
         if len(act) == 0:
             break
         act = act.repeat_interleave(par)                    # `par` walks per channel per step
-        wg = W[cidx[act]]; bg = B[cidx[act]]
-        # start point: a random one among the channel's points (spreads the walk)
         r = (torch.rand(len(act), device=dev, generator=gen) * got[act]).long()
-        X = P[act, r]
-        g0, n0 = _g_and_normal(guess, X, l, wg, bg)         # model offset at a TRUE kink point
+        X = P[act, r]; u = PU[act, r]
+        wg, bg = M.rows(u)
+        g0, n0 = _g_and_normal(M, X, l, wg, bg, u)          # model offset at a TRUE kink point
         nh = n0 / n0.norm(dim=1, keepdim=True).clamp_min(1e-30)
         V = torch.randn(X.shape, device=dev, dtype=X.dtype, generator=gen)
         V = V - (V * nh).sum(1, keepdim=True) * nh
         V = V / V.norm(dim=1, keepdim=True).clamp_min(1e-30)
         Xn = X + step * V
-        # project onto the SHIFTED model surface g(x) = g0 (piecewise-linear Newton)
-        for _ in range(6):
-            g, n = _g_and_normal(guess, Xn, l, wg, bg)
+        for _ in range(6):                                  # project onto the SHIFTED model surface
+            g, n = _g_and_normal(M, Xn, l, wg, bg, u)
             Xn = Xn - ((g - g0) / (n * n).sum(1).clamp_min(1e-30))[:, None] * n
-        g, n = _g_and_normal(guess, Xn, l, wg, bg)
+        g, n = _g_and_normal(M, Xn, l, wg, bg, u)
         nrm = n.norm(dim=1).clamp_min(1e-30); U = n / nrm[:, None]
-        # bracket: over the step the model-vs-true offset changes by dw.dh with dw a
-        # random-direction ~1e-2 relative error, i.e. ~1e-2 |dh| / sqrt(Din); 5 sigma.
-        # (the bias error does not enter: b is constant along the surface)
-        dh = (_phi(guess, Xn, l) - _phi(guess, X, l)).norm(dim=1)
+        dh = (M.feat(Xn, u) - M.feat(X, u)).norm(dim=1)
         R = 5.0 * (1e-2 * dh / (Din ** 0.5) + 1e-7) / nrm
         Xs, ok = locate_light(oracle, Xn, U, R)
         lane = torch.arange(len(act), device=dev) % par
@@ -640,7 +742,7 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
             hit = act[sel]
             room = got[hit] < need
             hit = hit[room]
-            P[hit, got[hit]] = Xs[sel][room]
+            P[hit, got[hit]] = Xs[sel][room]; PU[hit, got[hit]] = u[sel][room]
             got[hit] += 1
         if verbose and (it % 20 == 0):
             print(f"    [track] step {it}: {len(act) // par} channels, {int(ok.sum())}/{len(act)} located, "
@@ -649,29 +751,34 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
     for i, c in enumerate(chans):
         k = int(got[i])
         if k >= Din + 8:
-            out[c] = _phi(guess, P[i, :k], l)
+            out[c] = M.feat(P[i, :k], PU[i, :k])
     return out
 
 
 def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                   angle_gate=12.0, polish=True, fallback=True, verbose=True,
                   n_workers=None, direct=True, sampling="design", **_ignored):
-    """Pipeline entry point (drop-in for loc_refine.recover_layer): recover
-    layer `frontier` of `cons` (layers < frontier = the near-exact prefix,
-    layer `frontier` = the ~1e-2 guess) from black-box `teacher`.
-      stage 1: the existing seal refiner (_mlp_refine_layer: one kink +
-               gradient-jump normal, ~1.5k queries) on a CPU fork pool -> ~1e-8;
-      stage 2: batched kink polish (polish_layer, ~2k queries) -> fp64 floor
-               (~1e-14 with an exact prefix; = prefix error otherwise);
-      fallback: channels stage 1 abstained on go through the scan+fingerprint
-               solve_neuron straight from the ~1e-2 guess (~25k queries).
-    sampling="design" (DEFAULT, the production method): peel/informative_kinks
-    -- multiscale seeds, pivoted-QR information-directed choice of which
-    brackets to query, soft isolation preference, 400 pts/neuron + held-out
-    gate; validated recursively on a 7x200 net (200/200 every layer, worst
-    2.5e-11). sampling="track": the cheaper anchor->surface-tracking solver
-    (~15 s/layer but can drop a few neurons at depth >= 4).
-    Returns (W_ref, b_ref, refined_mask, n_oracle_queries), unit [w|b] rows."""
+    """Pipeline entry point: recover layer `frontier` of `cons` (layers <
+    frontier = the near-exact prefix, layer `frontier` = the ~1e-2 guess) from
+    black-box `teacher`. `cons` may be an MLP or a nets.ConvNet (conv or FC
+    frontier; conv units are (channel, position), every kink point constrains
+    the shared filter).
+    sampling="design" (MLP default): peel/informative_kinks -- multiscale
+      seeds, pivoted-QR information-directed choice of brackets, held-out gate
+      (validated recursively on a 7x200 net, 200/200 every layer, worst 2.5e-11).
+    sampling="track" (ConvNet default, MLP alternative): ONE scan+fingerprint
+      round for anchor kinks, then surface tracking (8 queries/point), then the
+      trimmed null-vector solve. Forward-only; no prefix inversion anywhere.
+    direct=False: legacy two-stage path (seal refiner -> polish), MLP only.
+    Returns (W_ref, b_ref, refined_mask, n_oracle_queries); W_ref has the
+    layer's weight shape, refined rows are unit [w|b]."""
+    is_conv = hasattr(cons, "n_conv")
+    if is_conv and sampling == "design":
+        if verbose:
+            print("    [kink] ConvNet layer: design sampling is MLP-only -> tracking", flush=True)
+        sampling = "track"
+    if is_conv:
+        direct = True
     if (sampling == "design" and frontier == 0 and len(cons.layers) == 2
             and cons.layers[0].weight.shape[1] >= 1024
             and cons.layers[0].weight.shape[0] <= cons.layers[0].weight.shape[1]):
@@ -700,20 +807,24 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
     orc = _Oracle(copy.deepcopy(teacher).double().to(device).eval())
     if gen is None:
         gen = torch.Generator(device=device).manual_seed(0)
-    Wl = pre.layers[frontier].weight.detach(); bl = pre.layers[frontier].bias.detach()
+    M = _as_model(pre, frontier)
+    wshape = M.weight_shape()
+    Wl = M.W.detach().clone(); bl = M.B.detach().clone()      # (n_channels, Din) rows
     Cout, Din = Wl.shape
     W_ref = Wl.clone(); b_ref = bl.clone()
     refined = torch.zeros(Cout, dtype=torch.bool, device=device)
     todo = list(range(Cout)) if only_channels is None else list(only_channels)
     t0 = time.time()
-    # ---- direct mode (default): NO seal refiner, NO inversion. Every channel is
-    # solved from kink points located by the batched scan + fingerprint straight
-    # from the ~1e-2 guess, h = phi(x*) forward through the recovered prefix.
+
+    def _set_rows(W, b):                                     # write rows into pre's layer
+        with torch.no_grad():
+            pre.layers[frontier].weight.copy_(W.reshape(wshape).to(pre.layers[frontier].weight.dtype))
+            pre.layers[frontier].bias.copy_(b.to(pre.layers[frontier].bias.dtype))
+
     if direct:
         rows, nq1 = {}, 0
         polish = False
     else:
-        # ---- stage 1: seal refiner, CPU pool
         rows, nq1 = stage1_parallel(teacher, cons, frontier, act, todo, angle_gate, n_workers)
     for c, (w, b) in rows.items():
         W_ref[c] = w.to(device=device, dtype=W_ref.dtype); b_ref[c] = b.to(device=device, dtype=b_ref.dtype)
@@ -722,8 +833,7 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
     if verbose and not direct:
         print(f"    [kink] stage 1 (seal refiner, cpu pool): {n1}/{len(todo)} refined, "
               f"{nq1} q, {time.time() - t0:.1f}s", flush=True)
-    with torch.no_grad():
-        pre.layers[frontier].weight.copy_(W_ref); pre.layers[frontier].bias.copy_(b_ref)
+    _set_rows(W_ref, b_ref)
 
     def _gate(c, w, b, H, ref_w, ref_b, max_deg):
         A = torch.cat([H, torch.ones(len(H), 1, device=device, dtype=H.dtype)], 1)
@@ -735,14 +845,10 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         ang = math.degrees(math.acos(abs(float((v @ gv).clamp(-1.0, 1.0)))))
         return (n_in >= Din + 8 and ang <= max_deg), v, n_in, ang, res.median().item()
 
-    # ---- stage 2: batched polish of the stage-1 rows
     n2 = 0
-    if polish and n1:
+    if polish and n1:                                        # legacy stage 2
         t1 = time.time(); q0 = orc.n
         out = polish_layer(orc, pre, frontier, sorted(rows), gen, verbose=verbose > 1)
-        # a correct polish has a near-full consensus at the prefix floor; the layer
-        # median of the per-channel residual medians IS that floor, so a channel
-        # 100x above it (or far from its stage-1 row) is a wrong lock
         gates = {c: _gate(c, w, b, H, W_ref[c], b_ref[c], 1.0) for c, (w, b, H) in out.items()}
         floor = sorted(g[4] for g in gates.values())[len(gates) // 2] if gates else 0.0
         for c, (w, b, H) in out.items():
@@ -751,53 +857,48 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
             if ok:
                 W_ref[c] = v[:-1]; b_ref[c] = v[-1]; n2 += 1
             else:
-                # inconsistent with the stage-1 row: stage 1 locked a wrong kink
-                # (its 12deg gate is loose). Drop the row -> fallback solves it
-                # from the original guess.
                 W_ref[c] = Wl[c]; b_ref[c] = bl[c]; refined[c] = False
                 if verbose:
                     print(f"    [kink] c={c}: polish REJECT (inliers {n_in}/{len(H)} "
                           f"res_med {rmed:.1e} angle {ang:.1e}deg) -> fallback", flush=True)
-        for c in sorted(rows):
-            if c not in out and verbose:
-                print(f"    [kink] c={c}: polish found too few kinks -> keeping stage-1 row", flush=True)
         if verbose:
             print(f"    [kink] stage 2 (batched polish): {n2}/{n1} improved, {orc.n - q0} q, "
                   f"{time.time() - t1:.1f}s", flush=True)
-    # ---- fallback: scan+fingerprint solve from the ~1e-2 guess, all stragglers batched
     if fallback:
         rest = [c for c in todo if not bool(refined[c])]
         if rest:
             t2 = time.time(); q0 = orc.n
-            with torch.no_grad():
-                pre.layers[frontier].weight.copy_(Wl); pre.layers[frontier].bias.copy_(bl)
+            _set_rows(Wl, bl)
+            M = _as_model(pre, frontier)
             if direct:
                 # (a) ONE scan+fingerprint round -> a few exact anchor kinks per channel
-                anchors = polish_layer(orc, pre, frontier, rest, gen, eps0=0.02, full=True,
+                anchors = polish_layer(orc, M, frontier, rest, gen, eps0=0.02, full=True,
                                        need=48, max_rounds=1, verbose=verbose > 1,
                                        return_points=True)
                 empty = [c for c in rest if anchors.get(c) is None]
                 if empty:                                  # a few more rounds, only for them
-                    more = polish_layer(orc, pre, frontier, empty, gen, eps0=0.02, full=True,
-                                        # Keep >=40 queried brackets per channel so polish_layer
-                                        # can widen a bracket after a zero-yield round.
+                    more = polish_layer(orc, M, frontier, empty, gen, eps0=0.02, full=True,
                                         need=48, max_rounds=12, verbose=verbose > 1,
-                                        return_points=True)
+                                        return_points=True, scales=(1.0, 4.0, 16.0))
                     anchors.update({c: v for c, v in more.items() if v is not None})
                 if verbose:
-                    na = [len(v) for v in anchors.values() if v is not None]
+                    na = [len(v[0]) for v in anchors.values() if v is not None]
                     print(f"    [kink] anchors: {sum(1 for v in anchors.values() if v is not None)}/{len(rest)} "
                           f"channels, median {sorted(na)[len(na) // 2] if na else 0} kinks, "
                           f"{orc.n - q0} q, {time.time() - t2:.1f}s", flush=True)
                 # (b) TRACK the surface from the anchors to Din+40 points per channel
-                Hs = track_layer(orc, pre, frontier, anchors, gen, need=Din + 40,
-                                 verbose=verbose > 1)
+                # tracking step: 0.5 for MLP layers (validated); conv inputs are larger
+                # (|x| ~ sqrt(d)) and patch features decorrelate only over bigger
+                # moves, so step ~0.3 sqrt(d) (10x better conditioning at conv3)
+                Hs = track_layer(orc, M, frontier, anchors, gen, need=Din + 40,
+                                 verbose=verbose > 1,
+                                 step=0.15 * (M.d ** 0.5) if is_conv else 0.5)
                 out = {}
                 for c, H in Hs.items():
                     w, b, kept, gap = solve_from_points(H, Wl[c], gen=gen)
                     out[c] = (w, b, H)
             else:
-                out = polish_layer(orc, pre, frontier, rest, gen, eps0=0.02, full=True,
+                out = polish_layer(orc, M, frontier, rest, gen, eps0=0.02, full=True,
                                    verbose=verbose > 1)
             nf = 0
             for c in rest:
@@ -817,5 +918,5 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
     if verbose:
         print(f"    [kink] layer {frontier}: {int(refined[todo].sum())}/{len(todo)} refined, "
               f"{orc.n + nq1} q total, {time.time() - t0:.1f}s", flush=True)
-    return (W_ref.to(cons.layers[frontier].weight.dtype),
+    return (W_ref.reshape(wshape).to(cons.layers[frontier].weight.dtype),
             b_ref.to(cons.layers[frontier].bias.dtype), refined, orc.n + nq1)

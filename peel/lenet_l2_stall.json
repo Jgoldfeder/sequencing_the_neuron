@@ -1,0 +1,183 @@
+{
+  "iter": 20,
+  "channels": [
+    {
+      "teacher_channel": 0,
+      "student_channel": 10,
+      "max_error": 0.003079436719417572,
+      "cosine": 0.9998893737792969,
+      "bias_student": -0.010136893950402737,
+      "bias_teacher": -0.01104168314486742,
+      "student_output_norm": 3.2841203212738037,
+      "teacher_output_norm": 2.9751851558685303
+    },
+    {
+      "teacher_channel": 1,
+      "student_channel": 9,
+      "max_error": 0.002887807786464691,
+      "cosine": 0.9999111294746399,
+      "bias_student": -0.015948893502354622,
+      "bias_teacher": -0.016096290200948715,
+      "student_output_norm": 2.7021803855895996,
+      "teacher_output_norm": 2.6557204723358154
+    },
+    {
+      "teacher_channel": 2,
+      "student_channel": 15,
+      "max_error": 0.002235542982816696,
+      "cosine": 0.9999596476554871,
+      "bias_student": -0.0033336274791508913,
+      "bias_teacher": -0.004353224765509367,
+      "student_output_norm": 2.8631818294525146,
+      "teacher_output_norm": 2.8026530742645264
+    },
+    {
+      "teacher_channel": 3,
+      "student_channel": 6,
+      "max_error": 0.001689225435256958,
+      "cosine": 0.9999715685844421,
+      "bias_student": 0.014339039102196693,
+      "bias_teacher": 0.016118023544549942,
+      "student_output_norm": 2.934601068496704,
+      "teacher_output_norm": 2.951557159423828
+    },
+    {
+      "teacher_channel": 4,
+      "student_channel": 13,
+      "max_error": 0.006112818606197834,
+      "cosine": 0.9997614622116089,
+      "bias_student": 0.003860815428197384,
+      "bias_teacher": 0.003100700443610549,
+      "student_output_norm": 2.223473072052002,
+      "teacher_output_norm": 2.155456066131592
+    },
+    {
+      "teacher_channel": 5,
+      "student_channel": 11,
+      "max_error": 0.004635252058506012,
+      "cosine": 0.999876856803894,
+      "bias_student": -0.0213796254247427,
+      "bias_teacher": -0.020223254337906837,
+      "student_output_norm": 3.3051178455352783,
+      "teacher_output_norm": 3.286391258239746
+    },
+    {
+      "teacher_channel": 6,
+      "student_channel": 14,
+      "max_error": 0.3755355477333069,
+      "cosine": -0.1741117388010025,
+      "bias_student": 0.05310891196131706,
+      "bias_teacher": -0.011118890717625618,
+      "student_output_norm": 0.6810356974601746,
+      "teacher_output_norm": 1.6366326808929443
+    },
+    {
+      "teacher_channel": 7,
+      "student_channel": 7,
+      "max_error": 0.0018311887979507446,
+      "cosine": 0.9999658465385437,
+      "bias_student": 0.014502650126814842,
+      "bias_teacher": 0.01495379488915205,
+      "student_output_norm": 3.412304639816284,
+      "teacher_output_norm": 3.424924612045288
+    },
+    {
+      "teacher_channel": 8,
+      "student_channel": 1,
+      "max_error": 0.0036055706441402435,
+      "cosine": 0.9998694062232971,
+      "bias_student": 0.0037480227183550596,
+      "bias_teacher": 0.0027908398769795895,
+      "student_output_norm": 3.53415584564209,
+      "teacher_output_norm": 3.4207777976989746
+    },
+    {
+      "teacher_channel": 9,
+      "student_channel": 4,
+      "max_error": 0.004193462431430817,
+      "cosine": 0.9998480081558228,
+      "bias_student": 0.0022473284043371677,
+      "bias_teacher": 0.0026242458261549473,
+      "student_output_norm": 2.2428958415985107,
+      "teacher_output_norm": 2.258525848388672
+    },
+    {
+      "teacher_channel": 10,
+      "student_channel": 8,
+      "max_error": 0.0033715441823005676,
+      "cosine": 0.9999407529830933,
+      "bias_student": -0.0023568279575556517,
+      "bias_teacher": -0.00209844415076077,
+      "student_output_norm": 3.496478796005249,
+      "teacher_output_norm": 3.4300038814544678
+    },
+    {
+      "teacher_channel": 11,
+      "student_channel": 12,
+      "max_error": 0.004113432019948959,
+      "cosine": 0.9998607039451599,
+      "bias_student": 0.002593726385384798,
+      "bias_teacher": 0.0019027296220883727,
+      "student_output_norm": 2.5443036556243896,
+      "teacher_output_norm": 2.4704158306121826
+    },
+    {
+      "teacher_channel": 12,
+      "student_channel": 3,
+      "max_error": 0.013732966035604477,
+      "cosine": 0.9985708594322205,
+      "bias_student": 0.020163824781775475,
+      "bias_teacher": 0.025477351620793343,
+      "student_output_norm": 2.4424917697906494,
+      "teacher_output_norm": 2.9177284240722656
+    },
+    {
+      "teacher_channel": 13,
+      "student_channel": 5,
+      "max_error": 0.005372896790504456,
+      "cosine": 0.9997876286506653,
+      "bias_student": 0.002593425801023841,
+      "bias_teacher": 0.005034815985709429,
+      "student_output_norm": 2.0335192680358887,
+      "teacher_output_norm": 1.9779075384140015
+    },
+    {
+      "teacher_channel": 14,
+      "student_channel": 0,
+      "max_error": 0.0025180019438266754,
+      "cosine": 0.9999387860298157,
+      "bias_student": -0.006341903004795313,
+      "bias_teacher": -0.00811008270829916,
+      "student_output_norm": 2.524179697036743,
+      "teacher_output_norm": 2.5201168060302734
+    },
+    {
+      "teacher_channel": 15,
+      "student_channel": 2,
+      "max_error": 0.0029795393347740173,
+      "cosine": 0.9999155402183533,
+      "bias_student": -0.005355556961148977,
+      "bias_teacher": -0.005407409276813269,
+      "student_output_norm": 2.103203058242798,
+      "teacher_output_norm": 2.0551600456237793
+    }
+  ],
+  "bad_matches": [
+    -0.22278453409671783,
+    -0.02466106228530407,
+    -0.19361333549022675,
+    0.07781524211168289,
+    -0.011112204752862453,
+    -0.058729998767375946,
+    -0.1741117388010025,
+    0.19816339015960693,
+    0.022985681891441345,
+    -0.020818717777729034,
+    -0.024744972586631775,
+    -0.05642551928758621,
+    0.956835925579071,
+    0.04248649254441261,
+    -0.1987827569246292,
+    0.11484231054782867
+  ]
+}

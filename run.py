@@ -294,6 +294,20 @@ def run_cnn(args):
         overrides["freeze_precision"] = args.freeze_precision
     if args.peelrefresh or args.peelrestart:   # CNN peelrestart == peel_refresh
         overrides["peel_refresh"] = True       # (cold reinit + t=0 clock restart)
+    if args.fast_peel:
+        # --fast-peel (CNN, any mode): peel the frontier layer as soon as the committee
+        # FULLY agrees on it (quorum 100%), refine the consensus rows, freeze, continue.
+        # Implies --peel. (Under --cheat it needs --cheat-pop > 1 for a committee.)
+        overrides["freeze_reinit"] = True
+        overrides["freeze_thresh"] = 1.0
+        overrides["freeze_precision"] = 0.0
+        overrides["fast_peel"] = True
+        print("[peel] --fast-peel: refine + peel the frontier layer on FULL committee "
+              "consensus (implies --peel, quorum 100%)", flush=True)
+    if args.loc_refine:                        # CNN peel refiner -> kink_solve (forward-only,
+        overrides["loc_refine"] = True         # conv-aware kink points), see _cnn_refine_layer
+        print("[peel] --loc-refine: CNN refiner = kink_solve (conv units = channel x position, "
+              "surface tracking); fp64 oracle", flush=True)
     # CNN --partial: the SAME semantics as the MLP -- every log_every iters refine the
     # frontier's SOLVABLE channels and pin them IN PLACE (grad-masked hooks), no
     # reinit/advance/restart; stragglers keep training. Distinct from --peel (the
@@ -302,6 +316,11 @@ def run_cnn(args):
     if args.partial:
         overrides["partial"] = True
         overrides["peel_angle_gate"] = args.peel_angle_gate
+    if args.fast_peel_partial:
+        overrides["fast_peel_partial"] = True
+        overrides["peel_angle_gate"] = args.peel_angle_gate
+        print("[peel] --fast-peel-partial: per-neuron consensus peel, pinned in place "
+              "across the committee; layer advances when fully solved", flush=True)
     if args.restart_stuck:
         overrides["restart_stuck"] = True
         overrides["peel_angle_gate"] = args.peel_angle_gate
@@ -337,8 +356,13 @@ def run_cnn(args):
             print("[cheat] --cheat-solo is MLP-only; ignored on the CNN path",
                   flush=True)
         if args.fast_peel:
-            print("[cheat] --fast-peel is MLP-only; ignored on the CNN path",
-                  flush=True)
+            if args.cheat_pop > 1:
+                overrides["fast_peel"] = True
+                print("[cheat] --fast-peel: the frontier layer refines+peels on full "
+                      "committee consensus (guesses = quorum means); needs --peel",
+                      flush=True)
+            else:
+                print("[cheat] --fast-peel ignored (needs --cheat-pop > 1)", flush=True)
         if args.cheat_pop > 1:
             args.p = args.cheat_pop
             overrides["cheat_bb_ref"] = True
@@ -576,6 +600,12 @@ def main():
     ap.add_argument("--peel", action="store_true",
                     help="alias for --freeze-reinit (CNN + MLP): freeze consensus "
                          "layers and reinit the committee onto deeper layers.")
+    ap.add_argument("--fast-peel-partial", action="store_true",
+                    help="(CNN, committee) PER-NEURON consensus peel: every log iter, "
+                         "kink-refine the frontier layer's consensus channels from the "
+                         "quorum-mean rows, inject each solved row into every member at "
+                         "that member's own magnitude (in-place, grad-masked pin), and "
+                         "advance to the next layer only once the whole layer is solved.")
     ap.add_argument("--partial", action="store_true",
                     help="(MLP + --cheat) every log_every iters, refine the "
                          "frontier's still-unsolved neurons REGARDLESS of the peel "
@@ -828,6 +858,38 @@ def main():
                          "outputs: --verify, --extract-freeze, the CNN "
                          "peel/--resume (kink probing), --solver-polish, and "
                          "variants with lastlayer/lbfgs/f64 solvers.")
+    ap.add_argument("--tanh", action="store_true",
+                    help="tanh hidden activations in BOTH the teacher and "
+                         "the committee (trains + caches a separate tanh "
+                         "teacher; output files get a _tanh tag). Alignment "
+                         "canonicalizes the odd-symmetry polarity "
+                         "tanh(-z) = -tanh(z) (sign flip, nothing absorbed). "
+                         "No kinks: --verify / peel refiners are unavailable.")
+    ap.add_argument("--tanhsolver", action="store_true",
+                    help="smooth-net (tanh/sigmoid) joint jet refiner "
+                         "(tanh_solve.refine): after training, refine EVERY "
+                         "parameter of the delivered net by Gauss-Newton on "
+                         "black-box values + finite-difference Jacobians. "
+                         "Applied to the consensus when a --fast trigger ends "
+                         "the run, else to the trained best net. Needs "
+                         "--tanh or --sigmoid; the guess must be inside the "
+                         "basin (~1e-2 on every layer).")
+    ap.add_argument("--tanhsolver-points", type=int, default=512,
+                    help="jet query points (default 512; 4*d oracle queries "
+                         "each with the full Jacobian).")
+    ap.add_argument("--tanhsolver-dirs", type=int, default=0,
+                    help="directional derivatives per point instead of the "
+                         "full Jacobian (0 = full; m>0 = m random unit "
+                         "directions, 4*m queries per point).")
+    ap.add_argument("--tanhsolver-iters", type=int, default=40,
+                    help="max accepted Gauss-Newton/LM steps (default 40).")
+    ap.add_argument("--tanhsolver-scales", default="0.5,1,2",
+                    help="Gaussian input scales cycled over the jet points.")
+    ap.add_argument("--tanhsolver-cg", type=int, default=200,
+                    help="CG iteration cap per Gauss-Newton step (default 200, "
+                         "enough for tanh nets; deep SIGMOID nets are far more "
+                         "ill-conditioned -- raise to ~1000 at ~5x the per-step "
+                         "cost, see tanh_solve.py).")
     ap.add_argument("--sigmoid", action="store_true",
                     help="sigmoid hidden activations in BOTH the teacher and "
                          "the committee (trains + caches a separate sigmoid "
@@ -883,8 +945,15 @@ def main():
                          "is untouched (fp32). MLP peel only.")
     ap.add_argument("--tag", default="")
     args = ap.parse_args()
+    if args.sigmoid and args.tanh:
+        ap.error("--sigmoid and --tanh are mutually exclusive")
+    if args.tanhsolver:
+        if not (args.sigmoid or args.tanh):
+            ap.error("--tanhsolver refines smooth nets only; add --tanh or --sigmoid")
+        if args.conv or args.hard:
+            ap.error("--tanhsolver needs a real-valued MLP black box (no --conv/--hard)")
     if args.design_refine:
-        if args.conv or args.sigmoid or args.hard:
+        if args.conv or args.sigmoid or args.tanh or args.hard:
             ap.error('--design-refine requires a real-valued ReLU/leaky-ReLU MLP')
         if args.loc_refine or args.xspace_refine:
             ap.error('--design-refine selects its own refiner; omit --loc-refine and --xspace-refine')
@@ -902,15 +971,16 @@ def main():
                      "the kink prober (real-valued outputs)")
     if args.conv:
         return run_cnn(args)
-    if args.sigmoid and args.verify:
+    smooth = args.sigmoid or args.tanh
+    if smooth and args.verify:
         ap.error("--verify probes ReLU kink hyperplanes; incompatible "
-                 "with --sigmoid")
+                 "with --sigmoid / --tanh")
 
     dims = [int(x) for x in args.arch.split(",")]
     device = args.device
     torch.manual_seed(args.teacher_seed)
 
-    act = "sigmoid" if args.sigmoid else "leaky_relu"
+    act = "sigmoid" if args.sigmoid else ("tanh" if args.tanh else "leaky_relu")
     if args.teacher_full:
         # blackbox = a bigger trained teacher with its first `drop` layers removed;
         # queried DIRECTLY in the sub-net's input space (no L1, no inversion, no seal).
@@ -924,7 +994,7 @@ def main():
               f"removed -> sub-net {sub_dims}; act={act} device={device}", flush=True)
         full_teacher = make_teacher(full_dims, epochs=args.teacher_epochs,
                                     seed=args.teacher_seed, device=device,
-                                    verbose=args.sigmoid, act=act)
+                                    verbose=smooth, act=act)
         teacher = MLP(sub_dims, act=act).to(device)
         with torch.no_grad():
             for j in range(len(sub_dims) - 1):
@@ -942,7 +1012,7 @@ def main():
               f"act={act} device={device}", flush=True)
         teacher = make_teacher(dims, epochs=args.teacher_epochs,
                                seed=args.teacher_seed, device=device,
-                               verbose=args.sigmoid, act=act)
+                               verbose=smooth, act=act)
         (_, _), (xte, _) = load_data(dims, device)
         eval_pts = xte[:2000]
 
@@ -973,6 +1043,11 @@ def main():
         overrides["verify_eps_offset"] = args.verify_eps_offset
         overrides["verify_eps_angle"] = args.verify_eps_angle
         overrides["verify_k"] = args.verify_k
+    if args.fast_peel:                         # implies --peel with a 100% quorum trigger
+        overrides["freeze_reinit"] = True
+        overrides["freeze_thresh"] = 1.0
+        overrides["freeze_precision"] = 0.0
+        overrides["fast_peel"] = True
     if args.freeze_reinit or args.peel:
         overrides["freeze_reinit"] = True
         overrides["freeze_thresh"] = args.freeze_thresh
@@ -983,6 +1058,11 @@ def main():
         overrides["f64"] = True
     if args.xspace_refine:
         overrides["xspace_refine"] = True
+    if args.fast_peel_partial:                 # MLP: per-neuron consensus peel, pinned in place
+        overrides["fast_peel_partial"] = True
+        overrides["peel_angle_gate"] = args.peel_angle_gate
+        print("[peel] --fast-peel-partial: per-neuron consensus peel, pinned in place "
+              "across the committee; layer advances when fully solved", flush=True)
     if args.loc_refine:
         overrides["loc_refine"] = True
     if args.design_refine:
@@ -1105,6 +1185,8 @@ def main():
     tag = f"_{args.tag}" if args.tag else ""
     if args.sigmoid:
         tag = "_sigmoid" + tag
+    if args.tanh:
+        tag = "_tanh" + tag
     if args.hard:
         tag = "_hard" + tag
     if args.cheat:
@@ -1134,6 +1216,17 @@ def main():
             recon_dir, f"{args.variant}{tag}__{arch_tag}__s{args.seed}.pt")
     best, log, final = reconstruct(teacher, dims, cfg, device, eval_pts,
                                    seed=args.seed, save_recon=save_recon)
+
+    # --- phase summary: (name, mean_eps, max_eps, wall_s since start) after
+    # the SGD/training phase, the MSE->MAE polish, and the tanhsolver ---
+    phases = []
+
+    def _phase(name, net):
+        e = param_errors(net, teacher, hard=args.hard)
+        phases.append((name, sum(e["mean_eps_per_matrix"]) / len(e["mean_eps_per_matrix"]),
+                       e["max_eps"], round(time.time() - t0, 1)))
+
+    _phase("SGD (trained best)", best)
 
     if args.fast and os.path.exists(fast_dump):
         # reconstruct stopped + dumped at the first consensus; build it and run
@@ -1182,14 +1275,17 @@ def main():
                   f"max_eps {param_errors(cons, teacher, hard=args.hard)['max_eps']:.3e}"
                   " -> " + ("xent polish..." if args.hard
                             else "staged MSE->MAE solve..."), flush=True)
+            _phase(f"SGD (consensus @ iter {ck['iter']})", cons)
             if args.hard:
                 # hard labels: no regression solve exists; low-LR xent
                 # fine-tune removes the consensus assembly artifact instead
                 cons = polish_consensus(cons, Xf, Yf, lr=1e-4, steps=400,
                                         hard=True)
+                _phase("xent polish", cons)
             else:
                 solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,
                                verbose=False, tag=" fast")
+                _phase("MSE->MAE polish", cons)
             if (args.design_refine or args.loc_refine) and not args.hard:
                 # --design-refine / --loc-refine under --fast: the whole-net
                 # consensus is a ~1e-2 guess of every layer. Refine the hidden
@@ -1229,6 +1325,11 @@ def main():
                 n_total += _q_ref
                 print(f"[fast] refine done: {_q_ref} oracle queries, {time.time() - _t_ref:.0f}s; "
                       f"output layer solved in closed form on {len(Xf)} queries", flush=True)
+            if args.tanhsolver:
+                cons, _nq = _run_tanhsolver(args, cons, teacher, dims, act, device,
+                                            pool=Xf)
+                n_total += _nq
+                _phase("tanhsolver", cons)
             errs = param_errors(cons, teacher, hard=args.hard)
             best = cons
             final = {
@@ -1241,6 +1342,22 @@ def main():
                 "wall_s": round(time.time() - t0, 1),
             }
         os.remove(fast_dump)
+        tanhsolver_done = args.tanhsolver and best is cons
+    else:
+        tanhsolver_done = False
+    if args.tanhsolver and not tanhsolver_done:
+        # no fast trigger (or no consensus formed): refine the trained best net
+        best, _nq = _run_tanhsolver(args, best, teacher, dims, act, device)
+        _phase("tanhsolver", best)
+        errs = param_errors(best, teacher)
+        final = {**final,
+                 "final_max_eps": errs["max_eps"],
+                 "final_mean_eps": sum(errs["mean_eps_per_matrix"]) /
+                 len(errs["mean_eps_per_matrix"]),
+                 "final_max_eps_per_matrix": errs["max_eps_per_matrix"],
+                 "final_agree": agreement(best.float(), teacher, eval_pts),
+                 "queries": final.get("queries", 0) + _nq,
+                 "wall_s": round(time.time() - t0, 1)}
     os.makedirs(recon_dir, exist_ok=True)
     model_path = os.path.join(
         recon_dir, f"{args.variant}{tag}__{arch_tag}__s{args.seed}_final.pt")
@@ -1259,6 +1376,8 @@ def main():
         "teacher_seed": args.teacher_seed,
         "device": device,
         "log": log,
+        "phases": [{"phase": n, "mean_eps": me, "max_eps": mx, "wall_s": ws}
+                   for n, me, mx, ws in phases],
         **final,
     }
     os.makedirs(RESULTS, exist_ok=True)
@@ -1269,6 +1388,33 @@ def main():
     print(f"[done] {path} | max_eps={final['final_max_eps']:.3e} "
           f"agree={final['final_agree']:.4f} wall={final['wall_s']}s",
           flush=True)
+    w = max(len(n) for n, *_ in phases)
+    print(f"\n[phases] {'phase':<{w}}   {'mean_eps':>10} {'max_eps':>10} {'wall_s':>9}")
+    for name, me, mx, ws in phases:
+        print(f"[phases] {name:<{w}}   {me:>10.3e} {mx:>10.3e} {ws:>9.1f}")
+    print(flush=True)
+
+
+def _run_tanhsolver(args, net, teacher, dims, act, device, pool=None):
+    """--tanhsolver: joint jet refinement of `net` against the sealed teacher
+    forward (fp64 oracle, query-counted). Returns (net_fp64, n_queries)."""
+    import tanh_solve as ts
+    teacher64 = teacher.clone().double().eval()
+    bb = ts.Oracle(lambda x: teacher64(x))              # forward queries only
+    scales = tuple(float(s) for s in args.tanhsolver_scales.split(","))
+    X = ts.sample_points(args.tanhsolver_points, dims[0], scales=scales,
+                         pool=pool, seed=args.seed, device=device)
+    e0 = param_errors(net, teacher)
+    print(f"[tanhsolver] guess max_eps {e0['max_eps']:.3e} -> jet refine on "
+          f"{len(X)} points ({'full Jacobian' if not args.tanhsolver_dirs else str(args.tanhsolver_dirs) + ' dirs'})...",
+          flush=True)
+    net64, info = ts.refine(bb, net, X, act, dirs=args.tanhsolver_dirs,
+                            iters=args.tanhsolver_iters, cg_iters=args.tanhsolver_cg,
+                            seed=args.seed, score=lambda n: param_errors(n, teacher))
+    print(f"[tanhsolver] done: {info['iters']} LM steps, loss {info['loss_init']:.2e} -> "
+          f"{info['loss_final']:.2e}, {info['queries']} oracle queries, {info['wall_s']}s",
+          flush=True)
+    return net64, info["queries"]
 
 
 if __name__ == "__main__":

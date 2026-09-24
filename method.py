@@ -27,7 +27,7 @@ from dataclasses import dataclass, field, asdict, replace as dc_replace
 import torch
 import torch.nn.functional as F
 
-from align import (scale_normalize_, greedy_perm, permute_layer_,
+from align import (scale_normalize_, greedy_perm, permute_layer_, match_layer_,
                    param_errors, align_clone_to, layer_eps_split,
                    cnn_canonicalize_, cnn_align_to_, cnn_param_errors)
 from nets import MLP, ConvNet
@@ -65,9 +65,10 @@ class Cfg:
                                # weight-vs-teacher scoring/consensus is skipped
                                # (dims mismatch) and only the fit loss is logged.
     act: str = "leaky_relu"  # hidden activation of teacher AND committee
-                             # ('leaky_relu' | 'sigmoid'); sigmoid has no
-                             # scaling isomorphism -- alignment canonicalizes
-                             # its polarity isomorphism sigma(-z)=1-sigma(z)
+                             # ('leaky_relu' | 'sigmoid' | 'tanh'); sigmoid/
+                             # tanh have no scaling isomorphism -- alignment
+                             # canonicalizes their polarity isomorphism
+                             # (sigma(-z)=1-sigma(z), tanh(-z)=-tanh(z))
                              # instead (align.sign_canonicalize_)
     epochs: int = 10         # training epochs per outer iteration
                            # (VALIDATED: must be high enough to fit D tightly;
@@ -179,6 +180,11 @@ class Cfg:
                                # max<=cheat_peel_max AND weight-mean<=
                                # cheat_peel_mean. Also flip-safe: a layer with
                                # sign-flipped channels (eps ~0.3) can't pass.
+    fast_peel_partial: bool = False  # --fast-peel-partial (CNN): every log iter, kink-
+                               # refine the frontier's CONSENSUS channels from the
+                               # quorum-mean rows, inject each solved row into EVERY
+                               # member at that member's own magnitude and pin it; the
+                               # frontier advances only once the whole layer is solved
     partial: bool = False      # cheat + --partial: every log_every iters, refine
                                # the frontier's still-unsolved neurons REGARDLESS
                                # of the peel threshold, and in-place freeze (warm,
@@ -653,12 +659,7 @@ def align_member_to(best, member):
     scale_normalize_(best)  # scale-norm is function preserving
     scale_normalize_(member)
     for l in range(len(best.layers) - 1):
-        Af = torch.cat([best.layers[l].weight,
-                        best.layers[l].bias.unsqueeze(1)], dim=1)
-        Bf = torch.cat([member.layers[l].weight,
-                        member.layers[l].bias.unsqueeze(1)], dim=1)
-        perm = greedy_perm(Af, Bf)
-        permute_layer_(member, l, perm)
+        match_layer_(best, member, l)      # sign-aware for sigmoid/tanh
 
 
 @torch.no_grad()
@@ -785,11 +786,7 @@ def _consensus_layer_eps_deep(pop, teacher, dims, idxs, ref_idx, eps, quorum):
     r = cnet.clone();    scale_normalize_(r)
     out = []
     for l in range(L - 1):
-        perm = greedy_perm(torch.cat([t.layers[l].weight,
-                                      t.layers[l].bias[:, None]], 1),
-                           torch.cat([r.layers[l].weight,
-                                      r.layers[l].bias[:, None]], 1))
-        permute_layer_(r, l, perm)                     # propagate perm into layer l+1
+        perm = match_layer_(t, r, l)                   # sign-aware; propagates into l+1
         m = masks[l][torch.tensor(perm, device=dev)]   # carry consensus mask along
         werr = (r.layers[l].weight - t.layers[l].weight).abs()
         berr = (r.layers[l].bias - t.layers[l].bias).abs()
@@ -838,17 +835,18 @@ def _consensus_stats_deep(pop, teacher, dims, eps, quorum_ratio, hard=False):
 
 
 @torch.no_grad()
-def _partial_consensus(pop, dims, eps, quorum_ratio):
+def _partial_consensus(pop, dims, eps, quorum_ratio, ref_idx=None):
     """Consensus net + per-hidden-layer boolean masks (which neurons reached quorum),
-    built in the most-agreeing member's frame. Consensus rows hold the quorum mean;
-    non-consensus (straggler) rows keep that reference member's values. Used by the
-    freeze-reinit peel to know what to pin and which rows to leave trainable."""
+    built in the most-agreeing member's frame (or member `ref_idx`'s frame if given).
+    Consensus rows hold the quorum mean; non-consensus (straggler) rows keep that
+    reference member's values. Used by the freeze-reinit peel to know what to pin
+    and which rows to leave trainable."""
     import math
     P = len(pop)
     quorum = math.ceil(quorum_ratio * P)
     idxs = list(range(P))
     best_ref, best_tot = idxs[0], -1
-    for ref_idx in idxs:                                # most-agreeing frame
+    for ref_idx in (idxs if ref_idx is None else [ref_idx]):   # most-agreeing frame
         _, per_layer = _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum)
         tot = sum(nc for _, nc in per_layer)
         if tot > best_tot:
@@ -1548,7 +1546,7 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
     contribution to the ensemble sum (e.g. cascade stage scales) instead of
     treating all members equally. Leaky-ReLU is positively homogeneous, so the
     scaled reconstructions stay exact up to downstream LS gauge; ignored for
-    sigmoid.
+    sigmoid/tanh (not homogeneous).
 
     Per hidden layer h (frontier down): dictionary = every member's layer-h
     neuron activations (verbatim at the frontier, where all members share the
@@ -1568,8 +1566,11 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
     M, Lh = len(pop), len(dims) - 2
 
     def _act(z):
-        return (torch.sigmoid(z) if act_name == "sigmoid"
-                else F.leaky_relu(z, 0.01))
+        if act_name == "sigmoid":
+            return torch.sigmoid(z)
+        if act_name == "tanh":
+            return torch.tanh(z)
+        return F.leaky_relu(z, 0.01)
 
     # --- pinned rows {layer: (W, b, mask)} merged from peel frozen + partial ---
     pin = {}
@@ -1634,7 +1635,8 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
         Cy = (torch.zeros(K, dims[-1], dtype=torch.float64, device=device)
               if (h == Lh - 1 and Ys is not None) else None)
         zz = 0.0
-        wts = (weights if (weights is not None and act_name != "sigmoid")
+        wts = (weights if (weights is not None
+                          and act_name in ("relu", "leaky_relu"))
                else [1.0] * M)
         for i0 in range(0, n_take, chunk):
             xb = Xs[i0:i0 + chunk].to(device)
@@ -2608,6 +2610,100 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     print(f"  [partial] L{pf + 1}: +{len(newly)} frozen in place "
                           f"({int(_psolved(pf).sum())}/{Cout} total)  |  "
                           f"{time.time() - _pt0:.1f}s, {_nq} queries", flush=True)
+
+            # --- fast-peel-partial (MLP): PER-NEURON consensus peel. Every log iter:
+            #     frontier = first hidden layer not fully solved; align every member to
+            #     the best member's frame up to the frontier (permutation only, function-
+            #     preserving) so row indices agree across the committee; consensus in
+            #     that fixed frame; kink-refine the frontier's consensus rows not yet
+            #     solved (quorum means as guesses, exact prefix from partial_exact);
+            #     inject each solved row into EVERY member at THAT member's own
+            #     magnitude and pin it (grad-masked). The frontier advances only once
+            #     the whole layer is solved.
+            if (cfg.fast_peel_partial and (t + 1) % cfg.log_every == 0
+                    and cfg.p > 1 and best is not None
+                    and cfg.act in ("relu", "leaky_relu")):
+                import copy as _cp
+                Lh = len(dims) - 2
+                def _psolvedF(l):
+                    mq = partial_mask.get(l, torch.zeros(dims[l + 1], dtype=torch.bool,
+                                                         device=device)).clone()
+                    if l in frozen:
+                        mq = mq | frozen[l][2].to(device)
+                    return mq
+                pf = next((l for l in range(Lh) if int(_psolvedF(l).sum()) < dims[l + 1]), None)
+                if pf is not None:
+                    _pt0 = time.time()
+                    bi_f = next(i for i, m_ in enumerate(pop) if m_ is best)
+                    ref_norm = best.clone(); scale_normalize_(ref_norm)
+                    for i_, (m_, opt_) in enumerate(zip(pop, opts)):     # (0) common frame
+                        if i_ != bi_f:
+                            _mlp_apply_align_(m_, ref_norm, pf, opt=opt_, live_masks=partial_live)
+                    cnet, masks = _partial_consensus(pop, dims, cfg.cluster_eps,
+                                                     cfg.cluster_quorum, ref_idx=bi_f)
+                    Cout = dims[pf + 1]
+                    if partial_exact is None:
+                        partial_exact = _cp.deepcopy(cnet).to(device)
+                    if pf not in partial_mask:
+                        partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
+                    wdt = partial_exact.layers[pf].weight.dtype
+                    for l in range(pf + 1):                              # exact prefix rows
+                        if l in frozen:
+                            fm = frozen[l][2].to(device)
+                            partial_exact.layers[l].weight.data[fm] = frozen[l][0].to(device)[fm].to(partial_exact.layers[l].weight.dtype)
+                            partial_exact.layers[l].bias.data[fm] = frozen[l][1].to(device)[fm].to(partial_exact.layers[l].bias.dtype)
+                    cand = (masks[pf].to(device) & ~_psolvedF(pf)).nonzero(as_tuple=True)[0].tolist()
+                    newly = []; _nq = 0
+                    if cand:
+                        for c in cand:                                   # guesses <- quorum means
+                            partial_exact.layers[pf].weight.data[c] = cnet.layers[pf].weight.data[c].to(wdt)
+                            partial_exact.layers[pf].bias.data[c] = cnet.layers[pf].bias.data[c].to(wdt)
+                        Wr, br, rmask, _nq = _mlp_refine_layer(
+                            teacher, partial_exact, pf, device, cfg.act,
+                            only_channels=cand,
+                            angle_gate=getattr(cfg, "peel_angle_gate", 12.0),
+                            xspace=cfg.xspace_refine, loc=cfg.loc_refine,
+                            design=cfg.design_refine)
+                        peel_refinement_queries += _nq
+                        newly = [c for c in cand if Wr is not None and bool(rmask[c])]
+                        if newly:
+                            idx = torch.tensor(newly, device=device)
+                            uwf = Wr[idx].double(); ubf = br[idx].double()
+                            def _inject(layer, dt_):                     # own-magnitude injection
+                                gw = layer.weight.data[idx].double(); gb = layer.bias.data[idx].double()
+                                proj = (gw * uwf).sum(1) + gb * ubf
+                                gn = (gw.pow(2).sum(1) + gb.pow(2)).sqrt()
+                                cs = torch.where(proj > 1e-6 * gn, proj, gn).clamp_min(1e-8)
+                                layer.weight.data[idx] = (cs[:, None] * uwf).to(dt_)
+                                layer.bias.data[idx] = (cs * ubf).to(dt_)
+                            _inject(partial_exact.layers[pf], wdt)
+                            partial_mask[pf][idx] = True
+                            for m_, opt_ in zip(pop, opts):
+                                key = (id(m_), pf)
+                                if key not in partial_hooked:
+                                    live = torch.zeros(Cout, dtype=torch.bool, device=device)
+                                    partial_live[key] = live
+                                    m_.layers[pf].weight.register_hook(
+                                        lambda g, k=live: g * (~k).to(g.dtype).unsqueeze(1))
+                                    m_.layers[pf].bias.register_hook(
+                                        lambda g, k=live: g * (~k).to(g.dtype))
+                                    partial_hooked.add(key)
+                                live = partial_live[key]
+                                with torch.no_grad():
+                                    _inject(m_.layers[pf], m_.layers[pf].weight.dtype)
+                                live[idx] = True
+                                for p in (m_.layers[pf].weight, m_.layers[pf].bias):
+                                    st = opt_.state.get(p)
+                                    if st:
+                                        if "exp_avg" in st: st["exp_avg"][idx] = 0
+                                        if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
+                    ns = int(_psolvedF(pf).sum())
+                    print(f"  [fast-peel-partial] L{pf + 1}: {len(cand)} consensus candidates, "
+                          f"+{len(newly)} solved & pinned in all {len(pop)} members "
+                          f"({ns}/{Cout} total)  |  {_nq} queries, {time.time() - _pt0:.1f}s", flush=True)
+                    if ns == Cout and pf + 1 < Lh:
+                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
+                              flush=True)
 
             # --- restart-stuck: --partial can peel-restart even when the frontier
             #     can't be FULLY solved. Fires on (a) STAGNATION -- >= frac of the
@@ -3702,6 +3798,41 @@ def _cnn_safe_r(pre, x0, uh, frontier):
 
 
 @torch.no_grad()
+@torch.no_grad()
+def _cnn_apply_perms_(net, perms, upto, opt=None, live_masks=None):
+    """Permute hidden layers 0..upto of a RAW ConvNet member in place with the
+    per-layer permutations `perms` (from cnn_align_to_ on its canonical clone):
+    new position i holds old unit idx[i]; the next layer's input channels follow.
+    Function-preserving (channel relabeling). Adam state of touched parameters
+    is zeroed; live (pin) masks in `live_masks` {(id(net), l): mask} follow."""
+    L = net.layers
+    for i in range(upto + 1):
+        idx = perms[i]
+        if bool((idx == torch.arange(len(idx), device=idx.device)).all()):
+            continue
+        W, b = L[i].weight, L[i].bias
+        W.copy_(W[idx]); b.copy_(b[idx])
+        nxt = L[i + 1]
+        conv = W.dim() == 4
+        if conv and nxt.weight.dim() == 4:
+            nxt.weight.copy_(nxt.weight[:, idx])
+        elif conv and nxt.weight.dim() == 2:
+            k = W.shape[0]; mm, n = nxt.weight.shape; sec = n // k
+            nxt.weight.copy_(nxt.weight.view(mm, k, sec)[:, idx, :].reshape(mm, n))
+        else:
+            nxt.weight.copy_(nxt.weight[:, idx])
+        if opt is not None:
+            for p in (W, b, nxt.weight):
+                st = opt.state.get(p)
+                if st:
+                    for k_ in ("exp_avg", "exp_avg_sq"):
+                        if k_ in st:
+                            st[k_].zero_()
+        if live_masks is not None and (id(net), i) in live_masks:
+            lm = live_masks[(id(net), i)]
+            lm.copy_(lm[idx])
+
+
 def _scale_match_rows(layer, idx, uW, ub):
     """Inject the EXACT refined hyperplane into rows `idx` of `layer`, but at the
     GUESS's magnitude -- the network-isomorphism-preserving injection. The kink
@@ -3735,8 +3866,19 @@ def _scale_match_rows(layer, idx, uW, ub):
     b[idx] = (cs * ub[idx].double()).to(b.dtype)
 
 
+_CNN_KINK = False   # set by reconstruct_cnn from cfg.loc_refine: route the CNN peel
+                    # refiner to kink_solve (forward-only kink points, conv-aware)
+
+
 def _cnn_refine_layer(teacher, cons, frontier, input_shape, device, act,
                       only_channels=None):
+    if _CNN_KINK and act in ("relu", "leaky_relu"):
+        import kink_solve
+        _g = torch.Generator(device=device).manual_seed(1234 + frontier)
+        W, b, mask, _nq = kink_solve.recover_layer(teacher, cons, frontier, device,
+                                                   only_channels=only_channels, gen=_g,
+                                                   sampling="track")
+        return W, b, mask
     """Exactly refine the frontier layer's neurons with the VALIDATED kink refiner
     (verify_layer1), for ANY layer. `only_channels`: refine just these channel
     indices (for retrying previously-missed ones); default = all. Returns
@@ -4038,6 +4180,32 @@ def _mlp_prefix_jac(pre, x, frontier):
     if J is None:
         J = torch.eye(x.numel(), device=x.device, dtype=x.dtype)
     return J
+
+
+@torch.no_grad()
+def _mlp_apply_align_(member, ref_norm, upto, opt=None, live_masks=None):
+    """Permute hidden layers 0..upto of a RAW MLP member in place into the frame of
+    `ref_norm` (a scale-normalized reference): the permutation is computed on a
+    scale-normalized clone (match_layer_), then applied to the raw member with
+    permute_layer_ (function-preserving; the next layer's columns follow). Adam
+    state of touched parameters is zeroed; live (pin) masks follow."""
+    c = member.clone(); scale_normalize_(c)
+    for l in range(upto + 1):
+        perm = match_layer_(ref_norm, c, l)
+        pt = torch.as_tensor(perm, device=member.layers[l].weight.device)
+        if bool((pt == torch.arange(len(pt), device=pt.device)).all()):
+            continue
+        permute_layer_(member, l, perm)
+        if opt is not None:
+            for p in (member.layers[l].weight, member.layers[l].bias, member.layers[l + 1].weight):
+                st = opt.state.get(p)
+                if st:
+                    for k_ in ("exp_avg", "exp_avg_sq"):
+                        if k_ in st:
+                            st[k_].zero_()
+        if live_masks is not None and (id(member), l) in live_masks:
+            lm = live_masks[(id(member), l)]
+            lm.copy_(lm[pt])
 
 
 def _mlp_refine_layer(teacher, cons, frontier, device, act, only_channels=None,
@@ -4632,6 +4800,9 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
     analytic refiner (the FC verify_layer1 refiner does NOT apply to conv) would
     slot in just before freezing; for now we freeze the consensus average, gated by
     cfg.freeze_precision. Queries are flat (in_dim); ConvNet reshapes internally."""
+    global _CNN_KINK
+    _CNN_KINK = bool(getattr(cfg, 'loc_refine', False))
+
     if cfg.hard and (cfg.freeze_reinit or cfg.peel_try or resume_state is not None):
         raise ValueError("cfg.hard: the CNN peel/peel-try/resume path refines "
                          "layers with the kink prober (real-valued teacher "
@@ -4943,6 +5114,93 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                           f"({int(_psolved(pf).sum())}/{Cout} total)  |  "
                           f"{time.time() - _pt0:.1f}s", flush=True)
 
+            # --- fast-peel-partial: PER-NEURON consensus peel (any mode with a
+            #     committee). Every log iter: frontier = first hidden layer not fully
+            #     solved; align every member to the consensus frame (channel
+            #     permutation, function-preserving) so row indices agree across the
+            #     committee; kink-refine the frontier's consensus channels not yet
+            #     solved from the QUORUM-MEAN rows (exact prefix from partial_exact);
+            #     inject every solved row into EVERY member at THAT member's own
+            #     magnitude (per-member scale-match) and pin it in place (grad-masked).
+            #     The frontier advances only once the whole layer is solved.
+            if (cfg.fast_peel_partial and (t + 1) % cfg.log_every == 0
+                    and cons is not None and cfg.p > 1
+                    and cfg.act in ("relu", "leaky_relu")):
+                import copy as _cp
+                from align import cnn_canonicalize_, cnn_align_to_
+                Lh = nlay - 1
+                def _ncoutQ(l): return pop[0].layers[l].weight.shape[0]
+                def _psolvedQ(l):
+                    mq = partial_mask.get(l, torch.zeros(_ncoutQ(l), dtype=torch.bool,
+                                                         device=device)).clone()
+                    if l in frozen:
+                        mq = mq | frozen[l][2].to(device)
+                    return mq
+                pf = next((l for l in range(Lh) if int(_psolvedQ(l).sum()) < _ncoutQ(l)), None)
+                if pf is not None and pf < len(masks):
+                    _pt0 = time.time()
+                    # (0) align every member to the consensus frame (= best member bi's
+                    #     canonical order) up to the frontier
+                    ref_c = pop[bi].clone(); cnn_canonicalize_(ref_c)
+                    for mi_, (m_, opt_) in enumerate(zip(pop, opts)):
+                        if mi_ == bi:
+                            continue
+                        cc = m_.clone(); cnn_canonicalize_(cc)
+                        perms = cnn_align_to_(cc, ref_c)
+                        _cnn_apply_perms_(m_, perms, pf, opt=opt_, live_masks=partial_live)
+                    Cout = _ncoutQ(pf)
+                    if partial_exact is None:
+                        partial_exact = _cp.deepcopy(cons).to(device)
+                    if pf not in partial_mask:
+                        partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
+                    wdt = partial_exact.layers[pf].weight.dtype
+                    for l in range(pf + 1):                  # exact prefix rows
+                        if l in frozen:
+                            fm = frozen[l][2].to(device)
+                            partial_exact.layers[l].weight.data[fm] = frozen[l][0].to(device)[fm].to(wdt)
+                            partial_exact.layers[l].bias.data[fm] = frozen[l][1].to(device)[fm].to(wdt)
+                    cand = (masks[pf].to(device) & ~_psolvedQ(pf)).nonzero(as_tuple=True)[0].tolist()
+                    newly = []
+                    if cand:
+                        for c in cand:                       # guesses <- consensus rows
+                            partial_exact.layers[pf].weight.data[c] = cons.layers[pf].weight.data[c].to(wdt)
+                            partial_exact.layers[pf].bias.data[c] = cons.layers[pf].bias.data[c].to(wdt)
+                        Wr, br, rmask = _cnn_refine_layer(
+                            teacher, partial_exact, pf, input_shape, device, cfg.act,
+                            only_channels=cand)
+                        newly = [c for c in cand if Wr is not None and bool(rmask[c])]
+                        if newly:
+                            idx = torch.tensor(newly, device=device)
+                            _scale_match_rows(partial_exact.layers[pf], idx, Wr, br)   # consensus magnitude
+                            partial_mask[pf][idx] = True
+                            for m_, opt_ in zip(pop, opts):
+                                key = (id(m_), pf)
+                                if key not in partial_hooked:
+                                    live = torch.zeros(Cout, dtype=torch.bool, device=device)
+                                    partial_live[key] = live
+                                    m_.layers[pf].weight.register_hook(
+                                        lambda g, k=live: g * (~k).to(g.dtype).view(
+                                            [-1] + [1] * (g.dim() - 1)))
+                                    m_.layers[pf].bias.register_hook(
+                                        lambda g, k=live: g * (~k).to(g.dtype))
+                                    partial_hooked.add(key)
+                                live = partial_live[key]
+                                with torch.no_grad():        # THIS member's magnitude
+                                    _scale_match_rows(m_.layers[pf], idx, Wr, br)
+                                live[idx] = True
+                                for p in (m_.layers[pf].weight, m_.layers[pf].bias):
+                                    st = opt_.state.get(p)
+                                    if st:
+                                        if "exp_avg" in st: st["exp_avg"][idx] = 0
+                                        if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
+                    ns = int(_psolvedQ(pf).sum())
+                    print(f"  [fast-peel-partial] L{pf + 1}: {len(cand)} consensus candidates, "
+                          f"+{len(newly)} solved & pinned in all {len(pop)} members "
+                          f"({ns}/{Cout} total)  |  {time.time() - _pt0:.1f}s", flush=True)
+                    if ns == Cout and pf + 1 < Lh:
+                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
+                              flush=True)
+
             # --- restart-stuck (MLP-parity port): peel-restart even when the
             #     frontier CAN'T be fully solved. Fires on (a) STAGNATION --
             #     >= restart_stuck_frac of the frontier solved AND no new
@@ -5037,6 +5295,17 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                                   f"{lmax:.2e} mean {lmean:.2e} within "
                                   f"({cfg.cheat_peel_max:g}, "
                                   f"{cfg.cheat_peel_mean:g}) -> peel", flush=True)
+                        elif (cfg.fast_peel and cfg.p > 1 and cons is not None
+                              and frontier < len(masks) and bool(masks[frontier].all())):
+                            # --fast-peel (same meaning as the MLP path): the frontier
+                            # layer peels as soon as the COMMITTEE fully agrees on it,
+                            # even though no single member clears the eps gate; the
+                            # consensus rows (quorum means) become the refiner's guesses
+                            # (seed_net = cons below).
+                            fire = True
+                            print(f"  [fast-peel] L{frontier + 1}: full committee consensus "
+                                  f"({int(masks[frontier].sum())}/{masks[frontier].numel()}) "
+                                  f"-> refine + peel (guesses = quorum means)", flush=True)
                     else:
                         fx = cst[frontier]
                         ratio = fx["n_cons"] / max(fx["n_tot"], 1)
