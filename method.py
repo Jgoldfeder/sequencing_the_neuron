@@ -2649,7 +2649,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                                      cfg.cluster_quorum, ref_idx=bi_f)
                     Cout = dims[pf + 1]
                     if partial_exact is None:
-                        partial_exact = _cp.deepcopy(cnet).to(device)
+                        partial_exact = _cp.deepcopy(cnet).to(device).double()   # fp64 record of solved rows
+                    elif partial_exact.layers[0].weight.dtype != torch.float64:
+                        partial_exact = partial_exact.double()
                     if pf not in partial_mask:
                         partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
                     wdt = partial_exact.layers[pf].weight.dtype
@@ -2707,6 +2709,15 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     print(f"  [fast-peel-partial] L{pf + 1}: {len(cand)} consensus candidates, "
                           f"+{len(newly)} solved & pinned in all {len(pop)} members "
                           f"({ns}/{Cout} total)  |  {_nq} queries, {time.time() - _pt0:.1f}s", flush=True)
+                    if newly:                                # accuracy of the STORED fp64 rows
+                        try:
+                            sm = {l: _psolvedF(l) for l in range(Lh) if bool(_psolvedF(l).any())}
+                            sp_ = layer_eps_split(partial_exact, teacher, sm)
+                            rep = "  ".join(f"L{l + 1}[max {sp_[l]['fz'][0]:.2e} mean {sp_[l]['fz'][1]:.2e} "
+                                            f"({sp_[l]['n']}/{dims[l + 1]})]" for l in sorted(sp_))
+                            print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
+                        except Exception as e:
+                            print(f"  [stored fp64] report skipped ({e})", flush=True)
                     if ns == Cout and pf + 1 < Lh:
                         print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
                               flush=True)
@@ -5213,7 +5224,9 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                         _cnn_apply_perms_(m_, perms, pf, opt=opt_, live_masks=partial_live)
                     Cout = _ncoutQ(pf)
                     if partial_exact is None:
-                        partial_exact = _cp.deepcopy(cons).to(device)
+                        partial_exact = _cp.deepcopy(cons).to(device).double()   # fp64 record of solved rows
+                    elif partial_exact.layers[0].weight.dtype != torch.float64:
+                        partial_exact = partial_exact.double()
                     if pf not in partial_mask:
                         partial_mask[pf] = torch.zeros(Cout, dtype=torch.bool, device=device)
                     wdt = partial_exact.layers[pf].weight.dtype
@@ -5260,6 +5273,19 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     print(f"  [fast-peel-partial] L{pf + 1}: {len(cand)} consensus candidates, "
                           f"+{len(newly)} solved & pinned in all {len(pop)} members "
                           f"({ns}/{Cout} total)  |  {time.time() - _pt0:.1f}s", flush=True)
+                    if newly:                                # accuracy of the STORED fp64 rows
+                        try:
+                            smasks = [(_psolvedQ(l) if l < Lh else
+                                       torch.zeros(partial_exact.layers[l].weight.shape[0],
+                                                   dtype=torch.bool, device=device))
+                                      for l in range(nlay)]
+                            st_ = _cnn_consensus_eps(partial_exact, smasks, teacher.clone().double())
+                            rep = "  ".join(f"L{l + 1}[max {st_[l]['max']:.2e} mean {st_[l]['mean']:.2e} "
+                                            f"({st_[l]['n_cons']}/{st_[l]['n_tot']})]"
+                                            for l in range(Lh) if st_[l]["max"] is not None)
+                            print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
+                        except Exception as e:
+                            print(f"  [stored fp64] report skipped ({e})", flush=True)
                     if ns == Cout and pf + 1 < Lh:
                         print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
                               flush=True)
