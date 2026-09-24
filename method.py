@@ -3176,7 +3176,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                   f"consensus in L{frontier + 1}, cons_max "
                                   f"{cm if cm is None else f'{cm:.2e}'}); reinit "
                                   f"committee onto deeper layers", flush=True)
-                            if cfg.peel_restart and frontier < Lh - 1:
+                            if cfg.peel_restart and frontier < Lh - 1 and not cfg.fast_peel_partial:
                                 # --peelrestart (same as the cheat branch): flush the
                                 # sample buffer (mined against the pre-peel student)
                                 # and restart the iter/lr clock with a fresh FULL
@@ -5572,7 +5572,13 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                                 lr=cfg.lr) for n in pop]
                             print(f"  [freeze-reinit] froze L1..L{last + 1}; "
                                   f"{_wm}reinit committee onto deeper layers", flush=True)
-                            refresh_now = cfg.peel_refresh
+                            # --fast-peel-partial: deeper layers are warm and mid-convergence
+                            # (their consensus is forming); a buffer flush + clock/LR restart
+                            # scattered L3 23/120 -> 4/120 in 5 iters. Keep buffer, clock, LR.
+                            refresh_now = cfg.peel_refresh and not cfg.fast_peel_partial
+                            if cfg.peel_refresh and cfg.fast_peel_partial:
+                                print("  [peel-refresh] skipped under --fast-peel-partial (deeper "
+                                      "layers stay warm; --retry extends the budget)", flush=True)
                         except Exception as e:
                             print(f"  [freeze-reinit] skipped ({e})", flush=True)
                 # ALL hidden layers peeled -> the linear HEAD is a closed-form ridge
