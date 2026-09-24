@@ -2723,6 +2723,22 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     if ns == Cout and pf + 1 < Lh:
                         print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
                               flush=True)
+                    elif ns < Cout:
+                        try:
+                            uns = (~_psolvedF(pf)).nonzero(as_tuple=True)[0].tolist()
+                            rows = []
+                            for m_ in pop:
+                                cc = m_.clone(); scale_normalize_(cc)
+                                for l_ in range(pf + 1):
+                                    match_layer_(ref_norm, cc, l_)
+                                rows.append(torch.cat([cc.layers[pf].weight, cc.layers[pf].bias[:, None]], 1))
+                            R_ = torch.stack(rows)
+                            agree = ((R_ - R_[bi_f][None]).abs().amax(2) <= cfg.cluster_eps).sum(0)
+                            print("  [agreement] L%d unsolved: " % (pf + 1)
+                                  + "  ".join(f"ch{c}: {int(agree[c])}/{len(pop)} members within eps" for c in uns),
+                                  flush=True)
+                        except Exception as e:
+                            print(f"  [agreement] report skipped ({e})", flush=True)
 
             # --- restart-stuck: --partial can peel-restart even when the frontier
             #     can't be FULLY solved. Fires on (a) STAGNATION -- >= frac of the
@@ -5310,6 +5326,24 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     if ns == Cout and pf + 1 < Lh:
                         print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
                               flush=True)
+                    elif ns < Cout:
+                        # how many members agree (inf-norm within cluster_eps, canonical
+                        # frame of the best member) on each still-unsolved channel
+                        try:
+                            uns = (~_psolvedQ(pf)).nonzero(as_tuple=True)[0].tolist()
+                            rows = []
+                            for m_ in pop:
+                                cc = m_.clone(); cnn_canonicalize_(cc); cnn_align_to_(cc, ref_c)
+                                rows.append(torch.cat([cc.layers[pf].weight.reshape(Cout, -1),
+                                                       cc.layers[pf].bias[:, None]], 1))
+                            R_ = torch.stack(rows)                              # (P, Cout, Din+1)
+                            ref_rows = R_[bi]
+                            agree = ((R_ - ref_rows[None]).abs().amax(2) <= cfg.cluster_eps).sum(0)
+                            print("  [agreement] L%d unsolved: " % (pf + 1)
+                                  + "  ".join(f"ch{c}: {int(agree[c])}/{len(pop)} members within eps" for c in uns),
+                                  flush=True)
+                        except Exception as e:
+                            print(f"  [agreement] report skipped ({e})", flush=True)
 
             # --- restart-stuck (MLP-parity port): peel-restart even when the
             #     frontier CAN'T be fully solved. Fires on (a) STAGNATION --
