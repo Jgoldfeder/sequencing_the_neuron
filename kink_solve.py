@@ -843,7 +843,13 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         gv = torch.cat([ref_w, ref_b.reshape(1)]); gv = gv / gv.norm().clamp_min(1e-30)
         v = torch.cat([w, b.reshape(1)]); v = v / v.norm()
         ang = math.degrees(math.acos(abs(float((v @ gv).clamp(-1.0, 1.0)))))
-        return (n_in >= Din + 8 and ang <= max_deg), v, n_in, ang, res.median().item()
+        rmed = res.median().item()
+        # a kink-point solve is either EXACT (residual ~ prefix error, <=1e-7 for a
+        # 1e-8 prefix) or a wrong lock (points from several kinks: residual >=1e-4,
+        # inliers a fraction of the points). The angle gate alone let a 3e-2-wrong
+        # row through when the consensus guess was 1e-1 off.
+        ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= max_deg and rmed <= 1e-5)
+        return ok, v, n_in, ang, rmed
 
     n2 = 0
     if polish and n1:                                        # legacy stage 2
