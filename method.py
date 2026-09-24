@@ -2677,6 +2677,16 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             design=cfg.design_refine)
                         peel_refinement_queries += _nq
                         newly = [c for c in cand if Wr is not None and bool(rmask[c])]
+                        if newly:                            # duplicate collapse check
+                            pm_ = partial_mask[pf]
+                            newly, dups = _dedupe_new_rows(
+                                newly, Wr, br, partial_exact.layers[pf].weight.data[pm_],
+                                partial_exact.layers[pf].bias.data[pm_])
+                            if dups:
+                                _reroll_rows_(pop, opts, pf, dups, device)
+                                print(f"  [dedupe] L{pf + 1}: neurons {dups} solved to a COPY of an "
+                                      f"already-solved row -> not accepted, rerolled in all members",
+                                      flush=True)
                         if newly:
                             idx = torch.tensor(newly, device=device)
                             uwf = Wr[idx].double(); ubf = br[idx].double()
@@ -3964,6 +3974,57 @@ def _repin_partial(pop, opts, partial_mask, partial_exact, frozen, partial_hooke
                 if st:
                     if "exp_avg" in st: st["exp_avg"][idx] = 0
                     if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
+
+
+def _dedupe_new_rows(newly, Wr, br, prevW, prevb, tol=1e-3):
+    """Duplicate check for kink-solved rows: a wrong consensus channel (the committee
+    agreeing on a COPY of another channel) makes the solver lock the other unit's
+    kink and return ITS exact hyperplane. Compare unit [w|b] rows (also sign-flipped)
+    of the newly solved channels against the layer's already-solved rows and against
+    each other. Returns (keep, dups): channel lists."""
+    if not newly:
+        return [], []
+    dev = Wr.device
+    U = torch.cat([Wr[newly].reshape(len(newly), -1).double(), br[newly].double().view(-1, 1)], 1)
+    U = U / U.norm(dim=1, keepdim=True).clamp_min(1e-30)
+    keep, dups = [], []
+    if prevW is not None and len(prevW):
+        P = torch.cat([prevW.reshape(len(prevW), -1).double(), prevb.double().view(-1, 1)], 1)
+        P = P / P.norm(dim=1, keepdim=True).clamp_min(1e-30)
+    else:
+        P = None
+    kept_rows = []
+    for i, c in enumerate(newly):
+        u = U[i]
+        dup = False
+        if P is not None:
+            dup = bool(torch.minimum((P - u).norm(dim=1), (P + u).norm(dim=1)).min() < tol)
+        if not dup and kept_rows:
+            K = torch.stack(kept_rows)
+            dup = bool(torch.minimum((K - u).norm(dim=1), (K + u).norm(dim=1)).min() < tol)
+        (dups if dup else keep).append(c)
+        if not dup:
+            kept_rows.append(u)
+    return keep, dups
+
+
+def _reroll_rows_(pop, opts, l, chans, device):
+    """Re-randomize channel(s) `chans` of layer l in EVERY member (duplicate collapse:
+    fresh weights so the committee searches for the missing neuron), zero their Adam
+    state. Std matches the member's current mean row norm."""
+    idx = torch.tensor(chans, device=device)
+    for m_, opt_ in zip(pop, opts):
+        W = m_.layers[l].weight; b = m_.layers[l].bias
+        with torch.no_grad():
+            rows = W.data.reshape(W.shape[0], -1)
+            std = float(rows.norm(dim=1).mean() / (rows.shape[1] ** 0.5))
+            W.data[idx] = torch.randn_like(W.data[idx]) * std
+            b.data[idx] = 0.0
+        for p in (W, b):
+            st = opt_.state.get(p)
+            if st:
+                if "exp_avg" in st: st["exp_avg"][idx] = 0
+                if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
 
 
 def _scale_match_rows(layer, idx, uW, ub):
@@ -5308,6 +5369,16 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             teacher, partial_exact, pf, input_shape, device, cfg.act,
                             only_channels=cand)
                         newly = [c for c in cand if Wr is not None and bool(rmask[c])]
+                        if newly:                            # duplicate collapse check
+                            pm_ = partial_mask[pf]
+                            newly, dups = _dedupe_new_rows(
+                                newly, Wr, br, partial_exact.layers[pf].weight.data[pm_],
+                                partial_exact.layers[pf].bias.data[pm_])
+                            if dups:
+                                _reroll_rows_(pop, opts, pf, dups, device)
+                                print(f"  [dedupe] L{pf + 1}: channels {dups} solved to a COPY of an "
+                                      f"already-solved row -> not accepted, rerolled in all members",
+                                      flush=True)
                         if newly:
                             idx = torch.tensor(newly, device=device)
                             _scale_match_rows(partial_exact.layers[pf], idx, Wr, br)   # consensus magnitude
