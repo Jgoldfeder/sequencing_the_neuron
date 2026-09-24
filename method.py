@@ -3113,10 +3113,22 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             # branch above does the same). Refined rows come back
                             # as unit [w|b]: scale-match them to the consensus
                             # row's gauge so the downstream keeps its magnitudes.
-                            if cfg.design_refine or cfg.loc_refine:
+                            # rows already solved by --fast-peel-partial count as solved:
+                            # copy them from the fp64 record and refine only the rest
+                            _pre_solved = torch.zeros(cnet.layers[frontier].weight.shape[0],
+                                                      dtype=torch.bool, device=device)
+                            if partial_exact is not None and frontier in partial_mask:
+                                _pre_solved = partial_mask[frontier].to(device).clone()
+                                if bool(_pre_solved.any()):
+                                    wdt_ = cnet.layers[frontier].weight.dtype
+                                    cnet.layers[frontier].weight.data[_pre_solved] = partial_exact.layers[frontier].weight.data[_pre_solved].to(wdt_)
+                                    cnet.layers[frontier].bias.data[_pre_solved] = partial_exact.layers[frontier].bias.data[_pre_solved].to(wdt_)
+                                    masks[frontier] = masks[frontier] | _pre_solved
+                            if (cfg.design_refine or cfg.loc_refine) and not bool(_pre_solved.all()):
                                 _t_ref = time.time()
                                 Wr, br, rmask, _nq = _mlp_refine_layer(
                                     teacher, cnet, frontier, device, cfg.act,
+                                    only_channels=(~_pre_solved).nonzero(as_tuple=True)[0].tolist(),
                                     angle_gate=getattr(cfg, "peel_angle_gate", 12.0),
                                     xspace=cfg.xspace_refine, loc=cfg.loc_refine,
                                     design=cfg.design_refine)
@@ -3146,8 +3158,12 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                           cnet.layers[l].bias.detach().clone(),
                                           masks[l].clone())
                                       for l in range(frontier + 1)}
-                            pop = _reinit_frozen_population(dims, device, cfg.p, frozen,
-                                                            act=cfg.act)
+                            if cfg.fast_peel_partial:
+                                # deeper layers trained warm on the pinned prefix: keep them
+                                pop = _mlp_warm_reinit_population(pop, dims, cfg.act, device, frozen)
+                            else:
+                                pop = _reinit_frozen_population(dims, device, cfg.p, frozen,
+                                                                act=cfg.act)
                             opts = [torch.optim.Adam(
                                 [p for p in n.parameters() if p.requires_grad],
                                 lr=cfg.lr) for n in pop]
@@ -5478,6 +5494,22 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             seed_net = cons if cons is not None else best.clone()
                             if exact_net is None:
                                 exact_net = _copy.deepcopy(seed_net).to(device)
+                            # rows already solved by --fast-peel-partial / --partial are
+                            # SOLVED: take them from the fp64 record, never re-refine them
+                            if partial_exact is not None:
+                                for l in range(last + 1):
+                                    pm = partial_mask.get(l)
+                                    if pm is None or not bool(pm.any()):
+                                        continue
+                                    Cl = exact_net.layers[l].weight.shape[0]
+                                    if l not in exact_mask:
+                                        exact_mask[l] = torch.zeros(Cl, dtype=torch.bool, device=device)
+                                    nw = pm.to(device) & ~exact_mask[l]
+                                    if bool(nw.any()):
+                                        wdt_ = exact_net.layers[l].weight.dtype
+                                        exact_net.layers[l].weight.data[nw] = partial_exact.layers[l].weight.data[nw].to(wdt_)
+                                        exact_net.layers[l].bias.data[nw] = partial_exact.layers[l].bias.data[nw].to(wdt_)
+                                        exact_mask[l] = exact_mask[l] | nw
                             # (1) KEEP every neuron we solve; (2) RETRY still-unsolved
                             # neurons in ALL layers 0..frontier (shallow->deep) with a
                             # fresh consensus guess. (3) FREEZE ONLY SOLVED neurons --
@@ -5513,12 +5545,16 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             # MLP --peel semantics: WARM reinit by default (keep the
                             # trained downstream); COLD only under --peelrestart
                             # (peel_refresh), which also restarts the clock below.
-                            if cfg.peel_refresh:
+                            if cfg.peel_refresh and not cfg.fast_peel_partial:
                                 pop = _cnn_reinit_frozen_population(
                                     input_shape, conv_cfgs, fc_dims, out_dim, cfg.act,
                                     device, cfg.p, frozen)
                                 _wm = ""
                             else:
+                                # --fast-peel-partial: the deeper layers have been training
+                                # warm on the pinned prefix all along (their consensus is
+                                # weight-based, e.g. L2 13/16); a cold reinit would throw
+                                # that away -- keep them, pin the completed layer only
                                 pop = _cnn_warm_reinit_population(
                                     pop, input_shape, conv_cfgs, fc_dims, out_dim,
                                     cfg.act, device, frozen)
