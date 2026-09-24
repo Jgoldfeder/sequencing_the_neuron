@@ -2637,8 +2637,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     if l in frozen:
                         mq = mq | frozen[l][2].to(device)
                     return mq
-                pf = next((l for l in range(Lh) if int(_psolvedF(l).sum()) < dims[l + 1]), None)
-                if pf is not None:
+                pf0 = next((l for l in range(Lh) if int(_psolvedF(l).sum()) < dims[l + 1]), None)
+                _layers = [pf0] if pf0 is not None else []
+                for pf in _layers:              # a completed layer appends the NEXT one (below)
                     _pt0 = time.time()
                     bi_f = next(i for i, m_ in enumerate(pop) if m_ is best)
                     ref_norm = best.clone(); scale_normalize_(ref_norm)
@@ -2721,8 +2722,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                         except Exception as e:
                             print(f"  [stored fp64] report skipped ({e})", flush=True)
                     if ns == Cout and pf + 1 < Lh:
-                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
-                              flush=True)
+                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}; "
+                              f"pinning L{pf + 2}'s consensus neurons first", flush=True)
+                        _layers.append(pf + 1)
 
             # --- restart-stuck: --partial can peel-restart even when the frontier
             #     can't be FULLY solved. Fires on (a) STAGNATION -- >= frac of the
@@ -3170,6 +3172,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             opts = [torch.optim.Adam(
                                 [p for p in n.parameters() if p.requires_grad],
                                 lr=cfg.lr) for n in pop]
+                            partial_hooked.clear(); partial_live.clear()      # pop rebuilt
+                            _repin_partial(pop, opts, partial_mask, partial_exact, frozen,
+                                           partial_hooked, partial_live, device)
                             combined_done = False          # allow a fresh combine
                             print(f"  [freeze-reinit] froze L1..L{frontier + 1} "
                                   f"({int(masks[frontier].sum())}/{lx['n_tot']} "
@@ -3923,6 +3928,42 @@ def _cnn_apply_perms_(net, perms, upto, opt=None, live_masks=None):
         if live_masks is not None and (id(net), i) in live_masks:
             lm = live_masks[(id(net), i)]
             lm.copy_(lm[idx])
+
+
+def _repin_partial(pop, opts, partial_mask, partial_exact, frozen, partial_hooked, partial_live, device):
+    """After a population rebuild (hooks gone): re-install grad-mask hooks and write the
+    fp64 record's values for every row solved by --fast-peel-partial / --partial in a
+    layer that is not (fully) covered by `frozen`. Works for MLP and ConvNet layers."""
+    if partial_exact is None:
+        return
+    for l, pm in partial_mask.items():
+        if l in frozen and bool(frozen[l][2].all()):
+            continue                                   # pinned by the freeze already
+        keep = pm.to(device)
+        if l in frozen:
+            keep = keep & ~frozen[l][2].to(device)
+        idx = keep.nonzero(as_tuple=True)[0]
+        if len(idx) == 0:
+            continue
+        for m_, opt_ in zip(pop, opts):
+            key = (id(m_), l)
+            if key not in partial_hooked:
+                live = torch.zeros(m_.layers[l].weight.shape[0], dtype=torch.bool, device=device)
+                partial_live[key] = live
+                m_.layers[l].weight.register_hook(
+                    lambda g, k=live: g * (~k).to(g.dtype).view([-1] + [1] * (g.dim() - 1)))
+                m_.layers[l].bias.register_hook(lambda g, k=live: g * (~k).to(g.dtype))
+                partial_hooked.add(key)
+            live = partial_live[key]
+            with torch.no_grad():
+                m_.layers[l].weight[idx] = partial_exact.layers[l].weight.data[idx].to(m_.layers[l].weight.dtype)
+                m_.layers[l].bias[idx] = partial_exact.layers[l].bias.data[idx].to(m_.layers[l].bias.dtype)
+            live[idx] = True
+            for p in (m_.layers[l].weight, m_.layers[l].bias):
+                st = opt_.state.get(p)
+                if st:
+                    if "exp_avg" in st: st["exp_avg"][idx] = 0
+                    if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
 
 
 def _scale_match_rows(layer, idx, uW, ub):
@@ -5229,8 +5270,9 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     if l in frozen:
                         mq = mq | frozen[l][2].to(device)
                     return mq
-                pf = next((l for l in range(Lh) if int(_psolvedQ(l).sum()) < _ncoutQ(l)), None)
-                if pf is not None and pf < len(masks):
+                pf0 = next((l for l in range(Lh) if int(_psolvedQ(l).sum()) < _ncoutQ(l)), None)
+                _layers = [pf0] if (pf0 is not None and pf0 < len(masks)) else []
+                for pf in _layers:              # a completed layer appends the NEXT one (below)
                     _pt0 = time.time()
                     # (0) align every member to the consensus frame (= best member bi's
                     #     canonical order) up to the frontier
@@ -5307,9 +5349,13 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
                         except Exception as e:
                             print(f"  [stored fp64] report skipped ({e})", flush=True)
-                    if ns == Cout and pf + 1 < Lh:
-                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}",
-                              flush=True)
+                    if ns == Cout and pf + 1 < Lh and pf + 1 < len(masks):
+                        # BEFORE the full-layer peel freezes/reinits: pin the NEXT layer's
+                        # consensus neurons now (same pass), so the reinit/refresh that
+                        # follows cannot scatter what the committee already agrees on
+                        print(f"  [fast-peel-partial] L{pf + 1} complete -> frontier advances to L{pf + 2}; "
+                              f"pinning L{pf + 2}'s consensus neurons first", flush=True)
+                        _layers.append(pf + 1)
 
             # --- restart-stuck (MLP-parity port): peel-restart even when the
             #     frontier CAN'T be fully solved. Fires on (a) STAGNATION --
@@ -5570,6 +5616,8 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             opts = [torch.optim.Adam(
                                 [p for p in n.parameters() if p.requires_grad],
                                 lr=cfg.lr) for n in pop]
+                            _repin_partial(pop, opts, partial_mask, partial_exact, frozen,
+                                           partial_hooked, partial_live, device)
                             print(f"  [freeze-reinit] froze L1..L{last + 1}; "
                                   f"{_wm}reinit committee onto deeper layers", flush=True)
                             refresh_now = cfg.peel_refresh
