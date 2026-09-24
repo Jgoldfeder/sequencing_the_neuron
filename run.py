@@ -321,6 +321,10 @@ def run_cnn(args):
         overrides["peel_angle_gate"] = args.peel_angle_gate
         print("[peel] --fast-peel-partial: per-neuron consensus peel, pinned in place "
               "across the committee; layer advances when fully solved", flush=True)
+    if args.retry:
+        overrides["retry"] = args.retry
+        print(f"[peel] --retry {args.retry}: reinit + retry when a budget ends with the "
+              "frontier layer not fully peeled", flush=True)
     if args.restart_stuck:
         overrides["restart_stuck"] = True
         overrides["peel_angle_gate"] = args.peel_angle_gate
@@ -600,6 +604,13 @@ def main():
     ap.add_argument("--peel", action="store_true",
                     help="alias for --freeze-reinit (CNN + MLP): freeze consensus "
                          "layers and reinit the committee onto deeper layers.")
+    ap.add_argument("--retry", type=int, nargs="?", const=5, default=0, metavar="N",
+                    help="(any peel mode) if the budget ends with the frontier layer not "
+                         "fully peeled, reinit and retry, up to N times (bare flag: 5). "
+                         "--fast-peel-partial/--partial: keep solved rows pinned, reinit "
+                         "only the unsolved rows + deeper layers; other peel modes: reinit "
+                         "the entire frontier layer (+ deeper). Buffer flushed, iteration "
+                         "clock restarted, fresh --outer budget each retry.")
     ap.add_argument("--fast-peel-partial", action="store_true",
                     help="(CNN, committee) PER-NEURON consensus peel: every log iter, "
                          "kink-refine the frontier layer's consensus channels from the "
@@ -1061,6 +1072,10 @@ def main():
     if args.fast_peel_partial:                 # MLP: per-neuron consensus peel, pinned in place
         overrides["fast_peel_partial"] = True
         overrides["peel_angle_gate"] = args.peel_angle_gate
+    if args.retry:
+        overrides["retry"] = args.retry
+        print(f"[peel] --retry {args.retry}: reinit + retry when a budget ends with the "
+              "frontier layer not fully peeled", flush=True)
         print("[peel] --fast-peel-partial: per-neuron consensus peel, pinned in place "
               "across the committee; layer advances when fully solved", flush=True)
     if args.loc_refine:

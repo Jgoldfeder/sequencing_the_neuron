@@ -173,3 +173,7 @@ accounting, incomplete-prefix deferral, and fp64 exports. The full user
 - LeNet command: `python run.py --variant mergedbest --conv lenet --cnn-act leaky_relu --device cuda --outer 60 --window 60
   --q 20000 --fast-peel-partial --peelrefresh --loc-refine` (committee; ~500 s/iter) or the `--cheat --peeltry --peelrefresh
   --loc-refine` variant (p=1, ~30 s/iter).
+- `--retry [N]` (any peel mode, CNN + MLP): when a budget ends with the frontier layer not fully peeled, reinit and retry
+  (N times, bare = 5). Partial modes keep solved rows pinned and reinit only unsolved rows + deeper layers; full-layer modes
+  reinit the whole frontier layer (+ deeper). Buffer flushed, iteration clock restarted. Validated on both paths (smoke runs).
+- CNN `--fast-peel-partial` inject path validated (tiny CNN, 4-member committee: 2 consensus channels refined + pinned).

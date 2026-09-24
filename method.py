@@ -330,6 +330,11 @@ class Cfg:
     restart_stuck_frac: float = 0.5   # (a): min fraction of the frontier solved
     restart_stuck_window: int = 20    # (a): iters of zero growth that = stagnation
     restart_stuck_max: int = 5        # safety cap on stuck-restarts (each adds budget)
+    retry: int = 0                    # --retry N: in a peel mode, when the budget ends with the
+                                      # frontier layer not fully peeled, reinit and retry (N times):
+                                      # partial modes keep solved rows pinned and reinit only the
+                                      # unsolved rows + deeper; full-layer modes reinit the whole
+                                      # frontier layer (+ deeper). Buffer flushed, clock restarted.
     # cluster-consensus diagnostic
     cluster_quorum: float = 0.625  # quorum as a ratio of the committee (5/8);
                                   # a unit needs >= ceil(ratio*p) members to
@@ -1866,6 +1871,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
     stuck_last_count = 0              # --restart-stuck: last-seen solved count on stuck_pf
     stuck_last_growth = 0             # --restart-stuck: global t at last solved-count increase
     stuck_restarts = 0                # --restart-stuck: number of stuck-restarts fired so far
+    retries_done = 0                  # --retry: retries fired so far
     boost_stages = []                 # ensemble-boost: FROZEN cascade [(net, s)];
                                       # the attacker model is the SUM -- the
                                       # validated zero-loss recipe. NO per-stage
@@ -2768,6 +2774,62 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                               f"t={budget_end}) [{stuck_restarts}/"
                               f"{cfg.restart_stuck_max}]", flush=True)
                         continue
+
+            # --- --retry: in a peel mode, when the budget ends with the frontier layer
+            #     not fully peeled, reinit and go again. Partial modes: keep every solved
+            #     row pinned, reinit only the unsolved rows + deeper layers. Full-layer
+            #     modes: reinit the ENTIRE frontier layer (+ deeper). Buffer flushed,
+            #     iteration clock restarted. Capped at cfg.retry retries.
+            _peel_mode = (cfg.freeze_reinit or cfg.fast_peel or cfg.fast_peel_partial
+                          or cfg.partial or bool(cfg.peel_try))
+            if cfg.retry > 0 and _peel_mode and t == budget_end - 1 and retries_done < cfg.retry:
+                _partial_mode = bool(cfg.fast_peel_partial or cfg.partial)
+                LhR = len(dims) - 2
+                def _solvedR(l):
+                    n_ = dims[l + 1]
+                    mr = torch.zeros(n_, dtype=torch.bool, device=device)
+                    if l in partial_mask: mr = mr | partial_mask[l].to(device)
+                    if l in frozen: mr = mr | frozen[l][2].to(device)
+                    if l in exact_mask: mr = mr | exact_mask[l].to(device)
+                    return mr
+                rf = next((l for l in range(LhR) if int(_solvedR(l).sum()) < dims[l + 1]), None)
+                if rf is not None:
+                    cur = int(_solvedR(rf).sum()); ncout_r = dims[rf + 1]
+                    pfz = {}
+                    for l in range(rf + 1):
+                        if l == rf and not _partial_mode:
+                            break                          # whole frontier layer restarts
+                        mr = _solvedR(l)
+                        if not bool(mr.any()):
+                            continue
+                        Wp = pop[0].layers[l].weight.data.double().clone(); bp = pop[0].layers[l].bias.data.double().clone()
+                        fz = frozen[l][2].to(device) if l in frozen else torch.zeros_like(mr)
+                        if l in frozen:
+                            Wp[fz] = frozen[l][0].to(device)[fz].double(); bp[fz] = frozen[l][1].to(device)[fz].double()
+                        for src, msk in ((partial_exact, partial_mask.get(l)), (exact_net, exact_mask.get(l))):
+                            if src is not None and msk is not None:
+                                mm = msk.to(device) & ~fz
+                                Wp[mm] = src.layers[l].weight.data[mm].double(); bp[mm] = src.layers[l].bias.data[mm].double()
+                        pfz[l] = (Wp, bp, mr.clone())
+                    if not _partial_mode:                  # frontier's partial rows are dropped
+                        frozen.pop(rf, None); partial_mask.pop(rf, None); exact_mask.pop(rf, None)
+                    pop = _reinit_frozen_population(dims, device, cfg.p, pfz, act=cfg.act)
+                    opts = [torch.optim.Adam([p for p in n.parameters() if p.requires_grad],
+                                             lr=cfg.lr) for n in pop]
+                    X = torch.empty(0, dims[0])
+                    Y = (torch.empty(0, dtype=torch.long) if cfg.hard else torch.empty(0, dims[-1]))
+                    budget_end = t + 1 + cfg.outer
+                    peel_base = t + 1
+                    decay_at = {t + 1 + int(s * cfg.outer) for s in cfg.lr_sched}
+                    combined_done = False
+                    partial_hooked.clear(); partial_live.clear()
+                    retries_done += 1
+                    print(f"  [retry] L{rf + 1} {cur}/{ncout_r} peeled at end of budget: "
+                          + ("kept solved rows pinned, reinit unsolved + deeper" if _partial_mode
+                             else "reinit ENTIRE frontier layer + deeper")
+                          + ", flushed buffer, RESTARTED iter clock " + f"(fresh {cfg.outer}-iter budget, runs to t={budget_end})"
+                          + f" [{retries_done}/{cfg.retry}]", flush=True)
+                    continue
 
             # --- freeze-reinit peel: once the frontier hidden layer reaches
             #     consensus, pin it (+ everything above it) and reinit the committee
@@ -4902,6 +4964,7 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
     peel_stall = 0                    # consecutive no-progress peel-try attempts
     peel_stuck_best = {}              # {frontier: best solved count seen}
     stuck_restarts = 0                # restart-stuck: fired count (adds budget each)
+    retries_done = 0                  # --retry: retries fired so far
     stuck_pf = -1                     # restart-stuck: frontier the clock watches
     stuck_last_count = -1             # restart-stuck: solved count at last growth
     stuck_last_growth = 0             # restart-stuck: iter of last frontier growth
@@ -5279,6 +5342,60 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
             #     collapses onto the deeper layers. If the whole layer refines, we
             #     freeze the EXACT layer (all channels); else fall back to freezing
             #     the consensus average of just the quorum channels. ---
+            # --- --retry: in a peel mode, when the budget ends with the frontier layer
+            #     not fully peeled, reinit and go again. Partial modes: keep every solved
+            #     row pinned, reinit only the unsolved rows + deeper layers. Full-layer
+            #     modes: reinit the ENTIRE frontier layer (+ deeper). Buffer flushed,
+            #     iteration clock restarted. Capped at cfg.retry retries.
+            _peel_mode = (cfg.freeze_reinit or cfg.fast_peel or cfg.fast_peel_partial
+                          or cfg.partial or bool(cfg.peel_try))
+            if cfg.retry > 0 and _peel_mode and t == cfg.outer - 1 and retries_done < cfg.retry:
+                _partial_mode = bool(cfg.fast_peel_partial or cfg.partial)
+                LhR = nlay - 1
+                def _solvedR(l):
+                    n_ = pop[0].layers[l].weight.shape[0]
+                    mr = torch.zeros(n_, dtype=torch.bool, device=device)
+                    if l in partial_mask: mr = mr | partial_mask[l].to(device)
+                    if l in frozen: mr = mr | frozen[l][2].to(device)
+                    if l in exact_mask: mr = mr | exact_mask[l].to(device)
+                    return mr
+                rf = next((l for l in range(LhR) if int(_solvedR(l).sum()) < pop[0].layers[l].weight.shape[0]), None)
+                if rf is not None:
+                    cur = int(_solvedR(rf).sum()); ncout_r = pop[0].layers[rf].weight.shape[0]
+                    pfz = {}
+                    for l in range(rf + 1):
+                        if l == rf and not _partial_mode:
+                            break                          # whole frontier layer restarts
+                        mr = _solvedR(l)
+                        if not bool(mr.any()):
+                            continue
+                        Wp = pop[0].layers[l].weight.data.double().clone(); bp = pop[0].layers[l].bias.data.double().clone()
+                        fz = frozen[l][2].to(device) if l in frozen else torch.zeros_like(mr)
+                        if l in frozen:
+                            Wp[fz] = frozen[l][0].to(device)[fz].double(); bp[fz] = frozen[l][1].to(device)[fz].double()
+                        for src, msk in ((partial_exact, partial_mask.get(l)), (exact_net, exact_mask.get(l))):
+                            if src is not None and msk is not None:
+                                mm = msk.to(device) & ~fz
+                                Wp[mm] = src.layers[l].weight.data[mm].double(); bp[mm] = src.layers[l].bias.data[mm].double()
+                        pfz[l] = (Wp, bp, mr.clone())
+                    if not _partial_mode:                  # frontier's partial rows are dropped
+                        frozen.pop(rf, None); partial_mask.pop(rf, None); exact_mask.pop(rf, None)
+                    pop = _cnn_reinit_frozen_population(input_shape, conv_cfgs, fc_dims, out_dim,
+                                                        cfg.act, device, cfg.p, pfz)
+                    opts = [torch.optim.Adam([p for p in n.parameters() if p.requires_grad],
+                                             lr=cfg.lr) for n in pop]
+                    X = torch.empty(0, in_dim)
+                    Y = (torch.empty(0, dtype=torch.long) if cfg.hard else torch.empty(0, out_dim))
+                    t = 0
+                    partial_hooked.clear(); partial_live.clear()
+                    retries_done += 1
+                    print(f"  [retry] L{rf + 1} {cur}/{ncout_r} peeled at end of budget: "
+                          + ("kept solved rows pinned, reinit unsolved + deeper" if _partial_mode
+                             else "reinit ENTIRE frontier layer + deeper")
+                          + ", flushed buffer, RESTARTED iter clock " + f"(fresh {cfg.outer}-iter budget)"
+                          + f" [{retries_done}/{cfg.retry}]", flush=True)
+                    continue
+
             if cfg.freeze_reinit and not cfg.peel_try:
                 frontier = _cnn_frontier_layer(frozen, nlay - 1)
                 if frontier is not None:
