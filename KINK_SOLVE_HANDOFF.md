@@ -160,3 +160,16 @@ keep their old behavior. Details and the full user command are in
 consensus/restart/freeze paths in `peel/test_design_pipeline.py`, query
 accounting, incomplete-prefix deferral, and fp64 exports. The full user
 60-iteration production job has not been launched.
+
+## Update (Sep 24): ConvNet support, --fast-peel(-partial)
+- `kink_solve.py` now works on `nets.ConvNet` layers via the unit model (`ConvNetUnits`); the CNN peel refiner
+  (`method._cnn_refine_layer`) routes to it under `--loc-refine`. `peel/test_conv_kink.py 0 1 2 3` = synthetic LeNet check
+  (conv1 9e-14, conv2 1.6e-11, conv3 ~4e-12 median, fc84 8e-11 with exact prefixes).
+- `--fast-peel` now works on the CNN path and implies `--peel` with a 100% consensus quorum (any mode).
+- `--fast-peel-partial` (CNN + MLP): per-neuron consensus peel; members aligned to a common frame; solved rows injected into
+  every member at its own magnitude and pinned in place; frontier advances only when the layer is fully solved.
+  MLP path validated end-to-end (784x32x10 smoke). CNN inject path not yet exercised by a run that reached consensus.
+- Fixed `ConvNet.clone()` fp64->fp32 truncation (nets.py).
+- LeNet command: `python run.py --variant mergedbest --conv lenet --cnn-act leaky_relu --device cuda --outer 60 --window 60
+  --q 20000 --fast-peel-partial --peelrefresh --loc-refine` (committee; ~500 s/iter) or the `--cheat --peeltry --peelrefresh
+  --loc-refine` variant (p=1, ~30 s/iter).
