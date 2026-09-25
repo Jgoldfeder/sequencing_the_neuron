@@ -5464,8 +5464,11 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                                                     m_.layers[pf].bias.data.double()[:, None]], 1)[pm_]
                                     Q_ = Q_ / Q_.norm(dim=1, keepdim=True)
                                     devs.append((Q_ - R_).abs().max().item())
+                                lives = [int(partial_live[(id(m_), pf)].sum()) if (id(m_), pf) in partial_live else -1
+                                         for m_ in pop]
                                 print(f"  [pin-check] L{pf + 1}: max |member - record| over pinned rows "
-                                      f"per member: {' '.join(f'{d:.0e}' for d in devs)}", flush=True)
+                                      f"per member: {' '.join(f'{d:.0e}' for d in devs)} | live-mask counts "
+                                      f"{lives} (record {int(pm_.sum())})", flush=True)
                     except Exception as e:
                         print(f"  [pin-check] skipped ({e})", flush=True)
                     if newly:                                # accuracy of the STORED fp64 rows
