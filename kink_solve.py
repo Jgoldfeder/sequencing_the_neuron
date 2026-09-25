@@ -549,6 +549,10 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
     dev = M.device
     Din = M.din
     need = need or Din + 40
+    if isinstance(M, ConvNetUnits):
+        # a conv seed row carries whole feature maps through the prefix (and the
+        # Newton autograd keeps them): ~100x the memory of an MLP row -> cap rows/round
+        max_rows = min(max_rows, 12000)
     chans = list(channels)
     got = {c: 0 for c in chans}; eps = {c: eps0 for c in chans}
     yld = {c: 0.5 for c in chans}                       # located / brackets, per channel
@@ -766,7 +770,7 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
 
 def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                   angle_gate=12.0, polish=True, fallback=True, verbose=True,
-                  n_workers=None, direct=True, sampling="design", **_ignored):
+                  n_workers=None, direct=True, sampling="design", cnn_retry=True, **_ignored):
     """Pipeline entry point: recover layer `frontier` of `cons` (layers <
     frontier = the near-exact prefix, layer `frontier` = the ~1e-2 guess) from
     black-box `teacher`. `cons` may be an MLP or a nets.ConvNet (conv or FC
@@ -778,6 +782,8 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
     sampling="track" (ConvNet default, MLP alternative): ONE scan+fingerprint
       round for anchor kinks, then surface tracking (8 queries/point), then the
       trimmed null-vector solve. Forward-only; no prefix inversion anywhere.
+    CNN tracking failures retry with independent multiscale scan/fingerprint
+    points; cnn_retry=False disables this retry for diagnostics.
     direct=False: legacy two-stage path (seal refiner -> polish), MLP only.
     Returns (W_ref, b_ref, refined_mask, n_oracle_queries); W_ref has the
     layer's weight shape, refined rows are unit [w|b]."""
@@ -798,6 +804,16 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         return recover_shallow(teacher, cons, device, only_channels=only_channels,
                                gen=gen, verbose=verbose, angle_gate=angle_gate,
                                diagnostics=_ignored.get("diagnostics"), attempts=attempts)
+    if (sampling == "design" and frontier == 0 and len(cons.layers) > 2
+            and cons.layers[0].weight.shape[1] >= 1024
+            and cons.layers[0].weight.shape[1] >= 4 * cons.layers[0].weight.shape[0]):
+        from peel.hybrid_sweep import recover_first
+        if verbose:
+            print('[design-refine] wide-input deep network: verified affine sweeps', flush=True)
+        regions = 0 if _ignored.get("max_rounds") == 0 else _ignored.get("sweep_attempts", 8)
+        return recover_first(teacher, cons, device, only_channels=only_channels,
+                             gen=gen, verbose=verbose, angle_gate=angle_gate,
+                             diagnostics=_ignored.get("diagnostics"), max_regions=regions)
     if sampling == "design":
         from peel.informative_kinks import recover_layer as recover_designed
         W, b, mask, nq = recover_designed(teacher, cons, frontier, device,
@@ -857,7 +873,11 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         # 1e-8 prefix) or a wrong lock (points from several kinks: residual >=1e-4,
         # inliers a fraction of the points). The angle gate alone let a 3e-2-wrong
         # row through when the consensus guess was 1e-1 off.
-        ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= max_deg and rmed <= 1e-5)
+        # angle: a guess inside the solver's basin (<= ~2e-2 relative) is within ~1.2deg
+        # of the true row, so a solve further than a few degrees away is a wrong lock
+        # on a look-alike unit (trained conv3 filters resemble each other; the 12deg
+        # peel gate let a 1.25e-1-wrong row through). Cap the gate at 4deg.
+        ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= min(max_deg, 4.0) and rmed <= 1e-5)
         return ok, v, n_in, ang, rmed
 
     n2 = 0
@@ -915,6 +935,22 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
             else:
                 out = polish_layer(orc, M, frontier, rest, gen, eps0=0.02, full=True,
                                    verbose=verbose > 1)
+            # A tracked walk can switch to a foreign surface. Its descendants
+            # then contaminate the small Din+40 fit coherently. Resample failed
+            # CNN fits from independent inputs/positions, fingerprinting every
+            # point, with enough redundancy for the robust solve. Keep the same
+            # acceptance gate; a large inlier count alone is not sufficient.
+            if is_conv and direct and cnn_retry:
+                retry = [c for c in rest if c not in out or not _gate(
+                    c, *out[c], Wl[c], bl[c], angle_gate)[0]]
+                if retry:
+                    if verbose:
+                        print(f"    [kink] independent CNN retry: {len(retry)} channels", flush=True)
+                    fresh = polish_layer(
+                        orc, M, frontier, retry, gen, eps0=0.02, full=True,
+                        need=max(2 * Din + 100, Din + 80), max_rounds=8,
+                        scales=(1.0, 4.0, 16.0), verbose=verbose > 1)
+                    out.update(fresh)
             nf = 0
             for c in rest:
                 if c not in out:
@@ -926,7 +962,10 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                 if ok:
                     W_ref[c] = v[:-1]; b_ref[c] = v[-1]; refined[c] = True; nf += 1
                 elif verbose:
-                    print(f"    [kink] c={c}: fallback reject inliers {n_in}/{len(H)} angle {ang:.2f}deg", flush=True)
+                    print(f"    [kink] c={c}: fallback reject inliers {n_in}/{len(H)} "
+                          f"angle {ang:.2f}/{angle_gate:.2f}deg "
+                          f"res_med {rmed:.2e}/1.00e-05 (need >= {Din + 8} inliers and 80%)",
+                          flush=True)
             if verbose:
                 print(f"    [kink] {'direct' if direct else 'fallback'} (batched scan+fingerprint): {nf}/{len(rest)} solved, "
                       f"{orc.n - q0} q, {time.time() - t2:.1f}s", flush=True)

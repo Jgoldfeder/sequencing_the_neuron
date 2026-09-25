@@ -1330,6 +1330,9 @@ def main():
                     _e = param_errors(cons, teacher)["max_eps_per_matrix"][2 * l]
                     print(f"[fast] refine L{l + 1}: {len(idx)}/{rmask.numel()} rows "
                           f"({_nq} queries) -> L{l + 1} max_eps {_e:.2e}", flush=True)
+                    if args.design_refine and not bool(rmask.all()):
+                        print("[fast] incomplete refined prefix; deferring deeper hidden layers", flush=True)
+                        break
                 with torch.no_grad():                     # output layer: closed-form LSQ
                     Hh = Xf.to(device).double()
                     for L_ in cons.layers[:-1]:

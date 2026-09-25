@@ -1,0 +1,148 @@
+[
+  {
+    "layer": 0,
+    "seconds": 2.3897156678140163,
+    "queries": 129864,
+    "accepted": 4,
+    "channels": 4,
+    "max_accepted": 4.384825835757056e-13,
+    "mean_accepted": 1.579319899058987e-14,
+    "diagnostics": {
+      "0": {
+        "accepted": true,
+        "anchors": 46,
+        "queries": 21688,
+        "records": [
+          {
+            "step": 0.5,
+            "rank_error": 3.0832139243012323e-12,
+            "angle": 0.5746377613645577,
+            "bias_foot_found": true
+          },
+          {
+            "step": 0.5,
+            "rank_error": 0.2093169062021277,
+            "angle": 1.2297536864327605
+          },
+          {
+            "step": 0.125,
+            "rank_error": 1.3166974111953436e-11,
+            "angle": 0.5746377613607522,
+            "bias_foot_found": true,
+            "independent_difference": 7.062059270701582e-14
+          }
+        ]
+      },
+      "1": {
+        "accepted": true,
+        "anchors": 46,
+        "queries": 21728,
+        "records": [
+          {
+            "step": 0.5,
+            "rank_error": 3.3399260988878686e-12,
+            "angle": 0.5793099834523754,
+            "bias_foot_found": true
+          },
+          {
+            "step": 0.5,
+            "rank_error": 0.1405720807525228,
+            "angle": 0.6703571153820135
+          },
+          {
+            "step": 0.125,
+            "rank_error": 1.2206952921868419e-11,
+            "angle": 0.5793099834473421,
+            "bias_foot_found": true,
+            "independent_difference": 6.141059882835975e-13
+          }
+        ]
+      },
+      "2": {
+        "accepted": true,
+        "anchors": 45,
+        "queries": 27884,
+        "records": [
+          {
+            "step": 0.5,
+            "rank_error": 4.78964447452579e-05,
+            "angle": 0.5737496934169612
+          },
+          {
+            "step": 0.125,
+            "rank_error": 1.2919050735525569e-11,
+            "angle": 0.5737497875943557,
+            "bias_foot_found": true
+          },
+          {
+            "step": 0.5,
+            "rank_error": 0.2354615032178451,
+            "angle": 0.8048317993868042
+          },
+          {
+            "step": 0.125,
+            "rank_error": 1.2592902459816027e-11,
+            "angle": 0.573749787594991,
+            "bias_foot_found": true,
+            "independent_difference": 1.0500281200087613e-13
+          }
+        ]
+      },
+      "3": {
+        "accepted": true,
+        "anchors": 45,
+        "queries": 58564,
+        "records": [
+          {
+            "step": 0.5,
+            "rank_error": 0.03837739123639997,
+            "angle": 0.5804734971168531
+          },
+          {
+            "step": 0.125,
+            "rank_error": 0.004772391957875561,
+            "angle": 0.5739501118550269
+          },
+          {
+            "step": 0.03125,
+            "rank_error": 4.499359400883252e-11,
+            "angle": 0.5738574004198113,
+            "bias_foot_found": true
+          },
+          {
+            "step": 0.5,
+            "rank_error": 0.8340484229786043,
+            "angle": 2.2208024380986093
+          },
+          {
+            "step": 0.125,
+            "rank_error": 0.9767668975608106,
+            "angle": 74.57112657843123
+          },
+          {
+            "step": 0.03125,
+            "rank_error": 4.816948075351289e-11,
+            "angle": 79.21158453569853
+          },
+          {
+            "step": 0.0078125,
+            "rank_error": 1.8407994315930118e-10,
+            "angle": 79.21158453571532
+          },
+          {
+            "step": 0.001953125,
+            "rank_error": 7.999073808225803e-10,
+            "angle": 79.21158453579812
+          },
+          {
+            "step": 0.5,
+            "rank_error": 3.0413540686958208e-12,
+            "angle": 0.5738574004172708,
+            "bias_foot_found": true,
+            "independent_difference": 3.2347215184191924e-13
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "output_max": 1.335125343615573e-10,
+  "output_mean": 2.0650113031414492e-11,
+  "fit_queries": 4096,
+  "validation_queries": 1024
+}

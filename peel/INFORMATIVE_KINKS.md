@@ -1,5 +1,9 @@
 # Reconstruction-designed kink sampling
 
+For wide-input networks with multiple hidden layers, see
+[the hybrid sweep report](HYBRID_SWEEP_REPORT.md) for the new first-layer
+dispatch, the 3072 → 256 → 256 → 256 results, and reproduction command.
+
 Experimental strategy for `kink_solve.recover_layer(..., sampling="design")`.
 The default remains `sampling="track"`.
 

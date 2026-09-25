@@ -5020,6 +5020,34 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
     in_dim = int(input_shape[0] * input_shape[1] * input_shape[2])
     pop = [ConvNet(input_shape, conv_cfgs, fc_dims, out_dim, cfg.act).to(device)
            for _ in range(cfg.p)]
+    if os.environ.get("PEEL_DEBUG_NEAR_TEACHER"):
+        # DEBUG: start every member at teacher + relative noise (env value, e.g. 1e-2)
+        # with a random per-member channel permutation, so consensus forms at once
+        # and the peel machinery can be exercised in minutes.
+        _nz = float(os.environ["PEEL_DEBUG_NEAR_TEACHER"])
+        for _i, _m in enumerate(pop):
+            _g = torch.Generator(device=device).manual_seed(1000 + _i)
+            with torch.no_grad():
+                for _l, (_ml, _tl) in enumerate(zip(_m.layers, teacher.layers)):
+                    _W = _tl.weight.detach().to(device); _b = _tl.bias.detach().to(device)
+                    _rn = _W.reshape(_W.shape[0], -1).norm(dim=1).view(-1, *([1] * (_W.dim() - 1)))
+                    _ml.weight.copy_(_W + _nz * _rn * torch.randn(_W.shape, device=device, generator=_g)
+                                     / (_W[0].numel() ** 0.5))
+                    _ml.bias.copy_(_b + _nz * _rn.flatten() * torch.randn(_b.shape, device=device, generator=_g))
+                for _l in range(len(_m.layers) - 1):          # random channel permutation
+                    _perm = torch.randperm(_m.layers[_l].weight.shape[0], device=device, generator=_g)
+                    from align import cnn_align_to_ as _unused
+                    _W = _m.layers[_l].weight; _bb = _m.layers[_l].bias
+                    _W.copy_(_W[_perm]); _bb.copy_(_bb[_perm])
+                    _nx = _m.layers[_l + 1]
+                    if _W.dim() == 4 and _nx.weight.dim() == 4:
+                        _nx.weight.copy_(_nx.weight[:, _perm])
+                    elif _W.dim() == 4:
+                        _k = _W.shape[0]; _mm, _n = _nx.weight.shape; _sec = _n // _k
+                        _nx.weight.copy_(_nx.weight.view(_mm, _k, _sec)[:, _perm, :].reshape(_mm, _n))
+                    else:
+                        _nx.weight.copy_(_nx.weight[:, _perm])
+        print(f"[debug] PEEL_DEBUG_NEAR_TEACHER={_nz}: members = teacher + noise, channels permuted", flush=True)
     opts = [torch.optim.Adam(n.parameters(), lr=cfg.lr) for n in pop]
     X = torch.empty(0, in_dim)
     Y = (torch.empty(0, dtype=torch.long) if cfg.hard
@@ -5421,6 +5449,25 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     print(f"  [fast-peel-partial] L{pf + 1}: {len(cand)} consensus candidates, "
                           f"+{len(newly)} solved & pinned in all {len(pop)} members "
                           f"({ns}/{Cout} total)  |  {time.time() - _pt0:.1f}s", flush=True)
+                    # self-check: every member's pinned rows must equal the fp64 record's
+                    # hyperplanes (unit [w|b] direction) -- a drift here means a pin is lost
+                    try:
+                        with torch.no_grad():
+                            pm_ = partial_mask[pf]
+                            if bool(pm_.any()):
+                                R_ = torch.cat([partial_exact.layers[pf].weight.data.reshape(Cout, -1),
+                                                partial_exact.layers[pf].bias.data[:, None]], 1)[pm_]
+                                R_ = R_ / R_.norm(dim=1, keepdim=True)
+                                devs = []
+                                for m_ in pop:
+                                    Q_ = torch.cat([m_.layers[pf].weight.data.reshape(Cout, -1).double(),
+                                                    m_.layers[pf].bias.data.double()[:, None]], 1)[pm_]
+                                    Q_ = Q_ / Q_.norm(dim=1, keepdim=True)
+                                    devs.append((Q_ - R_).abs().max().item())
+                                print(f"  [pin-check] L{pf + 1}: max |member - record| over pinned rows "
+                                      f"per member: {' '.join(f'{d:.0e}' for d in devs)}", flush=True)
+                    except Exception as e:
+                        print(f"  [pin-check] skipped ({e})", flush=True)
                     if newly:                                # accuracy of the STORED fp64 rows
                         try:
                             smasks = [(_psolvedQ(l) if l < Lh else
