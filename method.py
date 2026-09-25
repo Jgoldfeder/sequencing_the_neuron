@@ -2710,8 +2710,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                         lambda g, k=live: g * (~k).to(g.dtype))
                                     partial_hooked.add(key)
                                 live = partial_live[key]
-                                with torch.no_grad():
-                                    _inject(m_.layers[pf], m_.layers[pf].weight.dtype)
+                                with torch.no_grad():        # member's magnitude AND input gauge
+                                    _inject_rows_gauge(m_.layers[pf], idx, Wr, br,
+                                                       _canon_in_factors(m_, pf), prev_conv=False)
                                 live[idx] = True
                                 for p in (m_.layers[pf].weight, m_.layers[pf].bias):
                                     st = opt_.state.get(p)
@@ -3942,13 +3943,25 @@ def _cnn_apply_perms_(net, perms, upto, opt=None, live_masks=None):
             nxt.weight.copy_(nxt.weight.view(mm, k, sec)[:, idx, :].reshape(mm, n))
         else:
             nxt.weight.copy_(nxt.weight[:, idx])
-        if opt is not None:
-            for p in (W, b, nxt.weight):
-                st = opt.state.get(p)
+        if opt is not None:                       # Adam moments FOLLOW the permutation
+            for p in (W, b):                      # (zeroing them gave ~3x steps on the
+                st = opt.state.get(p)             # whole layer after every pass)
                 if st:
                     for k_ in ("exp_avg", "exp_avg_sq"):
                         if k_ in st:
-                            st[k_].zero_()
+                            st[k_].copy_(st[k_][idx])
+            st = opt.state.get(nxt.weight)
+            if st:
+                for k_ in ("exp_avg", "exp_avg_sq"):
+                    if k_ in st:
+                        S_ = st[k_]
+                        if conv and nxt.weight.dim() == 4:
+                            S_.copy_(S_[:, idx])
+                        elif conv and nxt.weight.dim() == 2:
+                            k = W.shape[0]; mm, n = nxt.weight.shape; sec = n // k
+                            S_.copy_(S_.view(mm, k, sec)[:, idx, :].reshape(mm, n))
+                        else:
+                            S_.copy_(S_[:, idx])
         if live_masks is not None and (id(net), i) in live_masks:
             lm = live_masks[(id(net), i)]
             lm.copy_(lm[idx])
@@ -3979,9 +3992,8 @@ def _repin_partial(pop, opts, partial_mask, partial_exact, frozen, partial_hooke
                 m_.layers[l].bias.register_hook(lambda g, k=live: g * (~k).to(g.dtype))
                 partial_hooked.add(key)
             live = partial_live[key]
-            with torch.no_grad():
-                m_.layers[l].weight[idx] = partial_exact.layers[l].weight.data[idx].to(m_.layers[l].weight.dtype)
-                m_.layers[l].bias[idx] = partial_exact.layers[l].bias.data[idx].to(m_.layers[l].bias.dtype)
+            # values: the warm rebuild keeps each member's own (gauge-correct) pinned
+            # rows -- only the grad-mask hooks and live masks need re-installing
             live[idx] = True
             for p in (m_.layers[l].weight, m_.layers[l].bias):
                 st = opt_.state.get(p)
@@ -4039,6 +4051,67 @@ def _reroll_rows_(pop, opts, l, chans, device):
             if st:
                 if "exp_avg" in st: st["exp_avg"][idx] = 0
                 if "exp_avg_sq" in st: st["exp_avg_sq"][idx] = 0
+
+
+@torch.no_grad()
+def _canon_in_factors(net, l):
+    """Canonicalization factors of layer l-1 of a RAW net = the per-input scaling that
+    the canonical gauge applies to layer l's inputs (None for l == 0). Mirrors
+    cnn_canonicalize_ (ConvNet: norm of [W|b]) / scale_normalize_ (MLP: norm of W),
+    computed recursively from layer 0 on a clone so the net is untouched."""
+    if l == 0:
+        return None
+    c = net.clone()
+    is_cnn = hasattr(net, "n_conv")
+    f = None
+    for i in range(l):
+        L = c.layers[i]; W, b = L.weight, L.bias
+        conv = W.dim() == 4
+        if is_cnn:
+            f = torch.cat([W.reshape(W.shape[0], -1), b[:, None]], 1).norm(dim=1).clamp_min(1e-8)
+        else:
+            f = W.norm(dim=1).clamp_min(1e-12)
+        W.div_(f.view(-1, 1, 1, 1) if conv else f[:, None]); b.div_(f)
+        nxt = c.layers[i + 1]
+        if is_cnn:
+            from align import _push_to_next
+            _push_to_next(nxt, f, conv)
+        else:
+            nxt.weight.mul_(f[None, :])
+    return f
+
+
+@torch.no_grad()
+def _inject_rows_gauge(layer, idx, uW, ub, f_in, prev_conv):
+    """Inject the canonical-gauge unit rows (uW, ub) into rows `idx` of a RAW member
+    layer at the member's own magnitude: first map the direction into the member's
+    input gauge (divide layer inputs by the member's previous-layer factors f_in:
+    per input channel for conv->conv, per channel block for conv->fc, per unit for
+    fc/MLP), renormalize, then scale-match (projection onto the member's row)."""
+    if f_in is None:
+        _scale_match_rows(layer, idx, uW, ub)
+        return
+    k = int(idx.numel())
+    if k == 0:
+        return
+    W = layer.weight
+    uw = uW[idx].reshape(k, -1).double().clone()
+    fi = f_in.double().to(W.device)
+    if prev_conv and W.dim() == 4:                        # conv -> conv: per input channel
+        uw = uw.reshape(k, W.shape[1], -1) / fi.view(1, -1, 1)
+    elif prev_conv and W.dim() == 2:                      # conv -> fc: per channel block
+        sec = W.shape[1] // fi.numel()
+        uw = uw.reshape(k, fi.numel(), sec) / fi.view(1, -1, 1)
+    else:                                                 # fc -> fc / MLP: per unit
+        uw = uw / fi.view(1, -1)
+    uw = uw.reshape(k, -1)
+    ubv = ub[idx].double().to(W.device)
+    nrm = torch.cat([uw, ubv[:, None]], 1).norm(dim=1, keepdim=True).clamp_min(1e-30)
+    uw = uw / nrm; ubv = ubv / nrm[:, 0]
+    full_W = torch.zeros(W.shape[0], *W.shape[1:], device=W.device, dtype=torch.float64)
+    full_b = torch.zeros(W.shape[0], device=W.device, dtype=torch.float64)
+    full_W[idx] = uw.reshape(k, *W.shape[1:]); full_b[idx] = ubv
+    _scale_match_rows(layer, idx, full_W, full_b)
 
 
 def _scale_match_rows(layer, idx, uW, ub):
@@ -4404,13 +4477,18 @@ def _mlp_apply_align_(member, ref_norm, upto, opt=None, live_masks=None):
         if bool((pt == torch.arange(len(pt), device=pt.device)).all()):
             continue
         permute_layer_(member, l, perm)
-        if opt is not None:
-            for p in (member.layers[l].weight, member.layers[l].bias, member.layers[l + 1].weight):
+        if opt is not None:                       # Adam moments follow the permutation
+            for p in (member.layers[l].weight, member.layers[l].bias):
                 st = opt.state.get(p)
                 if st:
                     for k_ in ("exp_avg", "exp_avg_sq"):
                         if k_ in st:
-                            st[k_].zero_()
+                            st[k_].copy_(st[k_][pt])
+            st = opt.state.get(member.layers[l + 1].weight)
+            if st:
+                for k_ in ("exp_avg", "exp_avg_sq"):
+                    if k_ in st:
+                        st[k_].copy_(st[k_][:, pt])
         if live_masks is not None and (id(member), l) in live_masks:
             lm = live_masks[(id(member), l)]
             lm.copy_(lm[pt])
@@ -5375,6 +5453,11 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                     return mq
                 pf0 = next((l for l in range(Lh) if int(_psolvedQ(l).sum()) < _ncoutQ(l)), None)
                 _layers = [pf0] if (pf0 is not None and pf0 < len(masks)) else []
+                _chk = None
+                if _layers and len(X) > 0:               # function check: loss before the pass
+                    with torch.no_grad():
+                        _xb = X[-2048:].to(device); _yb = Y[-2048:].to(device)
+                        _chk = [(m_(_xb) - _yb).abs().mean().item() for m_ in pop]
                 for pf in _layers:              # a completed layer appends the NEXT one (below)
                     _pt0 = time.time()
                     # (0) align every member to the consensus frame (= best member bi's
@@ -5437,8 +5520,10 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                                         lambda g, k=live: g * (~k).to(g.dtype))
                                     partial_hooked.add(key)
                                 live = partial_live[key]
-                                with torch.no_grad():        # THIS member's magnitude
-                                    _scale_match_rows(m_.layers[pf], idx, Wr, br)
+                                with torch.no_grad():        # THIS member's magnitude AND input gauge
+                                    _inject_rows_gauge(m_.layers[pf], idx, Wr, br,
+                                                       _canon_in_factors(m_, pf),
+                                                       prev_conv=(pf > 0 and m_.layers[pf - 1].weight.dim() == 4))
                                 live[idx] = True
                                 for p in (m_.layers[pf].weight, m_.layers[pf].bias):
                                     st = opt_.state.get(p)
@@ -5484,6 +5569,12 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             print(f"  [stored fp64] solved rows vs teacher: {rep}", flush=True)
                         except Exception as e:
                             print(f"  [stored fp64] report skipped ({e})", flush=True)
+                    if _chk is not None:                     # function check: loss after the pass
+                        with torch.no_grad():
+                            _after = [(m_(_xb) - _yb).abs().mean().item() for m_ in pop]
+                        print("  [pass-check] member loss before -> after: "
+                              + "  ".join(f"{a:.2e}->{b:.2e}" for a, b in zip(_chk, _after)), flush=True)
+                        _chk = _after
                     if ns == Cout:                           # audit: no duplicates among ALL solved rows
                         Wa = partial_exact.layers[pf].weight.data; ba = partial_exact.layers[pf].bias.data
                         _, dups_all = _dedupe_new_rows(list(range(Cout)), Wa, ba, None, None)
