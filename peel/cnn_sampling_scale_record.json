@@ -1,0 +1,22 @@
+{
+  "snapshot_iter": 20,
+  "channels": [
+    0,
+    15
+  ],
+  "norms": [
+    0.022159152625377466,
+    0.15718054396780626
+  ],
+  "accepted": [
+    true,
+    true
+  ],
+  "errors": [
+    5.861283680630436e-14,
+    5.178816360126848e-14
+  ],
+  "queries": 243881,
+  "seconds": 11.722921133041382,
+  "refresh_guesses": false
+}

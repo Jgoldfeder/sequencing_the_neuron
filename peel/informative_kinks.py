@@ -30,6 +30,11 @@ def candidate_pool(guess, l, channels, gen, pool, scales, eps):
     X = scale[:, None] * torch.randn(len(j), d, device=dev,
                                      dtype=torch.float64, generator=gen)
     wg = guess.layers[l].weight[j]; bg = guess.layers[l].bias[j]
+    # Candidate geometry must not depend on the arbitrary positive row scale.
+    # Normalize only local copies; preserve the model and returned weight gauge.
+    row_norm = torch.cat([wg, bg[:, None]], 1).norm(dim=1).clamp_min(1e-30)
+    wg = wg / row_norm[:, None]
+    bg = bg / row_norm
     for _ in range(12):
         g, normal = K._g_and_normal(guess, X, l, wg, bg)
         X -= (g / normal.square().sum(1).clamp_min(1e-30))[:, None]*normal

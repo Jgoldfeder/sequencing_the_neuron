@@ -173,7 +173,7 @@ def _diag_estimate(JtJ, groups, n_groups, numel, gen, dev, probes=8):
 
 def refine(bb, guess, X, act, dirs=0, iters=40, cg_iters=200, h=1e-3,
            jac_weight=1.0, seed=0, score=None, verbose=True, tag="[tanhsolver]",
-           precond=False, cg_tol=1e-3):
+           precond=False, cg_tol=1e-3, freeze=()):
     """Jointly refine every parameter of `guess` (MLP, any dtype) against the
     black box `bb` on query points X (N, d). Returns (net_fp64, info).
 
@@ -205,8 +205,11 @@ def refine(bb, guess, X, act, dirs=0, iters=40, cg_iters=200, h=1e-3,
     net = MLP(dims, act=act).to(device=dev, dtype=torch.float64)
     net.load_state_dict({k: v.detach().to(dev, torch.float64)
                          for k, v in guess.state_dict().items()})
-    keys = [k for k, _ in net.named_parameters()]
+    freeze = set(freeze)                                    # parameter names held FIXED (e.g. exact layer-1 rows)
+    keys = [k for k, _ in net.named_parameters() if k not in freeze]
     theta = {k: v.detach().clone() for k, v in net.named_parameters()}
+    if verbose and freeze:
+        print(f"{tag} frozen: {sorted(freeze)} | free parameters {sum(theta[k].numel() for k in keys)}", flush=True)
     wj = math.sqrt(jac_weight)
 
     def residual(p):
@@ -222,7 +225,7 @@ def refine(bb, guess, X, act, dirs=0, iters=40, cg_iters=200, h=1e-3,
         return torch.cat([dct[k].reshape(-1) for k in keys])
 
     def unflat(v):
-        out, i = {}, 0
+        out, i = {k: torch.zeros_like(theta[k]) for k in freeze}, 0     # frozen: zero tangent / zero step
         for k in keys:
             n = theta[k].numel()
             out[k] = v[i:i + n].view_as(theta[k]); i += n
@@ -236,7 +239,10 @@ def refine(bb, guess, X, act, dirs=0, iters=40, cg_iters=200, h=1e-3,
         e = score(net)
         per = e.get("max_eps_per_matrix", [])
         per_s = " ".join(f"{v:.1e}" for v in per)
-        print(f"{tag} {label}: max_eps {e['max_eps']:.3e} | per-matrix [{per_s}]",
+        mean_per = e.get("mean_eps_per_matrix", [])
+        mean_s = " ".join(f"{v:.1e}" for v in mean_per)
+        mean_all = (sum(mean_per) / len(mean_per)) if mean_per else float("nan")
+        print(f"{tag} {label}: max_eps {e['max_eps']:.3e} mean_eps {mean_all:.3e} | max per-matrix [{per_s}] | mean per-matrix [{mean_s}]",
               flush=True)
 
     loss = loss_of(theta)
@@ -313,6 +319,7 @@ def refine(bb, guess, X, act, dirs=0, iters=40, cg_iters=200, h=1e-3,
         if not accepted:
             break
         n_accept += 1
+        describe(theta, f"it {it + 1:3d}")                 # per-iteration error vs the black box (diagnostic only)
         if len(hist) > 2 and hist[-2] - hist[-1] < 1e-12 * max(hist[-2], 1e-300):
             break
 

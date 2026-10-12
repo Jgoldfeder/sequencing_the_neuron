@@ -1,5 +1,9 @@
 # CNN tracking rejection retry
 
+Follow-up: [CNN_AUDIT.md](CNN_AUDIT.md) documents the 2026-09-29 gate, gauge,
+restart, and precision fixes and broader validation. The results below describe
+the earlier retry-only change.
+
 The reported L2 rejections have sufficient inliers and acceptable angles, but
 fail the unprinted median-residual threshold (1e-5). High inlier counts use an
 adaptive threshold and therefore do not imply a precise recovered row.

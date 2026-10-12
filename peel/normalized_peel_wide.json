@@ -1,0 +1,54 @@
+{
+  "config": {
+    "arch": "3072,200,200,200,100",
+    "frontier": 2,
+    "device": "cpu",
+    "seed": 0,
+    "rounds": 3,
+    "output": "peel/normalized_peel_wide.json"
+  },
+  "calibration": {
+    "retained_directions": 200,
+    "dimensions": 200,
+    "normalized_std_min": 0.9999999999999892,
+    "normalized_std_max": 1.0000000000000029
+  },
+  "initial_validation_mse": 0.09193106930288676,
+  "preservation_max": 9.760334993558217e-07,
+  "export_max": 6.853794830563587e-07,
+  "seconds": 9.439909357577562,
+  "teacher_training_queries": 768,
+  "teacher_validation_queries": 512,
+  "rounds": [
+    {
+      "disagreement_before": 0.012114706449210644,
+      "disagreement_after": 0.1390882134437561,
+      "normalized_hidden_movement": 2.1302257464454195,
+      "normalized_hidden_std": 2.410765839698927,
+      "max_raw": 3.1678056621806467,
+      "training_mse_before": 0.5129168033599854,
+      "training_mse_after": 0.03235949948430061,
+      "validation_mse": 0.04620328505168644
+    },
+    {
+      "disagreement_before": 0.021863259375095367,
+      "disagreement_after": 0.3481214940547943,
+      "normalized_hidden_movement": 2.527056130711185,
+      "normalized_hidden_std": 2.6774051133349515,
+      "max_raw": 3.300042698770992,
+      "training_mse_before": 0.09342078119516373,
+      "training_mse_after": 0.012795070186257362,
+      "validation_mse": 0.03105846358888229
+    },
+    {
+      "disagreement_before": 0.02348260208964348,
+      "disagreement_after": 0.354681134223938,
+      "normalized_hidden_movement": 2.4080298342671056,
+      "normalized_hidden_std": 2.623039059614357,
+      "max_raw": 3.258467576530113,
+      "training_mse_before": 0.032772112637758255,
+      "training_mse_after": 0.007245879154652357,
+      "validation_mse": 0.023231368779195804
+    }
+  ]
+}

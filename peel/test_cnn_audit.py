@@ -22,7 +22,7 @@ def unit_rows(weight, bias):
 def run(args):
     torch.set_num_threads(1)
     results = []
-    for act in ('leaky_relu', 'relu'):
+    for act in (('leaky_relu', 'relu') if args.act == 'both' else (args.act,)):
         for seed in range(args.seeds):
             torch.manual_seed(seed)
             if args.suite == 'trained':
@@ -49,7 +49,7 @@ def run(args):
                     b.add_(args.noise*.5*norm*torch.randn(b.shape,device=args.device,dtype=b.dtype,generator=gen))
                     for layer in G.layers[fr+1:]:
                         layer.weight.zero_(); layer.bias.zero_()
-                channels = list(range(len(w))) if args.suite=='small' else sorted(set([0,len(w)//2,len(w)-1]))
+                channels = list(range(len(w))) if args.suite=='small' or args.all_channels else sorted(set([0,len(w)//2,len(w)-1]))
                 before = {k:v.clone() for k,v in G.state_dict().items()}
                 start=time.time()
                 W,B,mask,nq=recover_layer(T,G,fr,args.device,only_channels=channels,gen=gen,sampling='track',verbose=True)
@@ -83,6 +83,8 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--suite',choices=['small','trained'],default='small')
     p.add_argument('--device',default='cuda:1')
+    p.add_argument('--act',choices=['both','relu','leaky_relu'],default='both')
+    p.add_argument('--all-channels',action='store_true')
     p.add_argument('--seeds',type=int,default=2)
     p.add_argument('--noise',type=float,default=.01)
     p.add_argument('--recursive',action='store_true')

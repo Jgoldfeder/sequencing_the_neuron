@@ -1,0 +1,73 @@
+[
+  {
+    "snapshot": "peel/design_failures/layer0_1790822306134615525.pt",
+    "rows": [
+      {
+        "c": 168,
+        "teacher": 76,
+        "angle": 68.803,
+        "sign": -1,
+        "weight_angle": 74.798,
+        "points": 21
+      }
+    ]
+  },
+  {
+    "snapshot": "peel/design_failures/layer0_1790822869689044754.pt",
+    "rows": [
+      {
+        "c": 14,
+        "teacher": 31,
+        "angle": 69.215,
+        "sign": -1,
+        "weight_angle": 71.791,
+        "points": 7
+      },
+      {
+        "c": 153,
+        "teacher": 143,
+        "angle": 55.711,
+        "sign": 1,
+        "weight_angle": 89.721,
+        "points": 24
+      },
+      {
+        "c": 197,
+        "teacher": 122,
+        "angle": 55.413,
+        "sign": -1,
+        "weight_angle": 74.636,
+        "points": 12
+      }
+    ]
+  },
+  {
+    "snapshot": "peel/design_failures/layer0_1790824122481015071.pt",
+    "rows": [
+      {
+        "c": 14,
+        "teacher": 122,
+        "angle": 70.973,
+        "sign": 1,
+        "weight_angle": 81.615,
+        "points": 55
+      },
+      {
+        "c": 153,
+        "teacher": 122,
+        "angle": 51.498,
+        "sign": -1,
+        "weight_angle": 51.193,
+        "points": 35
+      },
+      {
+        "c": 197,
+        "teacher": 139,
+        "angle": 52.027,
+        "sign": -1,
+        "weight_angle": 25.621,
+        "points": 359
+      }
+    ]
+  }
+]

@@ -7,6 +7,9 @@ import argparse
 import json
 import os
 import time
+# large per-iteration query blocks (q x 3072) fragment the caching allocator; expandable segments
+# let freed blocks be reused for differently-sized allocations instead of OOMing with GBs "reserved".
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 
@@ -286,8 +289,68 @@ def run_cnn(args):
         overrides["qg_lr"] = args.qg_lr
     if args.qg_chunk:
         overrides["qg_chunk"] = args.qg_chunk
+    if args.qg_steps is not None:
+        overrides["qg_steps"] = args.qg_steps
+    if args.inverse:
+        overrides["inverse"] = True
+        for k in ("inv_lam", "inv_inner", "inv_lr", "inv_radius", "inv_agg",
+                  "inv_reach_w", "inv_y_noise", "inv_step_max"):
+            v = getattr(args, k)
+            if v is not None:
+                overrides[k] = v
+        print("[inverse] query generation = inverse disagreement (targets y optimized, "
+              "teacher queried at each member's inverse x_i(y; x0))", flush=True)
+    if args.reverse_peel:
+        overrides["reverse_peel"] = True
+        if args.reverse_eps is not None: overrides["reverse_eps"] = args.reverse_eps
+        if args.reverse_thresh is not None: overrides["reverse_thresh"] = args.reverse_thresh
+        if args.reverse_force: overrides["reverse_force"] = True
+        print("[reverse-peel] head-first peel: head consensus (column frame) -> exact kink-jump refine "
+              "-> pin; then consensus-pin downwards", flush=True)
+    if args.layer_consensus:
+        overrides["layer_consensus"] = True
+    if args.resume_pop:
+        overrides["resume_pop"] = args.resume_pop
+        overrides["warmstart_iters"] = 0
+        overrides["target_mode"] = args.target_mode
+        overrides["target_lam"] = args.target_lam
+        overrides["target_frac"] = args.target_frac
+        overrides["target_act_w"] = args.target_act_w
+        overrides["target_reinit"] = args.target_reinit
+        overrides["target_consensus"] = args.target_consensus
+        overrides["target_value"] = args.target_value
+        overrides["target_units"] = args.target_units
+    if args.targetdeep:
+        overrides["targetdeep"] = True
+    if args.balance is not None:
+        overrides["balance"] = args.balance
+    if args.balance_mode is not None:
+        overrides["balance_mode"] = args.balance_mode
+    if args.balance_target is not None:
+        overrides["balance_target"] = args.balance_target
+    if args.balance_rownorm is not None:
+        overrides["balance_rownorm"] = args.balance_rownorm
+    if args.balance_dirlr is not None:
+        overrides["balance_dirlr"] = args.balance_dirlr
+    if args.balance_dirlr_decay is not None:
+        overrides["balance_dirlr_decay"] = args.balance_dirlr_decay
+    if args.balance_dirlr_head is not None:
+        overrides["balance_dirlr_head"] = bool(args.balance_dirlr_head)
+    if args.balance_refresh is not None:
+        overrides["balance_refresh"] = args.balance_refresh
+    if args.no_stacked:
+        overrides["stacked"] = False
+    if args.warmstart is not None:
+        overrides["warmstart_iters"] = args.warmstart
+    _ai = (args.inverse or args.reverse_peel) if args.align_inverse is None else args.align_inverse
+    if _ai:
+        overrides["align_inverse"] = True
+        print("[align-inverse] eps metric = activation-matched per-layer pairing "
+              "(param_errors_actmatch)", flush=True)
     if args.verbose:
         overrides["log_every"] = 1
+    if args.log_every is not None:
+        overrides["log_every"] = args.log_every
     if args.freeze_reinit or args.peel or args.resume:  # peel: freeze consensus layers, reinit
         overrides["freeze_reinit"] = True
         overrides["freeze_thresh"] = args.freeze_thresh
@@ -318,8 +381,12 @@ def run_cnn(args):
         overrides["peel_angle_gate"] = args.peel_angle_gate
     if args.fast_peel_partial:
         overrides["fast_peel_partial"] = True
+        if args.peelrefresh or args.peelrestart:
+            overrides["freeze_reinit"] = True
+            overrides["freeze_thresh"] = 1.0
+            overrides["freeze_precision"] = 0.0
         overrides["peel_angle_gate"] = args.peel_angle_gate
-        print("[peel] --fast-peel-partial: per-neuron consensus peel, pinned in place "
+        print("[peel] --fast-peel-partial: per-neuron quorum consensus peel, pinned in place "
               "across the committee; layer advances when fully solved", flush=True)
     if args.retry:
         overrides["retry"] = args.retry
@@ -398,8 +465,8 @@ def run_cnn(args):
 
     resume_state = None
     if args.resume:
-        rck = torch.load(args.resume, map_location=device, weights_only=False)
-        resume_state = rck["state_dict"] if "state_dict" in rck else rck
+        rck = torch.load(args.resume, map_location=device, weights_only=True)
+        resume_state = rck.get("refined_state", rck.get("state_dict", rck))
         print(f"[resume] loaded student from {args.resume}", flush=True)
 
     best, log, final = reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim,
@@ -443,6 +510,10 @@ def main():
     ap.add_argument("--variant", required=True, choices=sorted(VARIANTS))
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--arch", default="784,64,10")
+    ap.add_argument("--cheat-peel", type=int, nargs="?", const=1, default=0, metavar="N",
+                    help="DIAGNOSTIC: --arch is the full teacher; remove N leading "
+                         "layers (default 1) and train on direct teacher-tail queries "
+                         "from the start. Shortcut for --teacher-full/--teacher-drop.")
     ap.add_argument("--teacher-full", default="",
                     help="(MLP) make the blackbox the SUB-NET of a bigger trained "
                          "teacher: build/load the teacher for THIS full arch (e.g. "
@@ -487,6 +558,59 @@ def main():
                     default="tail",
                     help="which weight layers to reparameterize: tail (all but "
                          "W1) | l1 (W1 only) | all.")
+    ap.add_argument("--inverse", action="store_true",
+                    help="INVERSE disagreement query generation: optimize target OUTPUTS y "
+                         "and query the teacher at the inputs each member needs to reach y "
+                         "from a shared reference x0 (gen_queries_inverse). Plain committee "
+                         "path only (no cheat / peel frontier / ensemble-boost).")
+    ap.add_argument("--inv-lam", type=float, default=None, help="inverse: proximity prior lam")
+    ap.add_argument("--inv-inner", type=int, default=None, help="inverse: Gauss-Newton steps per member")
+    ap.add_argument("--inv-lr", type=float, default=None, help="inverse: Adam lr on targets y")
+    ap.add_argument("--inv-radius", type=float, default=None, help="inverse: trust region |y-y0|/std (0=off)")
+    ap.add_argument("--inv-agg", default=None, choices=["var", "median_pair", "mean_pair", "min_pair"],
+                    help="inverse: input-spread aggregator")
+    ap.add_argument("--inv-reach-w", type=float, default=None, help="inverse: unreachable-target penalty weight")
+    ap.add_argument("--inv-y-noise", type=float, default=None, help="inverse: initial target jitter (std units)")
+    ap.add_argument("--inv-step-max", type=float, default=None, help="inverse: clip Gauss-Newton step norm")
+    ap.add_argument("--reverse-peel", action="store_true",
+                    help="top-down peel: track consensus on the HEAD (gauge-correct column frame), "
+                         "refine it exactly (kink-jump refiner), pin it, then consensus-pin the "
+                         "layers below one at a time (reverse_peel.py). Implies --align-inverse.")
+    ap.add_argument("--reverse-eps", type=float, default=None)
+    ap.add_argument("--reverse-thresh", type=float, default=None)
+    ap.add_argument("--resume-pop", default="", help="load a population snapshot (recon/_pop__*.pt) as the starting committee; buffer starts empty; warm-start iterations are skipped")
+    ap.add_argument("--target-mode", default="off", choices=["off", "control", "pin", "l1"],
+                    help="hold certified weights ('pin' = direction snaps, 'l1' = L1 anchor) and aim --target-frac of the queries at the unsolved units; 'control' = resume only")
+    ap.add_argument("--target-lam", type=float, default=1.0)
+    ap.add_argument("--target-frac", type=float, default=1.0)
+    ap.add_argument("--target-act-w", type=float, default=1.0, help="weight of the unsolved-units activation term in the targeted sampler")
+    ap.add_argument("--target-reinit", action="store_true", help="re-draw the unsolved units' rows and outgoing columns in every member at start")
+    ap.add_argument("--target-consensus", action="store_true", help="put every member on the consensus values of the certified entries at start (pin to the GUESS, not to each member's own value)")
+    ap.add_argument("--target-value", default="seed", choices=["seed", "mean"], help="consensus value: the reference member's entry (seed) or the quorum mean")
+    ap.add_argument("--target-units", default="", help="force the target set at start: '2:121;3:3,43,117' (hidden layer 1-based : unit indices in the reference frame)")
+    ap.add_argument("--balance-mode", choices=["rownorm", "actnorm", "layer", "unit"], default=None, help="rownorm (default; the version that worked, run balancelayer3): canonicalise once to pre-activation RMS = target, then project every hidden (row,bias) back to its fixed norm after EVERY step (head free). actnorm: per step, equalise row norms within each hidden layer and float the layer scale so its pre-activation RMS = --balance-target (NEGATIVE at scale: head scale migrates, consensus 0).  canonicalise once to pre-activation RMS = target, then project every hidden row back to its fixed norm after EVERY step (no compensation; head free). layer: after each rebalance every hidden layer has the same pre-activation RMS (one scalar per layer, exact gauge move); unit: per-unit incoming == outgoing norm")
+    ap.add_argument("--balance-dirlr", type=float, default=None, help="directional learning rate eta: per-layer Adam lr = eta*median row norm/sqrt(fan_in) (x base schedule), head included, so every layer's rows rotate by eta per step regardless of scale. Fixes the L1 jitter floor (3%%/step at pinned norm 2) and the frozen head (norm 35) under rownorm. Try 0.0025 (= what the unbalanced run's inflated W1 effectively had). 0/absent = off")
+    ap.add_argument("--balance-dirlr-decay", type=float, default=None, help="multiply the directional step eta by this factor every outer iteration (eta_it = eta * decay^(it-1)). E.g. --balance-dirlr 0.03 --balance-dirlr-decay 0.85: 3%%/step at it 1 (what rownorm converged L1 under) down to 0.3%% by it 15. Default 1 (constant)")
+    ap.add_argument("--balance-dirlr-head", type=int, default=None, help="1: apply the directional-lr rule to the head as well (run dirlr2 behaviour: head norm ran away 336->2071 because lr ~ norm). Default 0: head keeps the base lr")
+    ap.add_argument("--balance-refresh", type=int, default=None, help="rownorm: every N outer iterations re-canonicalise the pinned norms once (function-preserving, head compensated) and re-freeze, undoing the depth-wise pre-activation decay (L5 0.75 -> 0.03) and the head growth. 1 = every iteration; absent/0 = off")
+    ap.add_argument("--balance-rownorm", type=float, default=None, help="rownorm mode: fix every hidden (row,bias) norm to this value (e.g. 20). Adam steps are absolute, so this IS the directional step size: rel. change per step ~ lr*sqrt(fan_in)/norm. Default: derive norms from --balance-target")
+    ap.add_argument("--balance-target", type=float, default=None, help="layer mode: the fixed pre-activation RMS every hidden layer is set to (default 1.0). 0 = drifting geometric mean: UNSAFE, the scale runs away")
+    ap.add_argument("--balance", type=int, default=None, help="leaky-ReLU only: every N epochs rebalance each hidden unit's incoming vs outgoing weight norm (exact gauge move, Adam state transformed). Stops the W1 scale drift that trains deep layers at an inflated effective lr. 1 = every epoch; 0/absent = off")
+    ap.add_argument("--warmstart", type=int, default=None, help="number of warm-start iterations with random Gaussian queries before the disagreement sampler starts (variant default 5; 0 disables)")
+    ap.add_argument("--no-stacked", action="store_true", help="disable the stacked (batched-matmul) training fast path; train members one by one as before")
+    ap.add_argument("--targetdeep", action="store_true", help="disagreement sampler compares every layer's activations (aligned, standardised) concatenated with the output")
+    ap.add_argument("--layer-consensus", action="store_true",
+                    help="print the isolated two-sided per-layer consensus (rows from below, cols from "
+                         "above, units paired by activation) every log point; no pinning.")
+    ap.add_argument("--reverse-force", action="store_true",
+                    help="reverse peel: force pins into members whose units match nowhere (default off)")
+    ap.add_argument("--align-inverse", action=argparse.BooleanOptionalAction, default=None,
+                    help="eps metric: activation-matched per-layer unit pairing "
+                         "(align.param_errors_actmatch) instead of the chained weight "
+                         "alignment. Default ON for --inverse runs; --no-align-inverse "
+                         "to force the chained metric there.")
+    ap.add_argument("--qg-steps", type=int, default=None,
+                    help="override the variant's query-optimization steps (0 = RANDOM queries, the passive-sampling control)")
     ap.add_argument("--qg-chunk", type=int, default=0,
                     help="chunk size for the query-generation member forward "
                          "(0=full batch). Set e.g. 8192 so wide --expand students "
@@ -548,6 +672,10 @@ def main():
                          "iters to recon/_pop__VARIANT__ARCH__sSEED.pt "
                          "(atomic overwrite; crash recovery + mid-run "
                          "inspection). 0 disables.")
+    ap.add_argument("--log-every", type=int, default=None,
+                    help="log / consensus-check interval in outer iterations (default 5; "
+                         "--verbose = 1). Applies to the per-layer eps lines, the forward "
+                         "peel checks, the reverse-peel checks and the isolated consensus report.")
     ap.add_argument("--verbose", action="store_true",
                     help="print the per-iteration log block every iteration "
                          "(sets log_every=1) instead of every log_every iters.")
@@ -633,9 +761,9 @@ def main():
                          "+ shared, stragglers stay trainable) and keep training on "
                          "the reused queries, collapsing the search onto the deeper "
                          "layers. Cascades layer by layer.")
-    ap.add_argument("--freeze-thresh", type=float, default=0.9,
+    ap.add_argument("--freeze-thresh", type=float, default=1.0,
                     help="consensus ratio (n_cons/n_tot) at which --freeze-reinit "
-                         "freezes a hidden layer (default 0.9).")
+                         "freezes a hidden layer (default 1.0 = full consensus).")
     ap.add_argument("--freeze-precision", type=float, default=0.0,
                     help="with --freeze-reinit, only freeze a layer once its cons_max "
                          "<= this (0 = no precision gate; freeze on count alone).")
@@ -832,13 +960,14 @@ def main():
                          "and restart the lr/iter schedule. (No restart on the "
                          "last hidden layer -- its successor is the linear output, "
                          "solved by closed-form LSQ.)")
+    ap.add_argument("--normalized-peel", action="store_true",
+                    help="MLP: after a prefix freezes, train a whitened peeled tail and "
+                         "optimize bounded reachable disagreement queries; replaces --peel-direct.")
     ap.add_argument("--peel-direct", action="store_true",
-                    help="(MLP + --cheat --peel) once a prefix is exactly frozen, "
-                         "generate the disagreement queries in the NEXT layer's input "
-                         "space and map them back through the exact prefix inverse -- "
-                         "so the search directly targets the next layer (identical to "
-                         "querying the sub-net with the prefix removed), instead of "
-                         "training through the frozen prefix in the raw input space.")
+                    help="(leaky-ReLU MLP peel) optimize disagreement in local reachable "
+                         "hidden-input charts after a prefix freezes. Students skip the "
+                         "prefix; bounded raw teacher queries realize the hidden inputs. "
+                         "Charts change each round; this is not arbitrary global tail access.")
     ap.add_argument("--restart-stuck", action="store_true",
                     help="(MLP + --cheat --partial) also peel-restart when the "
                          "frontier CAN'T be fully solved: fires on stagnation "
@@ -956,6 +1085,22 @@ def main():
                          "is untouched (fp32). MLP peel only.")
     ap.add_argument("--tag", default="")
     args = ap.parse_args()
+    if args.cheat_peel:
+        if args.conv or args.teacher_full:
+            ap.error('--cheat-peel is MLP-only and replaces --teacher-full')
+        full = args.arch.split(',')
+        if not 1 <= args.cheat_peel < len(full)-1:
+            ap.error('--cheat-peel N must leave at least one weight layer')
+        args.teacher_full = args.arch
+        args.teacher_drop = args.cheat_peel
+        args.arch = ','.join(full[args.cheat_peel:])
+        args.tag = (args.tag + f'_cheatpeel{args.cheat_peel}').lstrip('_')
+        print(f"[cheat-peel] DIAGNOSTIC: direct teacher tail after removing {args.cheat_peel} "
+              "layer(s) from the start; this is privileged access, not simulated peeling", flush=True)
+
+    if args.normalized_peel:
+        if args.conv or args.sigmoid or args.tanh or args.hard or args.peel_direct:
+            ap.error('--normalized-peel requires a leaky-ReLU MLP; omit --peel-direct')
     if args.sigmoid and args.tanh:
         ap.error("--sigmoid and --tanh are mutually exclusive")
     if args.tanhsolver:
@@ -1034,6 +1179,64 @@ def main():
         overrides["expand"] = args.expand
     if args.qg_chunk:
         overrides["qg_chunk"] = args.qg_chunk
+    if args.qg_steps is not None:
+        overrides["qg_steps"] = args.qg_steps
+    if args.inverse:
+        overrides["inverse"] = True
+        for k in ("inv_lam", "inv_inner", "inv_lr", "inv_radius", "inv_agg",
+                  "inv_reach_w", "inv_y_noise", "inv_step_max"):
+            v = getattr(args, k)
+            if v is not None:
+                overrides[k] = v
+        print("[inverse] query generation = inverse disagreement (targets y optimized, "
+              "teacher queried at each member's inverse x_i(y; x0))", flush=True)
+    if args.reverse_peel:
+        overrides["reverse_peel"] = True
+        if args.reverse_eps is not None: overrides["reverse_eps"] = args.reverse_eps
+        if args.reverse_thresh is not None: overrides["reverse_thresh"] = args.reverse_thresh
+        if args.reverse_force: overrides["reverse_force"] = True
+        print("[reverse-peel] head-first peel: head consensus (column frame) -> exact kink-jump refine "
+              "-> pin; then consensus-pin downwards", flush=True)
+    if args.layer_consensus:
+        overrides["layer_consensus"] = True
+    if args.resume_pop:
+        overrides["resume_pop"] = args.resume_pop
+        overrides["warmstart_iters"] = 0
+        overrides["target_mode"] = args.target_mode
+        overrides["target_lam"] = args.target_lam
+        overrides["target_frac"] = args.target_frac
+        overrides["target_act_w"] = args.target_act_w
+        overrides["target_reinit"] = args.target_reinit
+        overrides["target_consensus"] = args.target_consensus
+        overrides["target_value"] = args.target_value
+        overrides["target_units"] = args.target_units
+    if args.targetdeep:
+        overrides["targetdeep"] = True
+    if args.balance is not None:
+        overrides["balance"] = args.balance
+    if args.balance_mode is not None:
+        overrides["balance_mode"] = args.balance_mode
+    if args.balance_target is not None:
+        overrides["balance_target"] = args.balance_target
+    if args.balance_rownorm is not None:
+        overrides["balance_rownorm"] = args.balance_rownorm
+    if args.balance_dirlr is not None:
+        overrides["balance_dirlr"] = args.balance_dirlr
+    if args.balance_dirlr_decay is not None:
+        overrides["balance_dirlr_decay"] = args.balance_dirlr_decay
+    if args.balance_dirlr_head is not None:
+        overrides["balance_dirlr_head"] = bool(args.balance_dirlr_head)
+    if args.balance_refresh is not None:
+        overrides["balance_refresh"] = args.balance_refresh
+    if args.no_stacked:
+        overrides["stacked"] = False
+    if args.warmstart is not None:
+        overrides["warmstart_iters"] = args.warmstart
+    _ai = (args.inverse or args.reverse_peel) if args.align_inverse is None else args.align_inverse
+    if _ai:
+        overrides["align_inverse"] = True
+        print("[align-inverse] eps metric = activation-matched per-layer pairing "
+              "(param_errors_actmatch)", flush=True)
     elif args.expand != 1.0:
         overrides["qg_chunk"] = 8192   # auto: wide students OOM the full-batch
         print("[expand] auto --qg-chunk 8192 (query-gen would OOM at full batch; "
@@ -1085,6 +1288,9 @@ def main():
         overrides["f64"] = True
         print("[peel] --design-refine: information-directed sampling for every hidden layer; "
               "fp64 frozen prefix enabled", flush=True)
+    if args.normalized_peel:
+        overrides["normalized_peel"] = True
+        print("[peel] --normalized-peel: whitened tail Adam + bounded reachable query search after prefix freeze",flush=True)
     if args.peel_direct:
         overrides["peel_seal"] = True
     if args.restart_stuck:
@@ -1135,6 +1341,8 @@ def main():
         overrides["stop_layer"] = 0        # outermost hidden layer
     if args.verbose:
         overrides["log_every"] = 1        # print the per-iteration block every iter
+    if args.log_every is not None:
+        overrides["log_every"] = args.log_every
     if args.hard:
         overrides["hard"] = True
     if args.cheat:

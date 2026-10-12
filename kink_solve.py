@@ -29,6 +29,7 @@ Measured (7-layer 200-wide teacher, layer 1, 200 neurons): 200/200 in ~10s,
 """
 import torch
 import torch.nn.functional as F
+from threadpoolctl import threadpool_limits
 
 
 def _phi(net, X, l):
@@ -142,6 +143,20 @@ def _as_model(guess, l):
     return MLPUnits(guess, l)
 
 
+def _sampling_rows(model, units):
+    """Use unit augmented CNN normals for relative-error sampling radii.
+
+    Positive row scaling leaves the surface invariant. Both seeding and tracking
+    divide their relative uncertainty by |grad g|, so g must use a fixed gauge.
+    Keep the model/returned rows untouched and retain legacy MLP behavior.
+    """
+    w, b = model.rows(units)
+    if isinstance(model, ConvNetUnits):
+        norm = (w.square().sum(dim=-1) + b.square()).sqrt().clamp_min(1e-30)
+        return w / norm.unsqueeze(-1), b / norm
+    return w, b
+
+
 def _gval(guess, X, l, wg, bg, jidx=None):
     """wg.feat(X)+bg; wg may be one row (Din,) or one row per X row (n, Din)."""
     M = _as_model(guess, l)
@@ -171,7 +186,7 @@ def seed_brackets(guess, l, j, n_seed, gen, eps=0.02, margin=3.0, x_scale=1.0, i
     jidx = j if multi else None
     if multi:
         n_seed = len(j)
-    wg, bg = M.rows(j)
+    wg, bg = _sampling_rows(M, j)
     X = x_scale * torch.randn(n_seed, d, device=dev, dtype=torch.float64, generator=gen)
     for _ in range(8):                                     # Newton on piecewise-linear g
         g, n = _g_and_normal(M, X, l, wg, bg, jidx)
@@ -384,6 +399,55 @@ def solve_from_points(H, w_guess, gen=None, rounds=8, drop=0.02):
     if torch.dot(w, w_guess) < 0:
         w, b = -w, -b
     return w.to(dev0), b.to(dev0), int(keep.sum()), (S[-1] / S[-2]).item()
+
+
+def _cnn_fit_split(H):
+    """Reserve interleaved points before fitting; never select by fit residual."""
+    count = min(32, max(8, len(H) // 10))
+    hold = torch.zeros(len(H), dtype=torch.bool, device=H.device)
+    hold[torch.linspace(0, len(H) - 1, count, device=H.device).long()] = True
+    return H[~hold], H[hold]
+
+
+def _cnn_solve_points(H, w_guess, gen=None):
+    if len(H) < H.shape[1] + 16:
+        return None
+    train, _ = _cnn_fit_split(H)
+    if len(train) < H.shape[1] + 8 or not bool(torch.isfinite(H).all()):
+        return None
+    try:
+        w, b, _, _ = solve_from_points(train, w_guess, gen=gen)
+    except torch.linalg.LinAlgError:
+        return None
+    return w, b, H
+
+
+def _cnn_fit_quality(H, w, b):
+    """Observable numerical checks, not a certificate for an approximate prefix."""
+    import math
+    train, valid = _cnn_fit_split(H)
+    stats = dict(gap=float('inf'), uncertainty=float('inf'), validation=0.0)
+    if not bool(torch.isfinite(H).all() and torch.isfinite(w).all() and torch.isfinite(b)):
+        return False, stats
+    r = (train @ w + b).abs()
+    threshold = max(100 * r.median().item(), 1e-12)
+    keep = r <= threshold
+    stats['validation'] = float(((valid @ w + b).abs() <= threshold).double().mean())
+    if int(keep.sum()) < H.shape[1] + 8:
+        return False, stats
+    A = torch.cat((train[keep], torch.ones_like(train[keep, :1])), 1).cpu()
+    try:
+        sv = torch.linalg.svdvals(A)
+    except torch.linalg.LinAlgError:
+        return False, stats
+    eps = torch.finfo(H.dtype).eps
+    if not bool(torch.isfinite(sv).all()) or sv[-2] <= 32 * eps * max(A.shape) * sv[0]:
+        return False, stats  # multiple null directions: weights are not identifiable
+    stats['gap'] = float(sv[-1] / sv[-2])
+    stats['uncertainty'] = ((r[keep].median().item() + eps * train.norm(dim=1).median().item())
+                            * math.sqrt(int(keep.sum())) / sv[-2].item())
+    return (stats['validation'] >= .9 and stats['gap'] <= 1e-5
+            and stats['uncertainty'] <= 1e-7), stats
 
 
 @torch.no_grad()
@@ -651,8 +715,13 @@ def polish_layer(oracle, guess, l, channels, gen, eps0=1e-5, need=None,
         if got[c] < Din + 8:
             continue
         H = torch.cat(Hs[c])
-        w, b, kept, gap = solve_from_points(H, M.W[c], gen=gen)
-        out[c] = (w, b, H)
+        if isinstance(M, ConvNetUnits):
+            fit = _cnn_solve_points(H, M.W[c], gen=gen)
+            if fit is not None:
+                out[c] = fit
+        else:
+            w, b, kept, gap = solve_from_points(H, M.W[c], gen=gen)
+            out[c] = (w, b, H)
     return out
 
 
@@ -734,7 +803,7 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
         act = act.repeat_interleave(par)                    # `par` walks per channel per step
         r = (torch.rand(len(act), device=dev, generator=gen) * got[act]).long()
         X = P[act, r]; u = PU[act, r]
-        wg, bg = M.rows(u)
+        wg, bg = _sampling_rows(M, u)
         g0, n0 = _g_and_normal(M, X, l, wg, bg, u)          # model offset at a TRUE kink point
         nh = n0 / n0.norm(dim=1, keepdim=True).clamp_min(1e-30)
         V = torch.randn(X.shape, device=dev, dtype=X.dtype, generator=gen)
@@ -768,6 +837,7 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
     return out
 
 
+@threadpool_limits.wrap(limits=1)
 def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                   angle_gate=12.0, polish=True, fallback=True, verbose=True,
                   n_workers=None, direct=True, sampling="design", cnn_retry=True, **_ignored):
@@ -783,7 +853,10 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
       round for anchor kinks, then surface tracking (8 queries/point), then the
       trimmed null-vector solve. Forward-only; no prefix inversion anywhere.
     CNN tracking failures retry with independent multiscale scan/fingerprint
-    points; cnn_retry=False disables this retry for diagnostics.
+    points; cnn_retry=False disables this retry for diagnostics. CNN fits reserve
+    held-out points and require a unique, well-conditioned normal, a consistent
+    validation set and closest-guess channel identity. These are heuristic checks,
+    not a parameter-error certificate when the supplied prefix is approximate.
     direct=False: legacy two-stage path (seal refiner -> polish), MLP only.
     Returns (W_ref, b_ref, refined_mask, n_oracle_queries); W_ref has the
     layer's weight shape, refined rows are unit [w|b]."""
@@ -860,6 +933,8 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
               f"{nq1} q, {time.time() - t0:.1f}s", flush=True)
     _set_rows(W_ref, b_ref)
 
+    gate_stats = {}
+
     def _gate(c, w, b, H, ref_w, ref_b, max_deg):
         A = torch.cat([H, torch.ones(len(H), 1, device=device, dtype=H.dtype)], 1)
         res = (A[:, :Din] @ w + b).abs()
@@ -873,11 +948,20 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         # 1e-8 prefix) or a wrong lock (points from several kinks: residual >=1e-4,
         # inliers a fraction of the points). The angle gate alone let a 3e-2-wrong
         # row through when the consensus guess was 1e-1 off.
-        # angle: a guess inside the solver's basin (<= ~2e-2 relative) is within ~1.2deg
-        # of the true row, so a solve further than a few degrees away is a wrong lock
-        # on a look-alike unit (trained conv3 filters resemble each other; the 12deg
-        # peel gate let a 1.25e-1-wrong row through). Cap the gate at 4deg.
-        ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= min(max_deg, 4.0) and rmed <= 1e-5)
+        effective_angle = max_deg if is_conv else min(max_deg, 4.0)
+        ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= effective_angle and rmed <= 1e-5)
+        if is_conv:
+            quality, stats = _cnn_fit_quality(H, w, b)
+            # Only requested rows carry fresh candidate guesses. Other rows in
+            # a persistent partial record may be stale guesses and must not veto
+            # a recovered surface. The production peel separately deduplicates
+            # recovered rows against its bank of already-solved filters.
+            guesses = torch.cat((Wl[todo], bl[todo, None]), 1)
+            guesses = guesses / guesses.norm(dim=1, keepdim=True).clamp_min(1e-30)
+            nearest = todo[int((guesses @ v).abs().argmax())]
+            stats['nearest'] = nearest
+            ok = ok and quality and nearest == c
+            gate_stats[c] = stats
         return ok, v, n_in, ang, rmed
 
     n2 = 0
@@ -925,13 +1009,18 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                 # tracking step: 0.5 for MLP layers (validated); conv inputs are larger
                 # (|x| ~ sqrt(d)) and patch features decorrelate only over bigger
                 # moves, so step ~0.3 sqrt(d) (10x better conditioning at conv3)
-                Hs = track_layer(orc, M, frontier, anchors, gen, need=Din + 40,
+                Hs = track_layer(orc, M, frontier, anchors, gen, need=Din + (80 if is_conv else 40),
                                  verbose=verbose > 1,
                                  step=0.15 * (M.d ** 0.5) if is_conv else 0.5)
                 out = {}
                 for c, H in Hs.items():
-                    w, b, kept, gap = solve_from_points(H, Wl[c], gen=gen)
-                    out[c] = (w, b, H)
+                    if is_conv:
+                        fit = _cnn_solve_points(H, Wl[c], gen=gen)
+                        if fit is not None:
+                            out[c] = fit
+                    else:
+                        w, b, kept, gap = solve_from_points(H, Wl[c], gen=gen)
+                        out[c] = (w, b, H)
             else:
                 out = polish_layer(orc, M, frontier, rest, gen, eps0=0.02, full=True,
                                    verbose=verbose > 1)
@@ -963,9 +1052,14 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                     W_ref[c] = v[:-1]; b_ref[c] = v[-1]; refined[c] = True; nf += 1
                 elif verbose:
                     print(f"    [kink] c={c}: fallback reject inliers {n_in}/{len(H)} "
-                          f"angle {ang:.2f}/{angle_gate:.2f}deg "
+                          f"angle {ang:.2f}/{(angle_gate if is_conv else min(angle_gate, 4.0)):.2f}deg "
                           f"res_med {rmed:.2e}/1.00e-05 (need >= {Din + 8} inliers and 80%)",
                           flush=True)
+                    if c in gate_stats:
+                        st = gate_stats[c]
+                        print(f"    [kink] c={c}: validation {st['validation']:.2f}/0.90 "
+                              f"gap {st['gap']:.2e}/1e-5 uncertainty {st['uncertainty']:.2e}/1e-7 "
+                              f"nearest_active_guess {st['nearest']} (target {c})", flush=True)
             if verbose:
                 print(f"    [kink] {'direct' if direct else 'fallback'} (batched scan+fingerprint): {nf}/{len(rest)} solved, "
                       f"{orc.n - q0} q, {time.time() - t2:.1f}s", flush=True)

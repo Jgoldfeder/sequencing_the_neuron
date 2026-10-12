@@ -1,0 +1,4411 @@
+{
+  "requested": 39,
+  "accepted": 39,
+  "queries": 3878834,
+  "seconds": 53.73488335683942,
+  "max_error": 7.631689438389322e-10,
+  "failed": [],
+  "diagnostics": {
+    "0": {
+      "points": 440,
+      "round_budget": 40,
+      "cond": 903.3151057403626,
+      "gap": 1.0604757264237724e-10,
+      "uncertainty": 7.986269321925166e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.4166992152195874e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 132,
+          "straddle": 132,
+          "good": 29
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 118,
+          "straddle": 118,
+          "good": 35
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 120,
+          "straddle": 122,
+          "good": 31
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 129,
+          "straddle": 129,
+          "good": 25
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 123,
+          "straddle": 124,
+          "good": 22
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 115,
+          "straddle": 115,
+          "good": 33
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 119,
+          "straddle": 121,
+          "good": 27
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 111,
+          "straddle": 111,
+          "good": 26
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 46,
+          "single": 150,
+          "straddle": 150,
+          "good": 46
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 56,
+          "single": 158,
+          "straddle": 159,
+          "good": 56
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 51,
+          "single": 132,
+          "straddle": 133,
+          "good": 51
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 59,
+          "single": 142,
+          "straddle": 143,
+          "good": 59
+        }
+      ]
+    },
+    "2": {
+      "points": 437,
+      "round_budget": 40,
+      "cond": 851.0320870610223,
+      "gap": 1.1552969262854888e-10,
+      "uncertainty": 8.425378412097465e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.7321582185400465e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 134,
+          "straddle": 134,
+          "good": 29
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 48,
+          "single": 130,
+          "straddle": 130,
+          "good": 48
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 123,
+          "straddle": 124,
+          "good": 37
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 128,
+          "straddle": 128,
+          "good": 44
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 116,
+          "straddle": 116,
+          "good": 41
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 135,
+          "straddle": 135,
+          "good": 42
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 126,
+          "straddle": 127,
+          "good": 35
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 116,
+          "straddle": 116,
+          "good": 41
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 65,
+          "single": 142,
+          "straddle": 142,
+          "good": 65
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 153,
+          "straddle": 153,
+          "good": 55
+        }
+      ]
+    },
+    "4": {
+      "points": 412,
+      "round_budget": 40,
+      "cond": 1026.8565973582313,
+      "gap": 1.3962208372580229e-10,
+      "uncertainty": 9.766185167714873e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.6151336373253795e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 40,
+          "single": 109,
+          "straddle": 109,
+          "good": 40
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 125,
+          "straddle": 125,
+          "good": 35
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 43,
+          "single": 114,
+          "straddle": 114,
+          "good": 43
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 124,
+          "straddle": 124,
+          "good": 36
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 127,
+          "straddle": 127,
+          "good": 35
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 130,
+          "straddle": 131,
+          "good": 32
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 118,
+          "straddle": 118,
+          "good": 37
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 130,
+          "straddle": 130,
+          "good": 41
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 135,
+          "straddle": 135,
+          "good": 58
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 136,
+          "straddle": 137,
+          "good": 55
+        }
+      ]
+    },
+    "18": {
+      "points": 428,
+      "round_budget": 40,
+      "cond": 887.1699694555532,
+      "gap": 1.2118298711673792e-10,
+      "uncertainty": 8.698186872549363e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.751309159139016e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 112,
+          "straddle": 112,
+          "good": 30
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 111,
+          "straddle": 111,
+          "good": 22
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 128,
+          "straddle": 128,
+          "good": 38
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 98,
+          "straddle": 98,
+          "good": 38
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 109,
+          "straddle": 110,
+          "good": 28
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 104,
+          "straddle": 105,
+          "good": 37
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 111,
+          "straddle": 111,
+          "good": 38
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 111,
+          "straddle": 112,
+          "good": 28
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 132,
+          "straddle": 132,
+          "good": 53
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 144,
+          "straddle": 145,
+          "good": 53
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 133,
+          "straddle": 133,
+          "good": 63
+        }
+      ]
+    },
+    "22": {
+      "points": 431,
+      "round_budget": 40,
+      "cond": 884.0420738201826,
+      "gap": 8.640346856959036e-11,
+      "uncertainty": 6.753748085675196e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.911528169165928e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 107,
+          "straddle": 107,
+          "good": 36
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 105,
+          "straddle": 105,
+          "good": 35
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 106,
+          "straddle": 106,
+          "good": 26
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 115,
+          "straddle": 115,
+          "good": 25
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 96,
+          "straddle": 96,
+          "good": 25
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 112,
+          "straddle": 112,
+          "good": 24
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 122,
+          "straddle": 122,
+          "good": 31
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 115,
+          "straddle": 115,
+          "good": 24
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 138,
+          "straddle": 138,
+          "good": 58
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 51,
+          "single": 128,
+          "straddle": 128,
+          "good": 51
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 134,
+          "straddle": 137,
+          "good": 45
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 51,
+          "single": 124,
+          "straddle": 124,
+          "good": 51
+        }
+      ]
+    },
+    "27": {
+      "points": 436,
+      "round_budget": 40,
+      "cond": 978.848218745695,
+      "gap": 1.1907693255131818e-10,
+      "uncertainty": 8.927364607579009e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.504906000845187e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 133,
+          "straddle": 133,
+          "good": 30
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 113,
+          "straddle": 113,
+          "good": 29
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 114,
+          "straddle": 115,
+          "good": 44
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 107,
+          "straddle": 107,
+          "good": 26
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 112,
+          "straddle": 112,
+          "good": 27
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 112,
+          "straddle": 112,
+          "good": 35
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 97,
+          "straddle": 97,
+          "good": 27
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 109,
+          "straddle": 109,
+          "good": 19
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 131,
+          "straddle": 131,
+          "good": 45
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 136,
+          "straddle": 136,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 125,
+          "straddle": 125,
+          "good": 48
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 56,
+          "single": 138,
+          "straddle": 138,
+          "good": 56
+        }
+      ]
+    },
+    "34": {
+      "points": 430,
+      "round_budget": 40,
+      "cond": 958.259092229645,
+      "gap": 1.238634547135918e-10,
+      "uncertainty": 8.964788252049058e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.582327143258901e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 118,
+          "straddle": 118,
+          "good": 42
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 120,
+          "straddle": 120,
+          "good": 34
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 111,
+          "straddle": 111,
+          "good": 35
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 119,
+          "straddle": 120,
+          "good": 31
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 141,
+          "straddle": 141,
+          "good": 34
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 130,
+          "straddle": 132,
+          "good": 29
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 123,
+          "straddle": 123,
+          "good": 25
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 131,
+          "straddle": 131,
+          "good": 31
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 148,
+          "straddle": 148,
+          "good": 57
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 150,
+          "straddle": 150,
+          "good": 55
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 131,
+          "straddle": 132,
+          "good": 57
+        }
+      ]
+    },
+    "35": {
+      "points": 427,
+      "round_budget": 40,
+      "cond": 1006.2963974489322,
+      "gap": 8.124160896471169e-11,
+      "uncertainty": 6.92542671898142e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.6000756452385088e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 116,
+          "straddle": 117,
+          "good": 28
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 102,
+          "straddle": 102,
+          "good": 34
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 112,
+          "straddle": 112,
+          "good": 32
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 128,
+          "straddle": 128,
+          "good": 34
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 113,
+          "straddle": 115,
+          "good": 35
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 125,
+          "straddle": 125,
+          "good": 33
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 112,
+          "straddle": 112,
+          "good": 37
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 131,
+          "straddle": 134,
+          "good": 37
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 44,
+          "single": 145,
+          "straddle": 145,
+          "good": 44
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 153,
+          "straddle": 155,
+          "good": 55
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 139,
+          "straddle": 139,
+          "good": 58
+        }
+      ]
+    },
+    "37": {
+      "points": 438,
+      "round_budget": 40,
+      "cond": 1082.1891392625137,
+      "gap": 8.927811488700424e-11,
+      "uncertainty": 6.63676256634949e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.514257899099981e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 20,
+          "single": 102,
+          "straddle": 102,
+          "good": 20
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 103,
+          "straddle": 103,
+          "good": 21
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 83,
+          "straddle": 83,
+          "good": 23
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 104,
+          "straddle": 105,
+          "good": 30
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 95,
+          "straddle": 95,
+          "good": 19
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 97,
+          "straddle": 97,
+          "good": 23
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 110,
+          "straddle": 110,
+          "good": 32
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 20,
+          "single": 97,
+          "straddle": 97,
+          "good": 20
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 137,
+          "straddle": 137,
+          "good": 52
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 128,
+          "straddle": 128,
+          "good": 52
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 120,
+          "straddle": 120,
+          "good": 57
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 43,
+          "single": 125,
+          "straddle": 127,
+          "good": 43
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 46,
+          "single": 128,
+          "straddle": 128,
+          "good": 46
+        }
+      ]
+    },
+    "50": {
+      "points": 437,
+      "round_budget": 40,
+      "cond": 892.8984907167652,
+      "gap": 1.386031907840114e-10,
+      "uncertainty": 1.0683683396667188e-10,
+      "validation_fraction": 1.0,
+      "residual": 4.68190763935894e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 47,
+          "single": 137,
+          "straddle": 138,
+          "good": 47
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 50,
+          "single": 127,
+          "straddle": 128,
+          "good": 50
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 50,
+          "single": 115,
+          "straddle": 115,
+          "good": 50
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 129,
+          "straddle": 129,
+          "good": 44
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 132,
+          "straddle": 133,
+          "good": 37
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 124,
+          "straddle": 125,
+          "good": 42
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 54,
+          "single": 124,
+          "straddle": 124,
+          "good": 54
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 48,
+          "single": 120,
+          "straddle": 120,
+          "good": 48
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 65,
+          "single": 143,
+          "straddle": 145,
+          "good": 65
+        }
+      ]
+    },
+    "58": {
+      "points": 416,
+      "round_budget": 40,
+      "cond": 989.8816016772055,
+      "gap": 9.444982456229012e-11,
+      "uncertainty": 7.201016130125838e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.7568416350627753e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 114,
+          "straddle": 114,
+          "good": 38
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 105,
+          "straddle": 106,
+          "good": 24
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 119,
+          "straddle": 119,
+          "good": 41
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 102,
+          "straddle": 102,
+          "good": 34
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 104,
+          "straddle": 104,
+          "good": 32
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 119,
+          "straddle": 120,
+          "good": 34
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 105,
+          "straddle": 106,
+          "good": 26
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 118,
+          "straddle": 118,
+          "good": 37
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 127,
+          "straddle": 127,
+          "good": 57
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 146,
+          "straddle": 146,
+          "good": 48
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 157,
+          "straddle": 157,
+          "good": 45
+        }
+      ]
+    },
+    "64": {
+      "points": 453,
+      "round_budget": 40,
+      "cond": 950.4176238742021,
+      "gap": 1.2135215326320592e-10,
+      "uncertainty": 9.462728503614053e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.9181676566441e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 153,
+          "straddle": 153,
+          "good": 37
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 52,
+          "single": 132,
+          "straddle": 132,
+          "good": 52
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 145,
+          "straddle": 145,
+          "good": 37
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 45,
+          "single": 140,
+          "straddle": 141,
+          "good": 45
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 135,
+          "straddle": 136,
+          "good": 38
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 126,
+          "straddle": 126,
+          "good": 35
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 43,
+          "single": 128,
+          "straddle": 128,
+          "good": 43
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 134,
+          "straddle": 135,
+          "good": 41
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 62,
+          "single": 142,
+          "straddle": 142,
+          "good": 62
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 141,
+          "straddle": 143,
+          "good": 63
+        }
+      ]
+    },
+    "67": {
+      "points": 406,
+      "round_budget": 40,
+      "cond": 939.0358715958833,
+      "gap": 5.279799848166404e-11,
+      "uncertainty": 3.194869251908683e-11,
+      "validation_fraction": 1.0,
+      "residual": 1.315283385677768e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 109,
+          "straddle": 110,
+          "good": 24
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 117,
+          "straddle": 117,
+          "good": 26
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 118,
+          "straddle": 118,
+          "good": 28
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 103,
+          "straddle": 103,
+          "good": 26
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 99,
+          "straddle": 99,
+          "good": 29
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 116,
+          "straddle": 117,
+          "good": 21
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 94,
+          "straddle": 96,
+          "good": 24
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 95,
+          "straddle": 96,
+          "good": 26
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 150,
+          "straddle": 150,
+          "good": 53
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 46,
+          "single": 138,
+          "straddle": 139,
+          "good": 46
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 148,
+          "straddle": 148,
+          "good": 50
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 137,
+          "straddle": 137,
+          "good": 53
+        }
+      ]
+    },
+    "69": {
+      "points": 415,
+      "round_budget": 40,
+      "cond": 979.5014760788417,
+      "gap": 8.454376827723295e-11,
+      "uncertainty": 6.333427252336675e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.504116055138117e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 124,
+          "straddle": 125,
+          "good": 26
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 112,
+          "straddle": 114,
+          "good": 32
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 127,
+          "straddle": 128,
+          "good": 29
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 120,
+          "straddle": 121,
+          "good": 34
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 122,
+          "straddle": 123,
+          "good": 33
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 120,
+          "straddle": 121,
+          "good": 34
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 112,
+          "straddle": 113,
+          "good": 34
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 110,
+          "straddle": 111,
+          "good": 36
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 139,
+          "straddle": 140,
+          "good": 50
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 136,
+          "straddle": 137,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 131,
+          "straddle": 133,
+          "good": 57
+        }
+      ]
+    },
+    "71": {
+      "points": 456,
+      "round_budget": 40,
+      "cond": 962.5572974672218,
+      "gap": 1.224986865161868e-10,
+      "uncertainty": 9.579792346200263e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.801824957280764e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 127,
+          "straddle": 128,
+          "good": 32
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 131,
+          "straddle": 132,
+          "good": 38
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 136,
+          "straddle": 137,
+          "good": 36
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 49,
+          "single": 136,
+          "straddle": 136,
+          "good": 49
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 125,
+          "straddle": 126,
+          "good": 42
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 132,
+          "straddle": 132,
+          "good": 44
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 40,
+          "single": 123,
+          "straddle": 124,
+          "good": 40
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 43,
+          "single": 140,
+          "straddle": 140,
+          "good": 43
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 69,
+          "single": 136,
+          "straddle": 136,
+          "good": 69
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 148,
+          "straddle": 148,
+          "good": 63
+        }
+      ]
+    },
+    "72": {
+      "points": 457,
+      "round_budget": 40,
+      "cond": 988.8678032845287,
+      "gap": 1.408655042741462e-10,
+      "uncertainty": 1.1176513504234406e-10,
+      "validation_fraction": 1.0,
+      "residual": 4.407449231969007e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 148,
+          "straddle": 150,
+          "good": 39
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 54,
+          "single": 142,
+          "straddle": 142,
+          "good": 54
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 46,
+          "single": 156,
+          "straddle": 158,
+          "good": 46
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 155,
+          "straddle": 155,
+          "good": 44
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 54,
+          "single": 140,
+          "straddle": 140,
+          "good": 54
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 57,
+          "single": 145,
+          "straddle": 145,
+          "good": 57
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 47,
+          "single": 146,
+          "straddle": 146,
+          "good": 47
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 47,
+          "single": 146,
+          "straddle": 146,
+          "good": 47
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 69,
+          "single": 164,
+          "straddle": 164,
+          "good": 69
+        }
+      ]
+    },
+    "79": {
+      "points": 402,
+      "round_budget": 40,
+      "cond": 928.4709027732939,
+      "gap": 6.173963593867275e-11,
+      "uncertainty": 4.075503873756325e-11,
+      "validation_fraction": 1.0,
+      "residual": 1.6247532833024714e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 88,
+          "straddle": 88,
+          "good": 25
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 97,
+          "straddle": 97,
+          "good": 21
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 18,
+          "single": 109,
+          "straddle": 109,
+          "good": 18
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 107,
+          "straddle": 108,
+          "good": 22
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 99,
+          "straddle": 100,
+          "good": 22
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 98,
+          "straddle": 98,
+          "good": 21
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 17,
+          "single": 91,
+          "straddle": 91,
+          "good": 17
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 81,
+          "straddle": 81,
+          "good": 22
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 134,
+          "straddle": 135,
+          "good": 50
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 120,
+          "straddle": 120,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 135,
+          "straddle": 135,
+          "good": 45
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 41,
+          "single": 129,
+          "straddle": 129,
+          "good": 41
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 126,
+          "straddle": 126,
+          "good": 48
+        }
+      ]
+    },
+    "81": {
+      "points": 444,
+      "round_budget": 40,
+      "cond": 999.7884000563697,
+      "gap": 1.2177775264811205e-10,
+      "uncertainty": 8.289516053946179e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.240675523069614e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 127,
+          "straddle": 128,
+          "good": 37
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 129,
+          "straddle": 129,
+          "good": 28
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 116,
+          "straddle": 116,
+          "good": 37
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 126,
+          "straddle": 127,
+          "good": 35
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 113,
+          "straddle": 113,
+          "good": 32
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 129,
+          "straddle": 129,
+          "good": 38
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 120,
+          "straddle": 120,
+          "good": 34
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 111,
+          "straddle": 112,
+          "good": 32
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 154,
+          "straddle": 154,
+          "good": 52
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 154,
+          "straddle": 155,
+          "good": 58
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 61,
+          "single": 145,
+          "straddle": 146,
+          "good": 61
+        }
+      ]
+    },
+    "82": {
+      "points": 400,
+      "round_budget": 40,
+      "cond": 1007.6480978164574,
+      "gap": 1.454430157115594e-10,
+      "uncertainty": 1.0956385095913047e-10,
+      "validation_fraction": 1.0,
+      "residual": 4.186799995239965e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 130,
+          "straddle": 130,
+          "good": 37
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 120,
+          "straddle": 120,
+          "good": 32
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 132,
+          "straddle": 132,
+          "good": 32
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 121,
+          "straddle": 121,
+          "good": 34
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 135,
+          "straddle": 135,
+          "good": 37
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 106,
+          "straddle": 108,
+          "good": 31
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 125,
+          "straddle": 125,
+          "good": 42
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 132,
+          "straddle": 133,
+          "good": 26
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 64,
+          "single": 148,
+          "straddle": 149,
+          "good": 64
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 65,
+          "single": 149,
+          "straddle": 149,
+          "good": 65
+        }
+      ]
+    },
+    "86": {
+      "points": 445,
+      "round_budget": 40,
+      "cond": 961.4672173910642,
+      "gap": 1.6881411554706475e-10,
+      "uncertainty": 1.260943795944157e-10,
+      "validation_fraction": 1.0,
+      "residual": 5.283048738063956e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 120,
+          "straddle": 121,
+          "good": 30
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 127,
+          "straddle": 127,
+          "good": 29
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 112,
+          "straddle": 112,
+          "good": 36
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 121,
+          "straddle": 122,
+          "good": 33
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 115,
+          "straddle": 116,
+          "good": 37
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 40,
+          "single": 111,
+          "straddle": 112,
+          "good": 40
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 124,
+          "straddle": 124,
+          "good": 33
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 122,
+          "straddle": 123,
+          "good": 28
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 152,
+          "straddle": 153,
+          "good": 58
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 62,
+          "single": 138,
+          "straddle": 138,
+          "good": 62
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 59,
+          "single": 122,
+          "straddle": 122,
+          "good": 59
+        }
+      ]
+    },
+    "89": {
+      "points": 447,
+      "round_budget": 40,
+      "cond": 837.944193532045,
+      "gap": 8.955243996968624e-11,
+      "uncertainty": 7.285132149895333e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.3313547233293495e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 45,
+          "single": 129,
+          "straddle": 129,
+          "good": 45
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 132,
+          "straddle": 133,
+          "good": 39
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 128,
+          "straddle": 128,
+          "good": 33
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 117,
+          "straddle": 118,
+          "good": 44
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 127,
+          "straddle": 127,
+          "good": 35
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 48,
+          "single": 129,
+          "straddle": 129,
+          "good": 48
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 128,
+          "straddle": 128,
+          "good": 41
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 134,
+          "straddle": 135,
+          "good": 38
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 61,
+          "single": 134,
+          "straddle": 135,
+          "good": 61
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 141,
+          "straddle": 141,
+          "good": 63
+        }
+      ]
+    },
+    "92": {
+      "points": 420,
+      "round_budget": 40,
+      "cond": 927.8412302108583,
+      "gap": 9.16714027920385e-11,
+      "uncertainty": 6.132718175949518e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.5704831058820377e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 125,
+          "straddle": 125,
+          "good": 39
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 118,
+          "straddle": 118,
+          "good": 42
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 143,
+          "straddle": 144,
+          "good": 25
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 45,
+          "single": 116,
+          "straddle": 116,
+          "good": 45
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 125,
+          "straddle": 126,
+          "good": 39
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 125,
+          "straddle": 126,
+          "good": 33
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 125,
+          "straddle": 126,
+          "good": 35
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 133,
+          "straddle": 135,
+          "good": 33
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 64,
+          "single": 146,
+          "straddle": 146,
+          "good": 64
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 65,
+          "single": 139,
+          "straddle": 140,
+          "good": 65
+        }
+      ]
+    },
+    "95": {
+      "points": 424,
+      "round_budget": 40,
+      "cond": 960.74818390265,
+      "gap": 9.368444736241022e-11,
+      "uncertainty": 6.999316693197876e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.754630724910445e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 148,
+          "straddle": 149,
+          "good": 30
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 130,
+          "straddle": 131,
+          "good": 37
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 135,
+          "straddle": 135,
+          "good": 38
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 44,
+          "single": 123,
+          "straddle": 123,
+          "good": 44
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 125,
+          "straddle": 127,
+          "good": 36
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 40,
+          "single": 125,
+          "straddle": 126,
+          "good": 40
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 40,
+          "single": 125,
+          "straddle": 126,
+          "good": 40
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 133,
+          "straddle": 135,
+          "good": 38
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 66,
+          "single": 149,
+          "straddle": 149,
+          "good": 66
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 143,
+          "straddle": 143,
+          "good": 55
+        }
+      ]
+    },
+    "100": {
+      "points": 412,
+      "round_budget": 40,
+      "cond": 945.6974081366167,
+      "gap": 5.1116391941432916e-11,
+      "uncertainty": 3.7635675407633375e-11,
+      "validation_fraction": 1.0,
+      "residual": 1.505365493717492e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 100,
+          "straddle": 101,
+          "good": 21
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 96,
+          "straddle": 97,
+          "good": 23
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 91,
+          "straddle": 91,
+          "good": 25
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 18,
+          "single": 104,
+          "straddle": 106,
+          "good": 18
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 86,
+          "straddle": 86,
+          "good": 23
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 90,
+          "straddle": 90,
+          "good": 21
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 17,
+          "single": 82,
+          "straddle": 82,
+          "good": 17
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 21,
+          "single": 86,
+          "straddle": 87,
+          "good": 21
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 46,
+          "single": 132,
+          "straddle": 132,
+          "good": 46
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 127,
+          "straddle": 127,
+          "good": 48
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 127,
+          "straddle": 129,
+          "good": 52
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 43,
+          "single": 134,
+          "straddle": 134,
+          "good": 43
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 54,
+          "single": 122,
+          "straddle": 122,
+          "good": 54
+        }
+      ]
+    },
+    "103": {
+      "points": 406,
+      "round_budget": 40,
+      "cond": 935.7493551381161,
+      "gap": 9.603972431010045e-11,
+      "uncertainty": 7.175495919979051e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.9886414523727645e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 121,
+          "straddle": 121,
+          "good": 30
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 121,
+          "straddle": 122,
+          "good": 26
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 121,
+          "straddle": 122,
+          "good": 35
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 103,
+          "straddle": 103,
+          "good": 25
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 122,
+          "straddle": 123,
+          "good": 28
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 118,
+          "straddle": 118,
+          "good": 33
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 126,
+          "straddle": 127,
+          "good": 26
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 105,
+          "straddle": 106,
+          "good": 33
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 60,
+          "single": 141,
+          "straddle": 142,
+          "good": 60
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 147,
+          "straddle": 147,
+          "good": 53
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 152,
+          "straddle": 152,
+          "good": 57
+        }
+      ]
+    },
+    "109": {
+      "points": 415,
+      "round_budget": 40,
+      "cond": 1027.9391820846963,
+      "gap": 8.168735518648042e-11,
+      "uncertainty": 5.8157489916100506e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.175797289192226e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 15,
+          "single": 99,
+          "straddle": 99,
+          "good": 15
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 115,
+          "straddle": 115,
+          "good": 25
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 96,
+          "straddle": 97,
+          "good": 23
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 12,
+          "single": 92,
+          "straddle": 92,
+          "good": 12
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 17,
+          "single": 89,
+          "straddle": 90,
+          "good": 17
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 99,
+          "straddle": 99,
+          "good": 24
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 93,
+          "straddle": 93,
+          "good": 32
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 97,
+          "straddle": 97,
+          "good": 26
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 126,
+          "straddle": 127,
+          "good": 53
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 123,
+          "straddle": 124,
+          "good": 45
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 152,
+          "straddle": 152,
+          "good": 50
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 44,
+          "single": 131,
+          "straddle": 131,
+          "good": 44
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 142,
+          "straddle": 142,
+          "good": 49
+        }
+      ]
+    },
+    "111": {
+      "points": 401,
+      "round_budget": 40,
+      "cond": 1079.372602580048,
+      "gap": 9.826634093356191e-11,
+      "uncertainty": 6.545840325898794e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.310838545798062e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 125,
+          "straddle": 125,
+          "good": 34
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 119,
+          "straddle": 119,
+          "good": 37
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 132,
+          "straddle": 133,
+          "good": 32
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 123,
+          "straddle": 123,
+          "good": 36
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 147,
+          "straddle": 147,
+          "good": 33
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 127,
+          "straddle": 128,
+          "good": 38
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 118,
+          "straddle": 119,
+          "good": 33
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 123,
+          "straddle": 123,
+          "good": 34
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 61,
+          "single": 139,
+          "straddle": 140,
+          "good": 61
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 140,
+          "straddle": 140,
+          "good": 63
+        }
+      ]
+    },
+    "115": {
+      "points": 410,
+      "round_budget": 40,
+      "cond": 1039.1176375907626,
+      "gap": 7.648484644406382e-11,
+      "uncertainty": 5.791878145160183e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.1411891357181467e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 111,
+          "straddle": 112,
+          "good": 34
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 112,
+          "straddle": 112,
+          "good": 24
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 109,
+          "straddle": 110,
+          "good": 31
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 111,
+          "straddle": 111,
+          "good": 31
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 115,
+          "straddle": 115,
+          "good": 32
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 106,
+          "straddle": 106,
+          "good": 33
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 102,
+          "straddle": 102,
+          "good": 31
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 102,
+          "straddle": 103,
+          "good": 30
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 138,
+          "straddle": 138,
+          "good": 49
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 134,
+          "straddle": 134,
+          "good": 55
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 60,
+          "single": 140,
+          "straddle": 140,
+          "good": 60
+        }
+      ]
+    },
+    "116": {
+      "points": 445,
+      "round_budget": 40,
+      "cond": 988.9728579741763,
+      "gap": 1.0128422202922311e-10,
+      "uncertainty": 7.551528361760726e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.0861875826172086e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 125,
+          "straddle": 127,
+          "good": 29
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 123,
+          "straddle": 123,
+          "good": 31
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 108,
+          "straddle": 109,
+          "good": 27
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 125,
+          "straddle": 125,
+          "good": 32
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 114,
+          "straddle": 114,
+          "good": 29
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 112,
+          "straddle": 112,
+          "good": 29
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 116,
+          "straddle": 117,
+          "good": 31
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 99,
+          "straddle": 100,
+          "good": 27
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 60,
+          "single": 134,
+          "straddle": 134,
+          "good": 60
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 133,
+          "straddle": 135,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 51,
+          "single": 143,
+          "straddle": 143,
+          "good": 51
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 144,
+          "straddle": 144,
+          "good": 49
+        }
+      ]
+    },
+    "120": {
+      "points": 434,
+      "round_budget": 40,
+      "cond": 962.1993976023651,
+      "gap": 1.2278131002107797e-10,
+      "uncertainty": 8.88624332134332e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.6140907974657743e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 105,
+          "straddle": 106,
+          "good": 28
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 110,
+          "straddle": 111,
+          "good": 22
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 113,
+          "straddle": 113,
+          "good": 27
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 116,
+          "straddle": 116,
+          "good": 27
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 113,
+          "straddle": 113,
+          "good": 32
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 110,
+          "straddle": 110,
+          "good": 31
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 116,
+          "straddle": 117,
+          "good": 28
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 117,
+          "straddle": 117,
+          "good": 35
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 137,
+          "straddle": 138,
+          "good": 57
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 144,
+          "straddle": 146,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 126,
+          "straddle": 127,
+          "good": 52
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 137,
+          "straddle": 137,
+          "good": 45
+        }
+      ]
+    },
+    "130": {
+      "points": 419,
+      "round_budget": 40,
+      "cond": 947.5966377556625,
+      "gap": 7.159918077348656e-11,
+      "uncertainty": 5.366137420154114e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.1259652024929743e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 16,
+          "single": 93,
+          "straddle": 95,
+          "good": 16
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 88,
+          "straddle": 89,
+          "good": 19
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 16,
+          "single": 89,
+          "straddle": 89,
+          "good": 16
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 76,
+          "straddle": 76,
+          "good": 19
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 22,
+          "single": 88,
+          "straddle": 88,
+          "good": 22
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 19,
+          "single": 91,
+          "straddle": 93,
+          "good": 19
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 15,
+          "single": 74,
+          "straddle": 75,
+          "good": 15
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 86,
+          "straddle": 86,
+          "good": 24
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 141,
+          "straddle": 142,
+          "good": 49
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 41,
+          "single": 136,
+          "straddle": 136,
+          "good": 41
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 41,
+          "single": 124,
+          "straddle": 125,
+          "good": 41
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 41,
+          "single": 147,
+          "straddle": 147,
+          "good": 41
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 118,
+          "straddle": 118,
+          "good": 50
+        },
+        {
+          "round": 13,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 47,
+          "single": 130,
+          "straddle": 130,
+          "good": 47
+        }
+      ]
+    },
+    "139": {
+      "points": 420,
+      "round_budget": 40,
+      "cond": 914.7475029071575,
+      "gap": 8.690928034681664e-11,
+      "uncertainty": 6.72086849565291e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.8510019865757297e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 120,
+          "straddle": 120,
+          "good": 26
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 120,
+          "straddle": 120,
+          "good": 30
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 115,
+          "straddle": 115,
+          "good": 25
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 119,
+          "straddle": 120,
+          "good": 27
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 116,
+          "straddle": 116,
+          "good": 30
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 27,
+          "single": 114,
+          "straddle": 116,
+          "good": 27
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 122,
+          "straddle": 123,
+          "good": 25
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 24,
+          "single": 104,
+          "straddle": 104,
+          "good": 24
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 51,
+          "single": 146,
+          "straddle": 146,
+          "good": 51
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 146,
+          "straddle": 146,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 56,
+          "single": 145,
+          "straddle": 145,
+          "good": 56
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 136,
+          "straddle": 137,
+          "good": 49
+        }
+      ]
+    },
+    "144": {
+      "points": 441,
+      "round_budget": 40,
+      "cond": 887.8398626895641,
+      "gap": 1.0848936767005426e-10,
+      "uncertainty": 8.15745738540671e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.5032458704786773e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 16,
+          "single": 86,
+          "straddle": 86,
+          "good": 16
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 20,
+          "single": 81,
+          "straddle": 81,
+          "good": 20
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 16,
+          "single": 89,
+          "straddle": 89,
+          "good": 16
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 16,
+          "single": 90,
+          "straddle": 91,
+          "good": 16
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 12,
+          "single": 90,
+          "straddle": 90,
+          "good": 12
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 91,
+          "straddle": 91,
+          "good": 23
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 17,
+          "single": 93,
+          "straddle": 93,
+          "good": 17
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 79,
+          "straddle": 79,
+          "good": 23
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 42,
+          "single": 130,
+          "straddle": 131,
+          "good": 42
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 49,
+          "single": 124,
+          "straddle": 126,
+          "good": 49
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 46,
+          "single": 121,
+          "straddle": 122,
+          "good": 46
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 36,
+          "single": 128,
+          "straddle": 129,
+          "good": 36
+        },
+        {
+          "round": 12,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 39,
+          "single": 129,
+          "straddle": 129,
+          "good": 39
+        },
+        {
+          "round": 13,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 41,
+          "single": 123,
+          "straddle": 123,
+          "good": 41
+        },
+        {
+          "round": 14,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 45,
+          "single": 116,
+          "straddle": 116,
+          "good": 45
+        }
+      ]
+    },
+    "168": {
+      "points": 441,
+      "round_budget": 40,
+      "cond": 953.0763215735757,
+      "gap": 1.6424605951784493e-10,
+      "uncertainty": 1.1490528738068821e-10,
+      "validation_fraction": 0.9841269841269841,
+      "residual": 4.787975083683088e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 102,
+          "straddle": 104,
+          "good": 33
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 98,
+          "straddle": 98,
+          "good": 30
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 111,
+          "straddle": 112,
+          "good": 31
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 119,
+          "straddle": 119,
+          "good": 32
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 23,
+          "single": 114,
+          "straddle": 115,
+          "good": 23
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 25,
+          "single": 113,
+          "straddle": 114,
+          "good": 25
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 31,
+          "single": 106,
+          "straddle": 106,
+          "good": 31
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 112,
+          "straddle": 112,
+          "good": 33
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 43,
+          "single": 143,
+          "straddle": 143,
+          "good": 43
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 55,
+          "single": 127,
+          "straddle": 127,
+          "good": 55
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 120,
+          "straddle": 120,
+          "good": 57
+        },
+        {
+          "round": 11,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 137,
+          "straddle": 137,
+          "good": 48
+        }
+      ]
+    },
+    "170": {
+      "points": 411,
+      "round_budget": 40,
+      "cond": 986.1431101292527,
+      "gap": 1.1579721167000591e-10,
+      "uncertainty": 9.505023983645735e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.687545928332536e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 128,
+          "straddle": 129,
+          "good": 39
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 127,
+          "straddle": 127,
+          "good": 42
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 46,
+          "single": 119,
+          "straddle": 120,
+          "good": 46
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 142,
+          "straddle": 143,
+          "good": 36
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 135,
+          "straddle": 136,
+          "good": 26
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 117,
+          "straddle": 117,
+          "good": 37
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 121,
+          "straddle": 121,
+          "good": 28
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 103,
+          "straddle": 104,
+          "good": 36
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 63,
+          "single": 137,
+          "straddle": 137,
+          "good": 63
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 149,
+          "straddle": 150,
+          "good": 58
+        }
+      ]
+    },
+    "175": {
+      "points": 431,
+      "round_budget": 40,
+      "cond": 971.5763370953957,
+      "gap": 1.6302784027458387e-10,
+      "uncertainty": 1.2064165962291965e-10,
+      "validation_fraction": 1.0,
+      "residual": 4.809219428941747e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 34,
+          "single": 129,
+          "straddle": 130,
+          "good": 34
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 42,
+          "single": 130,
+          "straddle": 131,
+          "good": 42
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 131,
+          "straddle": 131,
+          "good": 38
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 47,
+          "single": 124,
+          "straddle": 124,
+          "good": 47
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 130,
+          "straddle": 130,
+          "good": 39
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 41,
+          "single": 137,
+          "straddle": 138,
+          "good": 41
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 121,
+          "straddle": 121,
+          "good": 37
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 135,
+          "straddle": 136,
+          "good": 38
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 62,
+          "single": 144,
+          "straddle": 144,
+          "good": 62
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 53,
+          "single": 138,
+          "straddle": 138,
+          "good": 53
+        }
+      ]
+    },
+    "179": {
+      "points": 430,
+      "round_budget": 40,
+      "cond": 959.9697539309315,
+      "gap": 1.111950738197252e-10,
+      "uncertainty": 8.248383916913197e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.347719779341063e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 32,
+          "single": 128,
+          "straddle": 129,
+          "good": 32
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 116,
+          "straddle": 117,
+          "good": 36
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 105,
+          "straddle": 106,
+          "good": 26
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 121,
+          "straddle": 122,
+          "good": 37
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 43,
+          "single": 122,
+          "straddle": 122,
+          "good": 43
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 132,
+          "straddle": 133,
+          "good": 35
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 28,
+          "single": 111,
+          "straddle": 111,
+          "good": 28
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 101,
+          "straddle": 101,
+          "good": 33
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 54,
+          "single": 142,
+          "straddle": 144,
+          "good": 54
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 59,
+          "single": 145,
+          "straddle": 145,
+          "good": 59
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 47,
+          "single": 146,
+          "straddle": 146,
+          "good": 47
+        }
+      ]
+    },
+    "188": {
+      "points": 434,
+      "round_budget": 40,
+      "cond": 939.7781588937615,
+      "gap": 1.1483488472790322e-10,
+      "uncertainty": 9.110004085598216e-11,
+      "validation_fraction": 1.0,
+      "residual": 3.802391995016974e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 122,
+          "straddle": 122,
+          "good": 35
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 117,
+          "straddle": 117,
+          "good": 36
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 119,
+          "straddle": 120,
+          "good": 39
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 37,
+          "single": 124,
+          "straddle": 125,
+          "good": 37
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 123,
+          "straddle": 124,
+          "good": 36
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 36,
+          "single": 106,
+          "straddle": 107,
+          "good": 36
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 101,
+          "straddle": 101,
+          "good": 33
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 26,
+          "single": 117,
+          "straddle": 119,
+          "good": 26
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 48,
+          "single": 137,
+          "straddle": 137,
+          "good": 48
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 50,
+          "single": 144,
+          "straddle": 144,
+          "good": 50
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 58,
+          "single": 125,
+          "straddle": 125,
+          "good": 58
+        }
+      ]
+    },
+    "189": {
+      "points": 456,
+      "round_budget": 40,
+      "cond": 842.2099777630823,
+      "gap": 8.190687862437127e-11,
+      "uncertainty": 6.236195679809677e-11,
+      "validation_fraction": 1.0,
+      "residual": 2.8277759907963107e-12,
+      "accepted": true,
+      "sampling_rounds": [
+        {
+          "round": 0,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 29,
+          "single": 126,
+          "straddle": 126,
+          "good": 29
+        },
+        {
+          "round": 1,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 30,
+          "single": 121,
+          "straddle": 122,
+          "good": 30
+        },
+        {
+          "round": 2,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 49,
+          "single": 113,
+          "straddle": 113,
+          "good": 49
+        },
+        {
+          "round": 3,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 121,
+          "straddle": 121,
+          "good": 33
+        },
+        {
+          "round": 4,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 38,
+          "single": 120,
+          "straddle": 120,
+          "good": 38
+        },
+        {
+          "round": 5,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 39,
+          "single": 114,
+          "straddle": 115,
+          "good": 39
+        },
+        {
+          "round": 6,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 35,
+          "single": 117,
+          "straddle": 118,
+          "good": 35
+        },
+        {
+          "round": 7,
+          "eps": 0.02,
+          "attempted": 96,
+          "found": 33,
+          "single": 127,
+          "straddle": 127,
+          "good": 33
+        },
+        {
+          "round": 8,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 52,
+          "single": 128,
+          "straddle": 129,
+          "good": 52
+        },
+        {
+          "round": 9,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 61,
+          "single": 133,
+          "straddle": 134,
+          "good": 61
+        },
+        {
+          "round": 10,
+          "eps": 0.01,
+          "attempted": 96,
+          "found": 57,
+          "single": 136,
+          "straddle": 136,
+          "good": 57
+        }
+      ]
+    }
+  }
+}

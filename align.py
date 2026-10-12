@@ -56,6 +56,60 @@ def sign_canonicalize_(net, absorb=True):
 
 
 @torch.no_grad()
+@torch.no_grad()
+def sign_align_clone(net, Zref, X, odd=None):
+    """Clone of `net` whose hidden units are paired to a REFERENCE net (whose hidden
+    pre-activations on X are Zref, a list per hidden layer) and, for odd activations
+    (tanh / sigmoid), flipped so that each unit's polarity matches its reference
+    partner's. Returns (clone, perms, corrs): perms[l][i] = clone unit paired with
+    reference unit i of hidden layer l, corrs[l][i] = |correlation| of the pair.
+
+    Why not the max-|entry| sign rule (sign_canonicalize_): while rows are still
+    imprecise (mid-transition) that rule flips a few units differently in different
+    members and in the black box; every such unit negates one COLUMN of the next
+    layer, so a max-element row test reads ~2x a typical entry (~0.13) on every row of
+    that layer although the weights agree. The activation sign is unambiguous whenever
+    the pairing is (|corr| ~ 1). Leaky-ReLU has no polarity gauge: no flips, plain corr."""
+    from head_refine import _act_perm
+    mc = net.clone()
+    if odd is None:
+        odd = not isinstance(mc.act, torch.nn.LeakyReLU)
+    absorb = isinstance(mc.act, torch.nn.Sigmoid)
+    Z = _preacts(mc, X)                       # flipping layer l-1 units leaves layer l pre-activations unchanged
+    perms, corrs = [], []
+    for l in range(len(mc.layers) - 1):
+        A = Zref[l] - Zref[l].mean(0); B = Z[l] - Z[l].mean(0)
+        A = A / A.norm(dim=0, keepdim=True).clamp_min(1e-12); B = B / B.norm(dim=0, keepdim=True).clamp_min(1e-12)
+        C = A.T @ B
+        if odd:
+            from scipy.optimize import linear_sum_assignment
+            rows, cols = linear_sum_assignment((-C.abs()).cpu().numpy())
+            perm = torch.empty(C.shape[0], dtype=torch.long, device=X.device); perm[torch.as_tensor(rows, device=X.device)] = torch.as_tensor(cols, device=X.device)
+            sgn = torch.sign(C[rows, cols]); sgn[sgn == 0] = 1.0
+            flip_units = perm[sgn < 0]
+            if flip_units.numel():
+                W, b = mc.layers[l].weight, mc.layers[l].bias
+                nxt = mc.layers[l + 1]
+                if absorb:
+                    nxt.bias.add_(nxt.weight[:, flip_units].sum(1))
+                nxt.weight[:, flip_units] *= -1
+                W[flip_units] *= -1; b[flip_units] *= -1
+            corrs.append(C[rows, cols].abs()); perms.append(perm)
+        else:
+            perm, c = _act_perm(Zref[l], Z[l]); perms.append(perm); corrs.append(c)
+    return mc, perms, corrs
+
+
+def pairing_preacts(net, X):
+    """Pre-activations of a CANONICALISED copy of `net` for activation pairing.
+    Correlation is scale-invariant, so for leaky-ReLU this equals _preacts(net, X);
+    for tanh/sigmoid the sign canonicalisation fixes the polarity gauge
+    tanh(-z) = -tanh(z): without it half the members' units are anti-correlated
+    (-0.99) with the reference's and the Hungarian pairing misses them."""
+    mc = net.clone(); scale_normalize_(mc)
+    return _preacts(mc, X)
+
+
 def scale_normalize_(net):
     """Canonicalize the net's activation isomorphism, in-place.
 
@@ -356,3 +410,137 @@ def cnn_param_errors(recon, teacher, hard=False):
             max_errs.append(d.max().item()); mean_errs.append(d.mean().item())
     return {"max_eps": max(max_errs), "mean_eps_per_matrix": mean_errs,
             "max_eps_per_matrix": max_errs}
+
+
+# ------------------------------------------------ activation-matched eps --
+@torch.no_grad()
+def _preacts(net, X):
+    """Hidden-layer pre-activations [(n, w_l)] of an MLP on probe X."""
+    zs = []
+    h = X
+    for layer in net.layers[:-1]:
+        z = layer(h)
+        zs.append(z)
+        h = net.act(z)
+    return zs
+
+
+@torch.no_grad()
+def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
+                          hard=False, return_match=False, head_opt=True):
+    """'align-inverse' metric: per-layer parameter error with units paired by
+    ACTIVATION matching, independently per layer, instead of the chained
+    weight-permutation alignment of param_errors.
+
+    param_errors matches layer 1 by weights, then layer 2 in the coordinates
+    that match induces, etc., so a layer's eps inherits any mis-pairing below
+    it (a wrong L1 pairing scrambles L2's input columns even when L2 is right
+    in the recon's own frame). Here every hidden layer l is paired by the
+    correlation of its units' pre-activations on a probe set, each net run
+    with ITS OWN prefix, via an optimal assignment (Hungarian). Layer l's
+    weight matrix is then compared with rows ordered by layer l's pairing and
+    columns by layer l-1's pairing -- no pairing depends on weights below.
+    Sign gauge (tanh/sigmoid): units may match negated (flipped function-
+    preservingly). Scale gauge (leaky relu): scale_normalize_ as usual.
+
+    probe: (n, d) inputs on the teacher's device/dtype or None (N(0,1), fixed
+    seed). Returns the param_errors dict (+ 'match_corr_per_layer': mean
+    matched |corr| per hidden layer, a pairing-confidence diagnostic; and the
+    perms when return_match)."""
+    from scipy.optimize import linear_sum_assignment
+    t = teacher.clone()
+    r = recon.clone()
+    dt = torch.promote_types(t.layers[0].weight.dtype, r.layers[0].weight.dtype)
+    t = t.to(dt)
+    r = r.to(dt)
+    scale_normalize_(t)
+    scale_normalize_(r)
+    dev = t.layers[0].weight.device
+    if probe is None:
+        g = torch.Generator(device="cpu").manual_seed(seed)
+        probe = torch.randn(n_probe, t.layers[0].weight.shape[1], generator=g)
+    X = probe.to(dev, dt)
+    Zt = _preacts(t, X)
+    Zr = _preacts(r, X)
+    absorb = _sign_gauge(r)
+    perms, flips, corrs = [], [], []
+    for l in range(len(t.layers) - 1):
+        A = Zt[l] - Zt[l].mean(0, keepdim=True)
+        B = Zr[l] - Zr[l].mean(0, keepdim=True)
+        A = A / A.norm(dim=0, keepdim=True).clamp_min(1e-12)
+        B = B / B.norm(dim=0, keepdim=True).clamp_min(1e-12)
+        C = (A.T @ B).float()                      # (w_t, w_r) unit correlations
+        S = C.abs() if absorb is not None else C   # sign gauge: negated unit is as good
+        rows, cols = linear_sum_assignment((-S).cpu().numpy())
+        perm = [0] * S.shape[0]
+        for i, j in zip(rows, cols):
+            perm[i] = int(j)
+        perms.append(perm)
+        flips.append((C[rows, cols] < 0).to(dev) if absorb is not None else None)
+        corrs.append(float(S[rows, cols].mean()))
+    # apply: flips first (indexed in the recon's ORIGINAL unit order), then the
+    # per-layer permutations in order (permute_layer_ touches layer l's rows and
+    # layer l+1's columns only, so later perms don't disturb earlier ones)
+    for l, fl in enumerate(flips):
+        if fl is not None and bool(fl.any()):
+            mask = torch.zeros(len(perms[l]), dtype=torch.bool, device=dev)
+            mask[torch.tensor(perms[l], device=dev)[fl]] = True
+            flip_neurons_(r, l, mask, absorb)
+    for l, perm in enumerate(perms):
+        permute_layer_(r, l, perm)
+    if hard:
+        hard_fix_out_(t, r)
+    max_errs, mean_errs = [], []
+    for la, lb in zip(t.layers, r.layers):
+        for pa, pb in zip(la.parameters(), lb.parameters()):
+            d = (pa - pb).abs()
+            max_errs.append(d.max().item())
+            mean_errs.append(d.mean().item())
+    out = {
+        "max_eps": max(max_errs),
+        "mean_eps_per_matrix": mean_errs,
+        "max_eps_per_matrix": max_errs,
+        "match_corr_per_layer": corrs,
+        "align": "actmatch",
+    }
+    if head_opt and absorb is None:
+        # HEAD in its gauge-OPTIMAL frame: the remaining head gauge is a
+        # permutation + positive per-column scale of the last hidden units.
+        # Pick the pairing AND the scales that minimize the head error (the
+        # activation pairing + unit-row-norm scale is one admissible choice;
+        # this is the best admissible one) -- so head eps is a lower bound over
+        # the gauge, charging nothing to the head that a hidden-unit relabel /
+        # rescale could absorb.
+        A = t.layers[-1].weight                       # (out, w) teacher columns
+        B = r.layers[-1].weight                       # (out, w) recon columns, act-paired
+        w = A.shape[1]
+        # per-pair optimal s>0 minimizing ||a_i - s b_j||: s = max(a.b,0)/|b|^2
+        G = A.T @ B                                   # (w_t, w_r) a_i . b_j
+        bn = (B * B).sum(0).clamp_min(1e-24)          # |b_j|^2
+        an = (A * A).sum(0)                           # |a_i|^2
+        S_ = G.clamp_min(0) / bn[None, :]
+        cost = (an[:, None] - 2 * S_ * G + S_ ** 2 * bn[None, :]).clamp_min(0)  # ||a_i - s b_j||^2
+        rows, cols = linear_sum_assignment(cost.float().cpu().numpy())
+        hp = [0] * w
+        for i, j in zip(rows, cols):
+            hp[i] = int(j)
+        idx = torch.tensor(hp, device=dev)
+        sc = S_[rows, cols]                            # (w,) in teacher order
+        Bh = B[:, idx] * sc[None, :]
+        dW = (A - Bh).abs()
+        db = (t.layers[-1].bias - r.layers[-1].bias).abs()
+        out["head_opt"] = {
+            "max_eps_W": dW.max().item(), "mean_eps_W": dW.mean().item(),
+            "max_eps_b": db.max().item(), "mean_eps_b": db.mean().item(),
+            "pair_agree_with_act": float(sum(1 for i in range(w) if hp[i] == i)) / w,
+            "scale_median": sc.median().item(),
+            "scale_minmax": (sc.min().item(), sc.max().item()),
+        }
+        # replace the head's entries in the per-matrix lists with the gauge-optimal ones
+        max_errs[-2], mean_errs[-2] = out["head_opt"]["max_eps_W"], out["head_opt"]["mean_eps_W"]
+        max_errs[-1], mean_errs[-1] = out["head_opt"]["max_eps_b"], out["head_opt"]["mean_eps_b"]
+        out["max_eps"] = max(max_errs)
+        out["align"] = "actmatch+headopt"
+    if return_match:
+        out["perms"] = perms
+    return out
