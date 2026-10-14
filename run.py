@@ -324,6 +324,30 @@ def run_cnn(args):
         overrides["targetdeep"] = True
     if args.balance is not None:
         overrides["balance"] = args.balance
+    if args.batch is not None:
+        overrides["batch"] = args.batch
+    if args.qg_tf32:
+        overrides["qg_tf32"] = True
+    if args.qg_chunk_gb is not None:
+        overrides["qg_chunk_gb"] = args.qg_chunk_gb
+    if args.qg_block_gb is not None:
+        overrides["qg_block_gb"] = args.qg_block_gb
+    if args.qg_host_gb is not None:
+        overrides["qg_host_gb"] = args.qg_host_gb
+    if args.eval_loss:
+        overrides["eval_loss"] = True
+    if args.cpu_gather:
+        overrides["gpu_seg"] = False
+    if args.disk is not None:
+        overrides["disk"] = args.disk
+    if args.disk_ram_gb is not None:
+        overrides["disk_ram_gb"] = args.disk_ram_gb
+    if args.disk_seg_gb is not None:
+        overrides["disk_seg_gb"] = args.disk_seg_gb
+    if args.lr is not None:
+        overrides["lr"] = args.lr
+    if args.epochs is not None:
+        overrides["epochs"] = args.epochs
     if args.balance_mode is not None:
         overrides["balance_mode"] = args.balance_mode
     if args.balance_target is not None:
@@ -595,6 +619,18 @@ def main():
     ap.add_argument("--balance-refresh", type=int, default=None, help="rownorm: every N outer iterations re-canonicalise the pinned norms once (function-preserving, head compensated) and re-freeze, undoing the depth-wise pre-activation decay (L5 0.75 -> 0.03) and the head growth. 1 = every iteration; absent/0 = off")
     ap.add_argument("--balance-rownorm", type=float, default=None, help="rownorm mode: fix every hidden (row,bias) norm to this value (e.g. 20). Adam steps are absolute, so this IS the directional step size: rel. change per step ~ lr*sqrt(fan_in)/norm. Default: derive norms from --balance-target")
     ap.add_argument("--balance-target", type=float, default=None, help="layer mode: the fixed pre-activation RMS every hidden layer is set to (default 1.0). 0 = drifting geometric mean: UNSAFE, the scale runs away")
+    ap.add_argument("--batch", type=int, default=None, help="surrogate training minibatch (variant default; mergedbest512 = 512). Per-step cost has a ~2.3 ms floor on a 3090, so per-sample cost falls 5.3 us @512 -> 3.5 @2048 -> 2.9 @8192; fewer steps per epoch, so re-tune --lr")
+    ap.add_argument("--lr", type=float, default=None, help="surrogate training Adam lr (default 1e-3)")
+    ap.add_argument("--epochs", type=int, default=None, help="training epochs per outer iteration (default 10)")
+    ap.add_argument("--qg-tf32", action="store_true", help="query generation only: TF32 matmuls in the disagreement search (~1.4x faster sampler on Ampere; same disagreement reached, different individual points). Training stays fp32")
+    ap.add_argument("--qg-chunk-gb", type=float, default=None, help="query generation: GB budget of the automatic forward chunk (default 6; 1.5 was the old default)")
+    ap.add_argument("--qg-host-gb", type=float, default=None, help="query generation: assemble the q x d query block on the host when it exceeds this many GB (default 8); needed when q x d x 4 bytes approaches the GPU memory")
+    ap.add_argument("--qg-block-gb", type=float, default=None, help="query generation: GB of leaf+Adam state per outer block (default 2 = 40690 queries at d=3072)")
+    ap.add_argument("--eval-loss", action="store_true", help="rank members by a full post-training pass over the (RAM-tier) buffer every iteration (old behaviour; ~15 s per 1.8M rows). Default: the free per-member mean training loss of the last epoch")
+    ap.add_argument("--cpu-gather", action="store_true", help="training: old minibatch feeding (CPU gather + H2D per batch). Default copies each buffer segment to the GPU once and gathers there (step at its GPU floor)")
+    ap.add_argument("--disk", type=str, default=None, help="two-tier replay ring: keep the newest --disk-ram-gb of the window in host RAM and stream the older blocks from this directory (flat X.bin/Y.bin, sequential prefetched reads; diskring.py). Lets --window x --q exceed host RAM at no step-time cost while the NVMe reads faster than the GPU consumes the disk tier")
+    ap.add_argument("--disk-ram-gb", type=float, default=None, help="--disk: host-RAM budget of the RAM tier (default 180)")
+    ap.add_argument("--disk-seg-gb", type=float, default=None, help="--disk: streamed segment size in GB (default 4; x4 staging buffers)")
     ap.add_argument("--balance", type=int, default=None, help="leaky-ReLU only: every N epochs rebalance each hidden unit's incoming vs outgoing weight norm (exact gauge move, Adam state transformed). Stops the W1 scale drift that trains deep layers at an inflated effective lr. 1 = every epoch; 0/absent = off")
     ap.add_argument("--warmstart", type=int, default=None, help="number of warm-start iterations with random Gaussian queries before the disagreement sampler starts (variant default 5; 0 disables)")
     ap.add_argument("--no-stacked", action="store_true", help="disable the stacked (batched-matmul) training fast path; train members one by one as before")
@@ -1214,6 +1250,30 @@ def main():
         overrides["targetdeep"] = True
     if args.balance is not None:
         overrides["balance"] = args.balance
+    if args.batch is not None:
+        overrides["batch"] = args.batch
+    if args.qg_tf32:
+        overrides["qg_tf32"] = True
+    if args.qg_chunk_gb is not None:
+        overrides["qg_chunk_gb"] = args.qg_chunk_gb
+    if args.qg_block_gb is not None:
+        overrides["qg_block_gb"] = args.qg_block_gb
+    if args.qg_host_gb is not None:
+        overrides["qg_host_gb"] = args.qg_host_gb
+    if args.eval_loss:
+        overrides["eval_loss"] = True
+    if args.cpu_gather:
+        overrides["gpu_seg"] = False
+    if args.disk is not None:
+        overrides["disk"] = args.disk
+    if args.disk_ram_gb is not None:
+        overrides["disk_ram_gb"] = args.disk_ram_gb
+    if args.disk_seg_gb is not None:
+        overrides["disk_seg_gb"] = args.disk_seg_gb
+    if args.lr is not None:
+        overrides["lr"] = args.lr
+    if args.epochs is not None:
+        overrides["epochs"] = args.epochs
     if args.balance_mode is not None:
         overrides["balance_mode"] = args.balance_mode
     if args.balance_target is not None:

@@ -1,0 +1,100 @@
+(base) judah@cml1:~/icml/philippe/SequencingTheNeurome_Revision_extracted/code$ CUDA_VISIBLE_DEVICES=1  python run.py --variant mergedbest512 --arch 3072,200,200,200,200,200,200,100   --ou
+ter 30 --q 800000 --window 20 --device cuda --teacher-seed 0 --seed 0   --layer-consensus --align-inverse --log-every 1 --pop-save-every 5 --layer-consensus
+[setup] teacher [3072, 200, 200, 200, 200, 200, 200, 100] epochs=25 act=leaky_relu device=cuda
+/opt/miniconda3/lib/python3.12/site-packages/torchvision/datasets/cifar.py:83: VisibleDeprecationWarning: dtype(): align should be passed as Python or NumPy boolean but got `align=0`. Did
+you mean to pass a tuple to create a subarray type? (Deprecated NumPy 2.4)
+  entry = pickle.load(f, encoding="latin1")
+[align-inverse] eps metric = activation-matched per-layer pairing (param_errors_actmatch)
+[run] mergedbest512 seed=0 params=835700 budget=24000000 queries
+  [stacked] training the 8 members as one batched matmul per layer (plain mode; same math as per-member Adam)
+  it   1 | q 800000 | loss 5.97e-01 | max_eps 2.77e+01 | mean_eps 3.60e-01 | cluster   n/a   | cons 0/1200 [L1:0/200 L2:0/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.1035 | 105.
+6s
+        eps/layer (all, act-matched):  L1[max 2.23e-01 mean 1.68e-02]  L2[max 4.95e-01 mean 7.32e-02]  L3[max 5.02e-01 mean 7.51e-02]  L4[max 5.02e-01 mean 7.54e-02]  L5[max 4.75e-01 mean
+7.66e-02]  L6[max 5.01e-01 mean 7.58e-02]  L7[max 2.77e+01 mean 4.36e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 2.23e-01 mean 1.69e-02]  L2[max 4.28e-01 mean 6.99e-02]  L3[max 4.42e-01 mean 7.04e-02]  L4[max 4.46e-01 mean 7.05e-02]  L5[max 4.74e-
+01 mean 7.09e-02]  L6[max 4.73e-01 mean 7.06e-02]  L7[max 4.04e+01 mean 5.30e+00]
+        head (gauge-optimal pairing+scale): W[max 2.77e+01 mean 4.36e+00] b[max 4.17e-01] | pairing agrees w/ activation match 0.12 | scale med 0.915 [0.00,2.26]
+        eps/layer (cons, training copies): L1[n/a (0/200)]  L2[n/a (0/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/200)]
+  [consensus/matrix, isolated] W1[rows 0/200 | units paired 0/200]  W2[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok un
+its) | units paired 0/200]  W3[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W4[rows 0/20
+0 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W5[rows 0/200 (inputs unidentified: all paired cols)
+ cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W6[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs u
+nidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   2 | q 1600000 | loss 5.78e-01 | max_eps 2.53e+01 | mean_eps 3.67e-01 | cluster   n/a   | cons 1/1200 [L1:1/200 L2:0/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.1360 | 273
+.9s
+        eps/layer (all, act-matched):  L1[max 2.22e-01 mean 1.44e-02]  L2[max 3.98e-01 mean 6.92e-02]  L3[max 8.38e-01 mean 7.16e-02]  L4[max 6.66e-01 mean 7.19e-02]  L5[max 7.61e-01 mean
+7.30e-02]  L6[max 8.73e-01 mean 7.10e-02]  L7[max 2.53e+01 mean 4.27e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 2.15e-01 mean 1.46e-02]  L2[max 3.98e-01 mean 6.74e-02]  L3[max 7.81e-01 mean 6.84e-02]  L4[max 6.56e-01 mean 6.84e-02]  L5[max 8.12e-
+01 mean 6.94e-02]  L6[max 9.06e-01 mean 6.74e-02]  L7[max 5.08e+02 mean 2.46e+01]
+        head (gauge-optimal pairing+scale): W[max 2.53e+01 mean 4.27e+00] b[max 7.90e-01] | pairing agrees w/ activation match 0.20 | scale med 0.179 [0.00,0.57]
+        eps/layer (cons, training copies): L1[max 2.98e-02 mean 2.37e-03 (1/200)]  L2[n/a (0/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/200)]
+  [consensus/matrix, isolated] W1[rows 1/200 | units paired 0/200]  W2[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok un
+its) | units paired 0/200]  W3[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W4[rows 0/20
+0 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W5[rows 0/200 (inputs unidentified: all paired cols)
+ cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W6[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs u
+nidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   3 | q 2400000 | loss 5.23e-01 | max_eps 2.42e+01 | mean_eps 3.68e-01 | cluster   n/a   | cons 22/1200 [L1:22/200 L2:0/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.1545 | 5
+03.1s
+        eps/layer (all, act-matched):  L1[max 3.11e-01 mean 9.74e-03]  L2[max 5.30e-01 mean 5.29e-02]  L3[max 1.03e+00 mean 6.35e-02]  L4[max 6.31e-01 mean 7.08e-02]  L5[max 9.49e-01 mean
+6.82e-02]  L6[max 9.01e-01 mean 6.74e-02]  L7[max 2.42e+01 mean 4.06e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 2.97e-01 mean 9.78e-03]  L2[max 5.30e-01 mean 5.22e-02]  L3[max 1.00e+00 mean 6.22e-02]  L4[max 7.24e-01 mean 6.75e-02]  L5[max 9.13e-
+01 mean 6.58e-02]  L6[max 8.98e-01 mean 6.48e-02]  L7[max 8.65e+03 mean 3.14e+02]
+        head (gauge-optimal pairing+scale): W[max 2.42e+01 mean 4.06e+00] b[max 1.33e+00] | pairing agrees w/ activation match 0.28 | scale med 0.023 [0.00,0.12]
+        eps/layer (cons, training copies): L1[max 2.55e-02 mean 2.26e-03 (22/200)]  L2[n/a (0/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/200)]
+  [consensus/matrix, isolated] W1[rows 64/200 | units paired 1/200]  W2[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok u
+nits) | units paired 0/200]  W3[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W4[rows 0/2
+00 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W5[rows 0/200 (inputs unidentified: all paired cols
+) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W6[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs
+unidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   4 | q 3200000 | loss 3.00e-01 | max_eps 2.39e+01 | mean_eps 3.37e-01 | cluster   n/a   | cons 183/1200 [L1:183/200 L2:0/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.2825 |
+ 796.8s
+        eps/layer (all, act-matched):  L1[max 3.04e-01 mean 1.52e-03]  L2[max 8.66e-01 mean 2.12e-02]  L3[max 7.95e-01 mean 6.09e-02]  L4[max 5.25e-01 mean 7.35e-02]  L5[max 6.07e-01 mean
+7.35e-02]  L6[max 9.86e-01 mean 6.83e-02]  L7[max 2.39e+01 mean 3.58e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 3.04e-01 mean 1.52e-03]  L2[max 8.66e-01 mean 2.09e-02]  L3[max 8.59e-01 mean 5.90e-02]  L4[max 5.24e-01 mean 6.95e-02]  L5[max 6.49e-
+01 mean 6.93e-02]  L6[max 9.80e-01 mean 6.60e-02]  L7[max 3.46e+04 mean 7.31e+02]
+        head (gauge-optimal pairing+scale): W[max 2.39e+01 mean 3.58e+00] b[max 1.89e+00] | pairing agrees w/ activation match 0.38 | scale med 0.009 [0.00,0.04]
+        eps/layer (cons, training copies): L1[max 2.32e-02 mean 7.47e-04 (183/200)]  L2[n/a (0/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/200)]
+  [consensus/matrix, isolated] W1[rows 199/200 | units paired 175/200]  W2[rows 38/200 cols 32/200 | units paired 97/200]  W3[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified:
+ all 0 row-ok units) | units paired 0/200]  W4[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/20
+0]  W5[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W6[rows 0/200 (inputs unidentified:
+all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   5 | q 4000000 | loss 2.37e-01 | max_eps 2.44e+01 | mean_eps 3.42e-01 | cluster   n/a   | cons 266/1200 [L1:200/200 L2:66/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.3060
+| 1153.3s
+        eps/layer (all, act-matched):  L1[max 1.13e+00 mean 8.66e-04]  L2[max 9.58e-01 mean 6.83e-03]  L3[max 7.99e-01 mean 4.82e-02]  L4[max 5.74e-01 mean 7.36e-02]  L5[max 6.54e-01 mean
+7.31e-02]  L6[max 9.93e-01 mean 6.75e-02]  L7[max 2.44e+01 mean 3.57e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 1.22e+00 mean 8.16e-04]  L2[max 9.29e-01 mean 6.59e-03]  L3[max 7.99e-01 mean 4.66e-02]  L4[max 5.80e-01 mean 6.92e-02]  L5[max 7.83e-
+01 mean 6.92e-02]  L6[max 1.15e+00 mean 6.51e-02]  L7[max 7.75e+04 mean 2.29e+03]
+        head (gauge-optimal pairing+scale): W[max 2.44e+01 mean 3.57e+00] b[max 2.22e+00] | pairing agrees w/ activation match 0.33 | scale med 0.005 [0.00,0.03]
+        eps/layer (cons, training copies): L1[max 3.40e-03 mean 4.77e-04 (200/200)]  L2[max 3.38e-02 mean 1.52e-03 (66/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/2
+00)]
+  [consensus/matrix, isolated] W1[rows 198/200 | units paired 198/200]  W2[rows 184/200 cols 0/200 | units paired 184/200]  W3[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified
+: all 0 row-ok units) | units paired 4/200]  W4[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 77/
+200]  W5[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 28/200]  W6[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified: all 0
+row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   6 | q 4800000 | loss 5.62e-01 | max_eps 2.57e+01 | mean_eps 3.33e-01 | cluster   n/a   | cons 274/1200 [L1:200/200 L2:74/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.4285
+| 1685.6s
+        eps/layer (all, act-matched):  L1[max 1.25e+00 mean 9.72e-04]  L2[max 8.98e-01 mean 8.05e-03]  L3[max 8.45e-01 mean 5.03e-02]  L4[max 6.00e-01 mean 7.43e-02]  L5[max 7.34e-01 mean
+7.19e-02]  L6[max 1.01e+00 mean 6.70e-02]  L7[max 2.57e+01 mean 3.68e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 1.34e+00 mean 9.23e-04]  L2[max 9.43e-01 mean 7.01e-03]  L3[max 8.81e-01 mean 4.79e-02]  L4[max 5.23e-01 mean 6.94e-02]  L5[max 6.48e-
+01 mean 6.84e-02]  L6[max 9.79e-01 mean 6.43e-02]  L7[max 1.65e+05 mean 3.75e+03]
+        head (gauge-optimal pairing+scale): W[max 2.57e+01 mean 3.68e+00] b[max 1.75e+00] | pairing agrees w/ activation match 0.36 | scale med 0.004 [0.00,0.02]
+        eps/layer (cons, training copies): L1[max 5.65e-03 mean 5.92e-04 (200/200)]  L2[max 2.51e-02 mean 2.37e-03 (74/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/2
+00)]
+  [consensus/matrix, isolated] W1[rows 198/200 | units paired 198/200]  W2[rows 186/200 cols 192/200 | units paired 187/200]  W3[rows 0/200 cols n/a (0/200 output rows) (outputs unidentifi
+ed: all 0 row-ok units) | units paired 7/200]  W4[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 4
+8/200]  W5[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 7/200]  W6[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 ou
+tput rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+  it   7 | q 5600000 | loss 7.62e-01 | max_eps 2.99e+01 | mean_eps 3.27e-01 | cluster   n/a   | cons 279/1200 [L1:200/200 L2:79/200 L3:0/200 L4:0/200 L5:0/200 L6:0/200] n/a | agree 0.4575
+| 2280.2s
+        eps/layer (all, act-matched):  L1[max 6.20e-03 mean 8.76e-04]  L2[max 3.96e-01 mean 1.31e-02]  L3[max 8.86e-01 mean 6.57e-02]  L4[max 6.60e-01 mean 7.35e-02]  L5[max 6.87e-01 mean
+7.11e-02]  L6[max 1.06e+00 mean 6.71e-02]  L7[max 2.99e+01 mean 3.72e+00]
+        eps/layer (all, CHAINED weight-align): L1[max 6.20e-03 mean 8.76e-04]  L2[max 3.26e-01 mean 1.20e-02]  L3[max 8.01e-01 mean 6.27e-02]  L4[max 7.85e-01 mean 6.90e-02]  L5[max 6.42e-
+01 mean 6.75e-02]  L6[max 1.09e+00 mean 6.47e-02]  L7[max 4.38e+05 mean 6.79e+03]
+        head (gauge-optimal pairing+scale): W[max 2.99e+01 mean 3.72e+00] b[max 1.56e+00] | pairing agrees w/ activation match 0.33 | scale med 0.003 [0.00,0.01]
+        eps/layer (cons, training copies): L1[max 6.04e-03 mean 6.59e-04 (200/200)]  L2[max 2.50e-02 mean 2.77e-03 (79/200)]  L3[n/a (0/200)]  L4[n/a (0/200)]  L5[n/a (0/200)]  L6[n/a (0/2
+00)]
+  [consensus/matrix, isolated] W1[rows 200/200 | units paired 200/200]  W2[rows 182/200 cols 200/200 | units paired 171/200]  W3[rows 0/200 cols n/a (0/200 output rows) (outputs unidentifi
+ed: all 0 row-ok units) | units paired 0/200]  W4[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 2
+4/200]  W5[rows 0/200 cols n/a (0/200 output rows) (outputs unidentified: all 0 row-ok units) | units paired 4/200]  W6[rows 0/200 (inputs unidentified: all paired cols) cols n/a (0/200 ou
+tput rows) (outputs unidentified: all 0 row-ok units) | units paired 0/200]  W7=head[cols 0/200 (per L6 unit)]
+

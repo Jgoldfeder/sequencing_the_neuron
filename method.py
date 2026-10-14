@@ -57,6 +57,10 @@ class Cfg:
                                # 0 => full min(out,in). Pure relaxation knob.
     factor_layers: str = "tail"  # which weight layers to reparameterize:
                                # 'tail' (all but W1) | 'l1' (W1 only) | 'all'.
+    qg_tf32: bool = False      # query-gen: run the member matmuls of the disagreement search in TF32 (tensor cores; ~1.4x on a 3090); sampler only, training stays fp32
+    qg_chunk_gb: float = 6.0   # query-gen auto forward-chunk budget (GB of pairwise tensor + autograd graph per chunk; was 1.5 -> 7.5k rows on the 11-layer committee, 12% slower than one 40k chunk)
+    qg_host_gb: float = 8.0    # query-gen: assemble the q x d query block on the HOST (pinned-free CPU tensor) when it exceeds this many GB; the GPU never holds the whole block (q=1.8M x 3072 = 22 GB OOMed a 24 GB card)
+    qg_block_gb: float = 2.0   # query-gen outer block: GB of leaf state (leaf+grad+2 Adam moments = 16 B/entry) per block; 2 GB = 40690 queries at d=3072
     qg_chunk: int = 0          # chunk size for the query-gen member forward (0 =
                                # full batch). Set (e.g. 8192) so WIDE students in
                                # the fit gate don't OOM; gradient is exact.
@@ -161,6 +165,11 @@ class Cfg:
     query_box: float = 0.0     # 0 = unbounded (paper); else tanh box bound
     query_div_w: float = 0.0
     window: int = 0
+    eval_loss: bool = False      # rank members by a full post-training pass over the buffer (old behaviour, ~15 s per 1.8M rows per iteration); default = mean per-member training loss of the last epoch (free)
+    gpu_seg: bool = True         # training: copy each ~disk_seg_gb segment of the buffer to the GPU once and gather minibatches there (step at its GPU floor, 3.6 vs 5.0 ms); False = CPU gather + H2D per minibatch (old path)
+    disk: str = ""              # --disk DIR: two-tier replay ring (newest blocks in RAM, older blocks streamed from DIR; diskring.py)
+    disk_ram_gb: float = 180.0   # host-RAM budget for the RAM tier of the --disk ring (the rest of the window lives on disk)
+    disk_seg_gb: float = 4.0     # --disk: size of one streamed segment (x4 staging buffers in RAM)
     maint_every: int = 0
     restart_worst: int = 0
     polish_f64: bool = False
@@ -631,7 +640,7 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
     #      Every query's disagreement and Adam update are independent of the others, so generate
     #      the queries in blocks of <= ~2 GB of leaf state; identical result up to Adam's eps term.
     if init_override is None:
-        _block = max(1024, int(2e9 / (4 * input_dim * 4)))
+        _block = max(1024, int(cfg.qg_block_gb * 1e9 / (4 * input_dim * 4)))   # leaf+grad+2 Adam moments per block
         if cfg.q > _block:
             out = None                                   # preallocated: peak = result + one block of state (no 2x cat)
             for b0 in range(0, cfg.q, _block):
@@ -639,7 +648,8 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
                 blk = gen_queries(pop, sub, input_dim, device, gen, losses=losses,
                                   ref_last=ref_last, feats=feats, extra=extra)
                 if out is None:
-                    out = torch.empty(cfg.q, blk.shape[1], dtype=blk.dtype, device=blk.device)
+                    _host = cfg.q * blk.shape[1] * blk.element_size() > cfg.qg_host_gb * 1e9
+                    out = torch.empty(cfg.q, blk.shape[1], dtype=blk.dtype, device="cpu" if _host else blk.device)
                 out[b0:b0 + blk.shape[0]].copy_(blk); del blk
             return out
     members = pop
@@ -687,7 +697,30 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
             _D = (fns[0](_probe_in) if fns is not None else members[0](_probe_in)).shape[1]
         _hid = sum(getattr(members[0], "dims", [input_dim, _D])[1:-1]) or _D
         _P = len(members)
-        chunk = max(1024, min(q, int(1.5e9 / (_P * _P * _D * 4 + 3 * _P * _hid * 4))))
+        chunk = max(1024, min(q, int(cfg.qg_chunk_gb * 1e9 / (_P * _P * _D * 4 + 3 * _P * _hid * 4))))
+    # Only the query leaf needs a gradient: switch the members' parameter grads off for the search so
+    # autograd skips every dW GEMM (was ~1/3 of the sampler's GEMM time, incl. the unaligned cutlass
+    # kernels) -- bit-identical queries, less memory. Restored on exit. Optional TF32 (cfg.qg_tf32) is
+    # scoped to the sampler: it changes which points the search lands on but not the disagreement
+    # reached (0.01461 either way on the 11-layer tanh committee), and it must NOT leak into training.
+    _pset = [p_ for m in pop for p_ in m.parameters()] + ([p_ for f in (feats or []) if hasattr(f, "parameters") for p_ in f.parameters()])
+    _pflags = [p_.requires_grad for p_ in _pset]
+    for p_ in _pset:
+        p_.requires_grad_(False)
+    _tf32_prev = torch.backends.cuda.matmul.allow_tf32
+    if cfg.qg_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
+    try:
+        _qg_steps(cfg, opt, sched, leaf, T, members, fns, chunk, q, ref_last, extra)
+    finally:
+        torch.backends.cuda.matmul.allow_tf32 = _tf32_prev
+        for p_, fl in zip(_pset, _pflags):
+            p_.requires_grad_(fl)
+    with torch.no_grad():
+        return T(leaf).detach()
+
+
+def _qg_steps(cfg, opt, sched, leaf, T, members, fns, chunk, q, ref_last, extra):
     for step in range(cfg.qg_steps):
         if step in sched:
             for g in opt.param_groups:
@@ -716,8 +749,6 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
             if cfg.query_div_w > 0:                # cross-query term (no member fwd)
                 (cfg.query_div_w * _repulsion(T(leaf))).backward()
         opt.step()
-    with torch.no_grad():
-        return T(leaf).detach()
 
 
 # ------------------------------------------------- inverse query generation --
@@ -1040,6 +1071,29 @@ def _largest_eps_ball(feats, eps):
 
 
 @torch.no_grad()
+def _layer_ball_consensus(aligned, l, eps, quorum):
+    """Vectorized _largest_eps_ball over ALL units of weight matrix l at once.
+    aligned: member clones in one frame. For unit k the ball of anchor member a is
+    {p : max|feat_p[k] - feat_a[k]| < eps} (feat = incoming row + bias); the largest ball
+    (first anchor on ties, as _largest_eps_ball) wins. Returns (ok[H] bool = ball >= quorum,
+    S[P,H] bool = ball membership, W_cons[H,in], b_cons[H] = ball means; W/b only valid where ok)."""
+    feats = torch.stack([torch.cat([a.layers[l].weight, a.layers[l].bias[:, None]], 1).float()
+                         for a in aligned])                                     # (P, H, in+1)
+    P, H, _ = feats.shape
+    D = (feats[:, None] - feats[None]).abs().amax(-1)                              # (P, P, H) inf-norm
+    inball = D < eps                                                               # (anchor, member, unit)
+    counts = inball.sum(1)                                                         # (P, H)
+    best_anchor = counts.argmax(0)                                                 # first max on ties
+    S = inball[best_anchor, :, torch.arange(H, device=D.device)].T                 # (P, H)
+    n = S.sum(0)
+    ok = n >= quorum
+    Sw = S.to(feats.dtype)
+    W_cons = torch.einsum("ph,phi->hi", Sw, feats[:, :, :-1]) / n.clamp_min(1)[:, None]
+    b_cons = torch.einsum("ph,ph->h", Sw, feats[:, :, -1]) / n.clamp_min(1)
+    return ok, S, W_cons, b_cons
+
+
+@torch.no_grad()
 def _align_members(pop, idxs, ref_idx):
     """Scale-normalize + permutation-align every member[idxs] into the reference
     member's frame. align_clone_to propagates each layer's permutation into the
@@ -1057,28 +1111,27 @@ def _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum):
     Returns (net_or_None, per_layer) where per_layer[l] = (n_total, n_consensus)
     for hidden layer l, and net is None unless EVERY hidden neuron reached quorum."""
     aligned, ref = _align_members(pop, idxs, ref_idx)
+    return _consensus_from_aligned(aligned, ref, eps, quorum)
+
+
+@torch.no_grad()
+def _consensus_from_aligned(aligned, ref, eps, quorum):
+    """_consensus_from_ref on already-aligned clones (vectorized per layer)."""
     net = ref.clone()
     L = len(net.layers)
     per_layer, full = [], True
     for l in range(L):                              # every weight matrix
         hidden = l < L - 1
-        H, nc = net.layers[l].weight.shape[0], 0
-        for k in range(H):
-            feats = torch.stack([torch.cat([a.layers[l].weight[k],
-                                            a.layers[l].bias[k:k + 1]])
-                                 for a in aligned])
-            S = _largest_eps_ball(feats, eps)
-            if len(S) >= quorum:
-                if hidden:
-                    nc += 1
-                net.layers[l].weight.data[k] = torch.stack(
-                    [aligned[s].layers[l].weight[k] for s in S]).mean(0)
-                net.layers[l].bias.data[k] = torch.stack(
-                    [aligned[s].layers[l].bias[k] for s in S]).mean(0)
-            elif hidden:
-                full = False                        # a hidden unit lacks quorum
+        H = net.layers[l].weight.shape[0]
+        ok, S, Wc, bc = _layer_ball_consensus(aligned, l, eps, quorum)
+        if bool(ok.any()):
+            net.layers[l].weight.data[ok] = Wc[ok].to(net.layers[l].weight.dtype)
+            net.layers[l].bias.data[ok] = bc[ok].to(net.layers[l].bias.dtype)
         if hidden:
+            nc = int(ok.sum())
             per_layer.append((H, nc))
+            if nc < H:
+                full = False                        # a hidden unit lacks quorum
     return (net if full else None), per_layer
 
 
@@ -1110,33 +1163,25 @@ def _build_consensus_deep(pop, dims, losses, eps, quorum_ratio, gate_kappa):
 
 
 @torch.no_grad()
-def _consensus_layer_eps_deep(pop, teacher, dims, idxs, ref_idx, eps, quorum):
+def _consensus_layer_eps_deep(pop, teacher, dims, idxs, ref_idx, eps, quorum, aligned=None, ref=None):
     """Per-hidden-layer parameter error (max/mean over incoming weights + bias) on
     ONLY the consensus neurons. Rebuilds the quorum-consensus net in member[ref_idx]'s
     frame while tracking which neurons reached quorum, aligns it to the teacher
     (propagating each layer's permutation, and the consensus mask along with it), then
     scores just the consensus neurons. Returns one dict per hidden layer:
     {cons_max, cons_mean} (both None if that layer has no consensus neuron)."""
-    aligned, ref = _align_members(pop, idxs, ref_idx)
+    if aligned is None:
+        aligned, ref = _align_members(pop, idxs, ref_idx)
     cnet = ref.clone()
     L = len(cnet.layers)
     dev = cnet.layers[0].weight.device
     masks = []
     for l in range(L - 1):                              # hidden layers only
-        H = cnet.layers[l].weight.shape[0]
-        mask = torch.zeros(H, dtype=torch.bool, device=dev)
-        for k in range(H):
-            feats = torch.stack([torch.cat([a.layers[l].weight[k],
-                                            a.layers[l].bias[k:k + 1]])
-                                 for a in aligned])
-            S = _largest_eps_ball(feats, eps)
-            if len(S) >= quorum:
-                cnet.layers[l].weight.data[k] = torch.stack(
-                    [aligned[s].layers[l].weight[k] for s in S]).mean(0)
-                cnet.layers[l].bias.data[k] = torch.stack(
-                    [aligned[s].layers[l].bias[k] for s in S]).mean(0)
-                mask[k] = True
-        masks.append(mask)
+        ok, S, Wc, bc = _layer_ball_consensus(aligned, l, eps, quorum)
+        if bool(ok.any()):
+            cnet.layers[l].weight.data[ok] = Wc[ok].to(cnet.layers[l].weight.dtype)
+            cnet.layers[l].bias.data[ok] = bc[ok].to(cnet.layers[l].bias.dtype)
+        masks.append(ok.to(dev))
     t = teacher.clone(); scale_normalize_(t)           # align consensus net -> teacher
     r = cnet.clone();    scale_normalize_(r)
     out = []
@@ -1164,20 +1209,24 @@ def _consensus_stats_deep(pop, teacher, dims, eps, quorum_ratio, hard=False):
     P = len(pop)
     quorum = math.ceil(quorum_ratio * P)
     idxs = list(range(P))
-    best_pl, best_tot, best_ref = [], -1, idxs[0]
-    for ref_idx in idxs:                            # pick the most-agreeing frame
-        _, per_layer = _consensus_from_ref(pop, dims, idxs, ref_idx, eps, quorum)
+    best_pl, best_tot, best_ref, best_aligned = [], -1, idxs[0], None
+    cnet = None                                     # = build_consensus(losses=None): first frame with FULL consensus
+    for ref_idx in idxs:                            # pick the most-agreeing frame (one alignment per frame, reused below)
+        aligned, ref = _align_members(pop, idxs, ref_idx)
+        net, per_layer = _consensus_from_aligned(aligned, ref, eps, quorum)
+        if cnet is None and net is not None:
+            cnet = net
         tot = sum(nc for _, nc in per_layer)
         if tot > best_tot:
-            best_tot, best_pl, best_ref = tot, per_layer, ref_idx
+            best_tot, best_pl, best_ref, best_aligned = tot, per_layer, ref_idx, (aligned, ref)
     layers = [{"n_cons": nc, "n_tot": H} for H, nc in best_pl]
     try:                                            # per-layer eps on consensus neurons
         for d, e in zip(layers, _consensus_layer_eps_deep(
-                pop, teacher, dims, idxs, best_ref, eps, quorum)):
+                pop, teacher, dims, idxs, best_ref, eps, quorum,
+                aligned=best_aligned[0], ref=best_aligned[1])):
             d.update(e)
     except Exception:
         pass
-    cnet = build_consensus(pop, dims, quorum_ratio=quorum_ratio, eps=eps)
     if cnet is not None:
         pe = param_errors(cnet, teacher, hard=hard)
         max_eps = pe["max_eps"]
@@ -1186,7 +1235,8 @@ def _consensus_stats_deep(pop, teacher, dims, eps, quorum_ratio, hard=False):
         max_eps = mean_eps = None
     return {"n_consensus": sum(x["n_cons"] for x in layers),
             "n_total": sum(x["n_tot"] for x in layers),
-            "max_eps": max_eps, "mean_eps": mean_eps, "layers": layers}
+            "max_eps": max_eps, "mean_eps": mean_eps, "layers": layers,
+            "cnet": cnet}                           # the consensus net (None unless full) -- callers reuse it instead of build_consensus
 
 
 @torch.no_grad()
@@ -1211,21 +1261,12 @@ def _partial_consensus(pop, dims, eps, quorum_ratio, ref_idx=None):
     L = len(cnet.layers)
     dev = cnet.layers[0].weight.device
     masks = []
-    for l in range(L - 1):                              # hidden layers
-        H = cnet.layers[l].weight.shape[0]
-        mask = torch.zeros(H, dtype=torch.bool, device=dev)
-        for k in range(H):
-            feats = torch.stack([torch.cat([a.layers[l].weight[k],
-                                            a.layers[l].bias[k:k + 1]])
-                                 for a in aligned])
-            S = _largest_eps_ball(feats, eps)
-            if len(S) >= quorum:
-                cnet.layers[l].weight.data[k] = torch.stack(
-                    [aligned[s].layers[l].weight[k] for s in S]).mean(0)
-                cnet.layers[l].bias.data[k] = torch.stack(
-                    [aligned[s].layers[l].bias[k] for s in S]).mean(0)
-                mask[k] = True
-        masks.append(mask)
+    for l in range(L - 1):                              # hidden layers (vectorized eps-ball per layer)
+        ok, S, Wc, bc = _layer_ball_consensus(aligned, l, eps, quorum)
+        if bool(ok.any()):
+            cnet.layers[l].weight.data[ok] = Wc[ok].to(cnet.layers[l].weight.dtype)
+            cnet.layers[l].bias.data[ok] = bc[ok].to(cnet.layers[l].bias.dtype)
+        masks.append(ok.to(dev))
     return cnet, masks
 
 
@@ -1253,6 +1294,18 @@ def _fmt_matrix(k, v, rep, n_dims):
     def _c(pv):
         f = f"{pv['cols']}/{pv['n']}"
         return f"dir {pv['cols_dir']}/{pv['n']} full {f}" if 'cols_dir' in pv else f
+    if getattr(_fmt_matrix, "compact", True):
+        # one token per matrix: W{k+1} rowsdir/mag/full[*] [c colsdir/full]; head: cols dir/full
+        def _rc(v):
+            return f"{v['rows_dir']}/{v['rows_mag']}/{v['rows']}" if 'rows_dir' in v else f"{v['rows']}"
+        def _cc(pv):
+            return f"{pv['cols_dir']}/{pv['cols']}" if 'cols_dir' in pv else f"{pv['cols']}"
+        tok = f"W{k + 1} {_rc(v)}" + ("" if v['ident_in'] >= 0.1 * v['n_in'] else "*")
+        if k > 0 and (k - 1) in rep and rep[k - 1]['ident_out'] >= 0.1 * rep[k - 1]['n_out']:
+            tok += f" c{_cc(rep[k - 1])}"
+        if k == nW - 2:
+            tok += f"  head {_cc(v)}"
+        return tok
     rows_s = _r(v) + ("" if v['ident_in'] >= 0.1 * v['n_in'] else " (inputs unidentified: all paired cols)")
     parts = [f"W{k + 1}[rows {rows_s}"]
     if k > 0 and (k - 1) in rep:
@@ -1793,6 +1846,17 @@ def batched(net, X, bs=4096):
 
 @torch.no_grad()
 def l1_on(pop, X, Y, bs=4096):
+    if getattr(X, "_tier", False):
+        # --disk ring view: walk the buffer ONCE (sequential disk reads) and score every member per chunk
+        tot = [0.0] * len(pop); n = 0
+        for i in range(0, len(X), bs):
+            xc, yc = X[i:i + bs], Y[i:i + bs]
+            for mi, net in enumerate(pop):
+                dev = next(net.parameters()).device; dt = next(net.parameters()).dtype
+                xb, yb = xc.to(dev, dt), yc.to(dev, dt)
+                tot[mi] += (net(xb) - yb).abs().sum().item()
+            n += yc.numel()
+        return [t / n for t in tot]
     losses = []
     for net in pop:
         dev = next(net.parameters()).device
@@ -2281,6 +2345,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
     # buffer needs 2x its size transiently: the 8-layer q=400k run was host-OOM-killed at
     # iteration 26 (128 GB buffer, 256 GB during the cat, 251 GB box) right after its it-25 snapshot.
     _Xbuf = _Ybuf = None; _nfill = 0; _slot = 0
+    _ring = None                      # --disk two-tier ring (diskring.DiskRing)
     decay_at = {int(s * cfg.outer) for s in cfg.lr_sched}
     log = []
     t0 = time.time()
@@ -2354,6 +2419,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         t += 1
         if t >= budget_end:
             break
+        _t_it0 = time.time(); _t_sample = _t_train = 0.0     # per-iteration wall breakdown (printed with the log line)
         it_disp = t + 1 - peel_base    # shown iter (restarts on peel); queries stay
                                        # cumulative via the global t below
         stages = None
@@ -2387,6 +2453,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             Y = (torch.empty(0, dtype=torch.long) if cfg.hard
                  else torch.empty(0, dims[-1]))
             probe_frontier = pf
+        _t_s0 = time.time()
         _bb = cheat_bb
         if pf is not None:
             import copy as _copy
@@ -2425,8 +2492,16 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if (t+1) % cfg.log_every == 0:
                 print(f"[normalized-peel] disagreement {before/count:.3g}->{after/count:.3g}; normalized movement {movement/count:.3g}",flush=True)
         elif t < cfg.warmstart_iters:
-            I = torch.randn(cfg.q, _qdim, generator=gen,
-                            device=device) * cfg.qg_init_std
+            if cfg.q * _qdim * 4 > cfg.qg_host_gb * 1e9:
+                # block too big for the GPU (randn + the scaled copy = 2 x q x d): fill a host tensor in chunks
+                I = torch.empty(cfg.q, _qdim)
+                _wb = max(1024, int(cfg.qg_block_gb * 1e9 / (4 * _qdim * 4)))
+                for _b0 in range(0, cfg.q, _wb):
+                    _n = min(_wb, cfg.q - _b0)
+                    I[_b0:_b0 + _n].copy_(torch.randn(_n, _qdim, generator=gen, device=device).mul_(cfg.qg_init_std))
+            else:
+                I = torch.randn(cfg.q, _qdim, generator=gen,
+                                device=device) * cfg.qg_init_std
         elif solo:
             # SOLO committee: member i runs its OWN q/p-query disagreement
             # search against the blackbox alone (the p=1 objective, undiluted
@@ -2487,13 +2562,26 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if input_transform is not None:
                 I = input_transform(I)      # squash into the sealed activation domain
             with torch.no_grad():           # label in chunks: the teacher's activations for q inputs at once scale with q
-                T = torch.cat([teacher(I[i0:i0 + 65536]) for i0 in range(0, len(I), 65536)]) if len(I) > 65536 else teacher(I)
+                if I.device.type == "cpu":  # host-assembled block (qg_host_gb): stream chunks through the GPU teacher
+                    T = torch.cat([teacher(I[i0:i0 + 65536].to(device)).cpu() for i0 in range(0, len(I), 65536)])
+                else:
+                    T = torch.cat([teacher(I[i0:i0 + 65536]) for i0 in range(0, len(I), 65536)]) if len(I) > 65536 else teacher(I)
         with torch.no_grad():
             if cfg.hard:                    # blackbox reveals ONLY the class index
                 T = T.argmax(1)
         _ring_ok = (cfg.window > 0 and not cfg.ensemble_boost and not cfg.hard and stages is None
                     and len(I) == cfg.q and T.dim() == 2)
-        if _ring_ok:
+        if cfg.disk and _ring_ok:
+            # --disk: two-tier ring (RAM + NVMe), see diskring.py. X/Y are tensor-like views over both tiers;
+            # training streams the disk tier sequentially (prefetched), the per-iteration bookkeeping
+            # (member ranking, head solve, probes) uses the RAM tier (= the newest blocks).
+            if _ring is None or _ring.d != I.shape[1] or _ring.k != T.shape[1]:
+                from diskring import DiskRing
+                _ring = DiskRing(cfg.disk, cfg.q, cfg.window, I.shape[1], T.shape[1],
+                                 ram_bytes=cfg.disk_ram_gb * 1e9, seg_bytes=cfg.disk_seg_gb * 1e9)
+            _ring.add_block(I.float().cpu(), T.float().cpu())
+            X, Y = _ring.X, _ring.Y
+        elif _ring_ok:
             # ring buffer: slot t % window holds iteration t's block; X/Y are VIEWS (no copy). Row order is
             # not chronological once the window is full -- plain-mode training draws random minibatches,
             # so order is irrelevant; the chronology-dependent paths (boost, solverwindow) are excluded.
@@ -2521,6 +2609,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         # 600k run inside the warm-start randn); also return the freed blocks to the driver.
         del I, T
         torch.cuda.empty_cache()
+        _t_sample = time.time() - _t_s0            # query search + teacher labeling + buffer insert
 
         # --- ensemble-boost: append a fresh ROUND of sequential residual
         #     stages (Judah's protocol: train a net cfg.epochs on the current
@@ -2596,6 +2685,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             Yfit = (Y - boost_P) / boost_scale
         else:
             Yfit = Y
+        # --disk: hot-path consumers (member ranking, head solve, probes) see the RAM tier only
+        Xl, Yl = (_ring.ram_X, _ring.ram_Y) if _ring is not None else (X, Yfit)
 
         # --- lr schedule (ensemble-boost: the per-member plateau annealer owns
         #     the member lrs; the global step-decay would fight it) ---
@@ -2608,6 +2699,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     fac.decay(0.1)
 
         # --- train population on D ---
+        _t_tr0 = time.time()
         n = len(X)
         solo_pools = _solo_pools(n, cfg.q, cfg.p) if solo else None
 
@@ -2671,7 +2763,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if cfg.balance_dirlr > 0:
                 _stacked.dirlr = cfg.balance_dirlr * (cfg.balance_dirlr_decay ** t); _stacked.dirlr_head = cfg.balance_dirlr_head
             if cfg.balance and cfg.balance_mode == "rownorm" and cfg.balance_refresh and t > 0 and t % cfg.balance_refresh == 0 and _stacked.row_targets is not None:
-                _xr = X[torch.randperm(n, generator=gen, device=device)[:512].cpu()].to(device)
+                _xr = Xl[torch.randperm(len(Xl), generator=gen, device=device)[:512].cpu()].to(device)
                 _stacked.rownorm_refresh(_xr, cfg.balance_target if cfg.balance_target > 0 else 1.0, cfg.balance_rownorm)
                 print(f"  [balance:rownorm] it {t + 1}: norms re-canonicalised (pre-activation RMS -> {cfg.balance_target if cfg.balance_target > 0 else 1.0:.2f}, head compensated) and re-frozen: median per layer "
                       f"{' '.join(f'{float(r.median()):.2f}' for r in _stacked.row_targets)} | head median row norm {float(_stacked.W[-1].norm(dim=-1).median()):.2f}", flush=True)
@@ -2684,6 +2776,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             for o, base_opt in zip(training_opts, opts):
                 for group in o.param_groups: group['lr'] = base_opt.param_groups[0]['lr']
         _bal_before = None; _bal_after = None
+        _train_losses = None               # per-member mean loss over the LAST epoch (free member ranking)
+        _ep_vec = None
         for ep in range(cfg.epochs):
             ep_loss = 0.0
             nb = 0
@@ -2715,6 +2809,22 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                         idx = _perm_cpu[i:i + cfg.batch]
                         return X[idx].to(device, non_blocking=False), Yfit[idx].to(device, non_blocking=False)
                     _AHEAD = 2                                   # 2 gather workers, 2 batches ahead: GPU-bound (2.7 ms vs 17.7 sequential)
+                    if _ring is not None or cfg.gpu_seg:
+                        # segment-shuffled stream (disk ring: both tiers, prefetched; else the host buffer),
+                        # minibatches gathered on the GPU from a resident segment (cfg.gpu_seg); same step math
+                        if _ring is not None:
+                            _it = _ring.epoch_batches(cfg.batch, gen, device, ahead=_AHEAD, gpu=cfg.gpu_seg)
+                        else:
+                            from diskring import ram_epoch_batches
+                            _it = ram_epoch_batches(X, Yfit, cfg.batch, gen, device,
+                                                    int(cfg.disk_seg_gb * 1e9 // (X.shape[1] * 4)), ahead=_AHEAD, gpu=True)
+                        for xb, yb in _it:
+                            _stacked.set_lr(opts[0].param_groups[0]["lr"])
+                            _per = _stacked.step(xb, yb, cfg.fit_loss)
+                            _ep_acc = _per.sum() if _ep_acc is None else _ep_acc + _per.sum()
+                            _ep_vec = _per.detach() if _ep_vec is None else _ep_vec + _per.detach()
+                            nb += 1
+                        _starts = []
                     with _cf.ThreadPoolExecutor(max_workers=_AHEAD) as _pool:
                         _futs = [_pool.submit(_fetch, i) for i in _starts[:_AHEAD]]
                         for j, i in enumerate(_starts):
@@ -2724,8 +2834,11 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             _stacked.set_lr(opts[0].param_groups[0]["lr"])
                             _per = _stacked.step(xb, yb, cfg.fit_loss)       # per-member losses, no host sync
                             _ep_acc = _per.sum() if _ep_acc is None else _ep_acc + _per.sum()
+                            _ep_vec = _per.detach() if _ep_vec is None else _ep_vec + _per.detach()
                             nb += 1
                     ep_loss += float(_ep_acc) / cfg.p
+                    if _ep_vec is not None and nb:
+                        _train_losses = (_ep_vec / nb).tolist(); _ep_vec = None
                     _ep_acc = None
                     if cfg.balance and cfg.balance_mode == "actnorm" and pop[0].act_name in ("leaky_relu", "relu") and _stacked.actnorm_target is None:
                         _stacked.actnorm_target = cfg.balance_target if cfg.balance_target > 0 else 1.0     # from now on every step projects
@@ -2744,16 +2857,39 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     if cfg.fit_delta > 0 and ep_loss / max(nb, 1) < cfg.fit_delta:
                         break
                     continue
-                for i in range(0, n, cfg.batch):
+                _seq_seg = (_ring is not None) or (cfg.gpu_seg and stages is None and solo_pools is None
+                                                   and _targeter is None and _reverse is None and not frozen
+                                                   and not partial_mask and all(f is None for f in facs))   # plain mode only
+                if _seq_seg:
+                    # members trained one by one: same segment-shuffled (GPU-resident) stream
+                    _ep_list = [0.0] * cfg.p
+                    if _ring is not None:
+                        _it = _ring.epoch_batches(cfg.batch, gen, device, gpu=cfg.gpu_seg)
+                    else:
+                        from diskring import ram_epoch_batches
+                        _it = ram_epoch_batches(X, Yfit, cfg.batch, gen, device,
+                                                int(cfg.disk_seg_gb * 1e9 // (X.shape[1] * 4)), gpu=True)
+                    for xb, yb in _it:
+                        bl = 0.0
+                        for mi, (net, opt, fac) in enumerate(zip(training_members, training_opts, facs)):
+                            _l = _sgd_step(net, opt, fac, xb, yb); bl += _l; _ep_list[mi] += _l
+                        ep_loss += bl / cfg.p
+                        nb += 1
+                    if nb:
+                        _train_losses = [v / nb for v in _ep_list]
+                _ep_list = [0.0] * cfg.p
+                for i in (range(0, n, cfg.batch) if not _seq_seg else ()):
                     idx = perm[i:i + cfg.batch].cpu()
                     xb = X[idx].to(device) if stages is None else None
                     yb = Yfit[idx].to(device)
                     bl = 0.0
                     for mi, (net, opt, fac) in enumerate(zip(training_members, training_opts, facs)):
                         member_x = feature_buffers[mi][idx].to(device) if stages is not None else xb
-                        bl += _sgd_step(net, opt, fac, member_x, yb)
+                        _l = _sgd_step(net, opt, fac, member_x, yb); bl += _l; _ep_list[mi] += _l
                     ep_loss += bl / cfg.p
                     nb += 1
+                if not _seq_seg and nb and stages is None and solo_pools is None and _targeter is None:
+                    _train_losses = [v / nb for v in _ep_list]
                 if _ep_acc is not None:
                     ep_loss += float(_ep_acc) / cfg.p
                 if cfg.balance and (ep + 1) % cfg.balance == 0 and stages is None and pop[0].act_name in ("leaky_relu", "relu"):
@@ -2767,6 +2903,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 break
         if _fast:
             _stacked.push(pop, opts)              # trained weights (+ Adam state) back into the member modules
+        _t_train = time.time() - _t_tr0            # the cfg.epochs training epochs (incl. per-epoch balance hooks)
         if cfg.balance and cfg.balance_mode in ("rownorm", "actnorm") and _fast and (_stacked.row_targets is not None or _stacked.actnorm_target is not None) and ((t + 1) % cfg.log_every == 0 or t == 0):
             with torch.no_grad():
                 _xr = _stacked.actnorm_ref if _stacked.actnorm_ref is not None else xb
@@ -2809,11 +2946,11 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                     solve_last_layer_(_FrontierNet(net, pf) if pf is not None else net, X[pool], Yfit[pool])
             else:
                 for net in pop:
-                    solve_last_layer_(_FrontierNet(net, pf) if pf is not None else net, X, Yfit, sample=cfg.lastlayer_sample)
+                    solve_last_layer_(_FrontierNet(net, pf) if pf is not None else net, Xl, Yl, sample=cfg.lastlayer_sample)
 
         # --- early stopping (App F signals, actually wired in) ---
         if cfg.stop_loss > 0 and (t + 1) % cfg.log_every == 0:
-            losses_now = loss_on(qg_members, X, Yfit)
+            losses_now = loss_on(qg_members, Xl, Yl)
             bl = min(losses_now)
             disp = 0.0
             if cfg.stop_agree > 0:
@@ -2837,13 +2974,13 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         # --- committee maintenance (alignment/soup/restart) ---
         souped = None
         if cfg.maint_every and (t + 1) % cfg.maint_every == 0 and t >= 5:
-            losses = loss_on(qg_members, X, Yfit)
+            losses = loss_on(qg_members, Xl, Yl)
             order = sorted(range(cfg.p), key=lambda i: losses[i])
             best_now = pop[order[0]].clone()
             for i in order[1:]:
                 align_member_to(best_now, pop[i])
             cand = soup_of([best_now] + [pop[i] for i in order[1:]])
-            closs, wloss = loss_on([cand], X, Yfit)[0], losses[order[-1]]
+            closs, wloss = loss_on([cand], Xl, Yl)[0], losses[order[-1]]
             if closs < wloss:
                 pop[order[-1]] = cand.to(device)
                 opts[order[-1]] = torch.optim.Adam(
@@ -2999,7 +3136,13 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         # --- logging (consensus + combine run FIRST so this iter's max_eps
         #     reflects any injected member) ---
         if (t + 1) % cfg.log_every == 0 or t == budget_end - 1:
-            losses = loss_on(qg_members, X, Yfit)
+            if _train_losses is not None and not cfg.eval_loss and len(_train_losses) == len(qg_members) and not combined_done and not frozen:
+                losses = list(_train_losses)       # free: per-member mean training loss of the last epoch
+                if t == 0 or it_disp == 1:
+                    print("  [loss] member ranking / printed loss = each member's mean training loss over the last epoch "
+                          "(no post-training pass over the buffer; --eval-loss restores it)", flush=True)
+            else:
+                losses = loss_on(qg_members, Xl, Yl)
             if expanded:                       # fit gate: loss only (dims mismatch)
                 bi = min(range(cfg.p), key=lambda i: losses[i])
                 best = pop[bi]
@@ -3017,14 +3160,14 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 continue
             # ungated 5/8 — identical to the --fast dump trigger, so the printed
             # `cluster` column and --combine act on the same consensus --fast does
-            cnet = build_consensus(pop, dims, eps=cfg.cluster_eps,
-                                   quorum_ratio=cfg.cluster_quorum)
-            cc = (param_errors(cnet, teacher, hard=cfg.hard)["max_eps"]
-                  if cnet is not None else None)
             cstats = consensus_neuron_stats(pop, teacher, dims,
                                             eps=cfg.cluster_eps,
                                             quorum_ratio=cfg.cluster_quorum,
                                             hard=cfg.hard)
+            cnet = (cstats["cnet"] if "cnet" in cstats else       # deep path: same net build_consensus would return
+                    build_consensus(pop, dims, eps=cfg.cluster_eps, quorum_ratio=cfg.cluster_quorum))
+            cc = (param_errors(cnet, teacher, hard=cfg.hard)["max_eps"]
+                  if cnet is not None else None)
             combined_now = None
             if cfg.combine and not combined_done and cnet is not None:
                 polished = polish_consensus(
@@ -3051,7 +3194,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                       f"(loss {losses[wi]:.2e}) with polished consensus "
                       f"(max_eps {cc:.2e}->{pe:.2e}, loss {pl:.2e})",
                       flush=True)
-                losses = loss_on(qg_members, X, Yfit)  # reflect the injected member
+                losses = loss_on(qg_members, Xl, Yl)  # reflect the injected member
             bi = min(range(cfg.p), key=lambda i: losses[i])
             best = pop[bi]
             base_loss = None
@@ -3062,8 +3205,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 ncap = min(len(X), 100000)
                 base_loss = float(
                     (Y[-ncap:] - boost_P[-ncap:]).abs().mean())
-            _probe = (X[torch.randperm(len(X))[:4096]] if (cfg.align_inverse and len(X) > 0
-                                                            and pf is None) else None)
+            _probe = (Xl[torch.randperm(len(Xl))[:4096]] if (cfg.align_inverse and len(Xl) > 0
+                                                              and pf is None) else None)
             errs = _param_errors_cfg(_frozen_fp64_view(best, frozen), teacher, cfg,
                                      probe=_probe)
             errs_chained = (param_errors(_frozen_fp64_view(best, frozen), teacher, hard=cfg.hard)
@@ -3091,6 +3234,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 "agree": agreement(best, teacher, teacher_eval_pts),
                 "wall_s": round(time.time() - t0, 1),
                 "cluster_max_eps": cc,
+                "iter_s": round(time.time() - _t_it0, 1),
+                "sample_s": round(_t_sample, 1),
+                "train_s": round(_t_train, 1),
             }
             if cstats is not None:
                 rec["n_consensus"] = cstats["n_consensus"]
@@ -3138,15 +3284,22 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 cons_str = f"0/{dims[1]}"
             _ls = (f"{base_loss:.2e} (stage {losses[bi] * boost_scale:.2e})"
                    if base_loss is not None else f"{losses[bi]:.2e}")
-            print(f"  it {it_disp:3d} | q {(t + 1) * cfg.q:6d} | "
-                  f"loss {_ls} | max_eps {errs['max_eps']:.2e} | "
-                  f"mean_eps {rec['mean_eps']:.2e} | "
-                  f"cluster {cc_str} | cons {cons_str} | "
-                  f"agree {rec['agree']:.4f} | {rec['wall_s']}s", flush=True)
-            if _pmax:                                   # per-layer eps: ALL neurons
-                print("        eps/layer (all" + (", act-matched" if cfg.align_inverse else "") + "):  " + "  ".join(
-                    f"L{i+1}[max {max(_pmax[2*i], _pmax[2*i+1]):.2e} "
-                    f"mean {_pmean[2*i]:.2e}]" for i in range(_nmat)), flush=True)
+            _qtot = (t + 1) * cfg.q
+            _qs = f"{_qtot / 1e6:.2f}M" if _qtot >= 1e6 else f"{_qtot / 1e3:.0f}k" if _qtot >= 1e4 else str(_qtot)
+            if it_disp == 1:
+                print("  legend: it | q | loss | max_eps | mean_eps  //  cons certified/total [per hidden layer] cons-eps | agree | wall\n"
+                      "          time = this iteration, split  //  eps = per-layer max/mean" + (" (act-matched)" if cfg.align_inverse else "")
+                      + "  //  iso = per-matrix consensus rows dir/mag/full, c = cols dir/full, * = inputs not yet identified", flush=True)
+            print(f"  it {it_disp:3d} | q {_qs} | loss {_ls} | max_eps {errs['max_eps']:.2e} | mean_eps {rec['mean_eps']:.2e}"
+                  + (f" | cluster {cc_str}" if cc is not None else ""), flush=True)
+            print(f"      cons {cons_str} | agree {rec['agree']:.4f} | {rec['wall_s']}s", flush=True)
+            _t_it = time.time() - _t_it0
+            print(f"      time {_t_it:.1f}s = sampling {_t_sample:.1f}s ({100 * _t_sample / max(_t_it, 1e-9):.0f}%) "
+                  f"+ training {_t_train:.1f}s ({100 * _t_train / max(_t_it, 1e-9):.0f}%) "
+                  f"+ other {_t_it - _t_sample - _t_train:.1f}s", flush=True)
+            if _pmax:                                   # per-layer eps: ALL neurons (max/mean)
+                print("      eps  " + "  ".join(
+                    f"L{i+1} {max(_pmax[2*i], _pmax[2*i+1]):.1e}/{_pmean[2*i]:.1e}" for i in range(_nmat)), flush=True)
                 # PARTIALLY-frozen layers: split the eps into frozen vs unsolved,
                 # so it's clear the frozen part is exact and where the error lives.
                 _solved = {}
@@ -3160,31 +3313,19 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                         _solved[l] = m
                 if _solved:
                     spl = layer_eps_split(best, teacher, _solved)
-                    print("        eps/layer (frozen|unsolved): " + "  ".join(
+                    print("      eps (frozen|unsolved): " + "  ".join(
                         f"L{l+1}[{spl[l]['n']}f: max {spl[l]['fz'][0]:.2e} "
                         f"mean {spl[l]['fz'][1]:.2e} | {m.numel()-spl[l]['n']}u: "
                         f"max {spl[l]['uf'][0]:.2e} mean {spl[l]['uf'][1]:.2e}]"
                         for l, m in ((l, _solved[l]) for l in sorted(spl))), flush=True)
-                if errs_chained is not None:
-                    _cm, _cmean = errs_chained["max_eps_per_matrix"], errs_chained["mean_eps_per_matrix"]
-                    print("        eps/layer (all, CHAINED weight-align): " + "  ".join(
-                        f"L{i+1}[max {max(_cm[2*i], _cm[2*i+1]):.2e} mean {_cmean[2*i]:.2e}]"
-                        for i in range(_nmat)), flush=True)
                 if errs.get("head_opt"):
                     _ho = errs["head_opt"]
-                    print(f"        head (gauge-optimal pairing+scale): W[max {_ho['max_eps_W']:.2e} "
+                    print(f"      head (gauge-optimal pairing+scale): W[max {_ho['max_eps_W']:.2e} "
                           f"mean {_ho['mean_eps_W']:.2e}] b[max {_ho['max_eps_b']:.2e}] | "
                           f"pairing agrees w/ activation match {_ho['pair_agree_with_act']:.2f} | "
                           f"scale med {_ho['scale_median']:.3f} "
                           f"[{_ho['scale_minmax'][0]:.2f},{_ho['scale_minmax'][1]:.2f}]", flush=True)
-            if cstats is not None and "layers" in cstats:   # per-layer eps: CONSENSUS only
-                def _clyr(i, x):
-                    if x.get("cons_max") is not None:
-                        return (f"L{i+1}[max {x['cons_max']:.2e} mean "
-                                f"{x['cons_mean']:.2e} ({x['n_cons']}/{x['n_tot']})]")
-                    return f"L{i+1}[n/a ({x['n_cons']}/{x['n_tot']})]"
-                print("        eps/layer (cons, training copies): " + "  ".join(
-                    _clyr(i, x) for i, x in enumerate(cstats["layers"])), flush=True)
+            # (per-layer eps of the consensus units stays in the record: rec["consensus_*"] / cstats["layers"])
 
             # --- --partial: opportunistically refine + in-place freeze the
             #     frontier's SOLVABLE neurons every log_every iters, regardless of
@@ -4157,7 +4298,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if _reverse_report is None:
                 _reverse_report = ReversePeel(dims, cfg, device)
             _rep = _reverse_report.report_only(pop, X, bi, losses=list(losses) if losses is not None else None)
-            print("  [consensus/matrix, isolated] " + "  ".join(
+            print("      iso  " + "  ".join(
                 _fmt_matrix(k, v, _rep, len(dims))
                 for k, v in sorted(_rep.items())), flush=True)
             if log:
@@ -4195,7 +4336,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                   f" unsolved[max {_fe(_v.get('eps_unsolved_max'))} mean {_fe(_v.get('eps_unsolved_mean'))}]")
                 _rep = _rinfo.get("report") or {}
                 if _rep:
-                    print("  [consensus/matrix, isolated] " + "  ".join(
+                    print("      iso  " + "  ".join(
                         _fmt_matrix(k, v, _rep, len(dims))
                         for k, v in sorted(_rep.items())), flush=True)
                 print(f"  [reverse-peel] " + " | ".join(_parts) + f" | {_qn} queries | forced pins so far {_reverse.n_forced}"
@@ -4258,7 +4399,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 "quorum_ratio": cfg.cluster_quorum,
                 "teacher_state": {k: v.detach().cpu() for k, v in
                                   teacher.state_dict().items()},
-                "X": X.detach().cpu(), "Y": Y.detach().cpu(),
+                **({"disk_ring": _ring.flush_ram() and _ring.meta()} if _ring is not None
+                   else {"X": X.detach().cpu(), "Y": Y.detach().cpu()}),
             }, cfg.dump_path)
             _why = (f"L{cfg.stop_layer + 1} full consensus" if cfg.stop_layer >= 0
                     and _cons_hit is not None else
@@ -4331,8 +4473,10 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             for k, v in m.state_dict().items()} for m in pop],
             "teacher_state": {k: v.detach().cpu()
                               for k, v in teacher.state_dict().items()},
-            "X": X.detach().cpu(),
-            "Y": Y.detach().cpu(),
+            # --disk: the window stays in DIR (RAM tier flushed to X_ram.bin/Y_ram.bin + meta.json;
+            # diskring.load_ring_rows(DIR) reads it back) instead of being copied into this file
+            **({"disk_ring": _ring.flush_ram() and _ring.meta()} if _ring is not None
+               else {"X": X.detach().cpu(), "Y": Y.detach().cpu()}),
             "cfg": asdict(cfg),
             "seed": seed,
             "queries": queries_used,
@@ -4372,15 +4516,16 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         else:
             best = pop[bi]
             extra["popavg"] = {"k": k}
+    _Xe, _Ye = (_ring.ram_X, _ring.ram_Y) if _ring is not None else (X, Y)   # --disk: endgame on the RAM tier
     if cfg.polish_f64:
-        best = polish_f64(best, X, Y, cfg, gen)
+        best = polish_f64(best, _Xe, _Ye, cfg, gen)
     if cfg.lbfgs_polish:
-        best = polish_lbfgs(best, X, Y, cfg)
+        best = polish_lbfgs(best, _Xe, _Ye, cfg)
 
     if cfg.design_refine:
         best = _frozen_fp64_view(best, frozen)
     errs = _param_errors_cfg(_frozen_fp64_view(best, frozen), teacher, cfg,
-                             probe=(X[torch.randperm(len(X))[:4096]] if len(X) > 0 else None))
+                             probe=(_Xe[torch.randperm(len(_Xe))[:4096]] if len(_Xe) > 0 else None))
     if (cfg.layer_consensus or cfg.reverse_peel) and cfg.p > 1 and len(dims) > 2:
         # end-of-run: per-consensus-neuron weight error vs the black box, per matrix
         try:

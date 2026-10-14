@@ -159,17 +159,24 @@ def greedy_perm(A, B, signed=False):
         Dn = torch.cdist(A.float(), -B.float(), p=1)
         neg = Dn < D
         D = torch.minimum(D, Dn)
-    INF = torch.tensor(float("inf"), device=D.device)
+    # the greedy sweep is n sequential argmins over an n x n matrix: run it on the CPU in numpy
+    # (one device->host copy) instead of n GPU argmin+sync round trips (was ~14 ms per call at
+    # n=200, ~2 ms now). Same first-minimum tie-breaking as torch.argmin on the flattened matrix.
+    import numpy as np
+    Dn_ = D.detach().cpu().numpy().copy()
+    negn = neg.detach().cpu().numpy() if signed else None
     perm = [None] * n
-    flip = torch.zeros(n, dtype=torch.bool, device=D.device)
+    flipn = np.zeros(n, dtype=bool)
+    INF = np.inf
     for _ in range(n):
-        idx = D.argmin().item()
+        idx = int(Dn_.argmin())
         i, j = idx // n, idx % n
         perm[i] = j
         if signed:
-            flip[j] = neg[i, j]
-        D[i, :] = INF
-        D[:, j] = INF
+            flipn[j] = negn[i, j]
+        Dn_[i, :] = INF
+        Dn_[:, j] = INF
+    flip = torch.from_numpy(flipn).to(D.device)
     return (perm, flip) if signed else perm
 
 

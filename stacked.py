@@ -12,16 +12,114 @@ weights back so the sampler / consensus / snapshots see them unchanged.
 import torch
 
 
+def _adam_kernel(p, g, m, v, lr, step, b1, b2, eps):
+    """torch.optim.Adam's update (no weight decay / amsgrad) as one fused pass; lr and step are 0-d tensors
+    so torch.compile does not recompile when the lr schedule or dirlr changes them."""
+    m.mul_(b1).add_(g, alpha=1 - b1)
+    v.mul_(b2).addcmul_(g, g, value=1 - b2)
+    bc1 = 1 - b1 ** step
+    bc2 = 1 - b2 ** step
+    denom = v.sqrt() / bc2.sqrt() + eps
+    p.add_((lr / bc1) * (m / denom), alpha=-1.0)
+
+
+_ADAM_COMPILED = None
+
+
+def _adam_update(p, g, m, v, lr, step, b1, b2, eps):
+    global _ADAM_COMPILED
+    if _ADAM_COMPILED is None:
+        try:
+            _ADAM_COMPILED = torch.compile(_adam_kernel)
+        except Exception:
+            _ADAM_COMPILED = _adam_kernel
+    try:
+        _ADAM_COMPILED(p, g, m, v, lr, step, b1, b2, eps)
+    except Exception:                                  # compile backend failure: eager fallback
+        _ADAM_COMPILED = _adam_kernel
+        _adam_kernel(p, g, m, v, lr, step, b1, b2, eps)
+
+
+class FlatAdam:
+    """Adam for the stacked trainer over ONE flat fp32 buffer holding every member's every parameter.
+    The per-layer tensors (W[l], b[l]) are LEAF tensors whose storage aliases the buffer (detached views),
+    so the forward/backward are unchanged and each leaf gets its own .grad; step() copies the 22 grads
+    into one flat grad buffer and runs the update as a single fused pass (0.26 ms for 7.7M params vs
+    1.30 ms for torch's foreach Adam). [Making the leaves plain autograd views of one leaf buffer is a
+    trap: every view's backward scatters into a full-size tensor, 22 x 30 MB per step, slower than
+    foreach.] Mimics the torch.optim.Adam surface the trainer uses: param_groups (one per layer, each
+    {"params": [W, b], "lr", "_base_lr"}), state[param] = {"step", "exp_avg", "exp_avg_sq"} (views of
+    the flat moment buffers, so the balance / rownorm code can rescale them in place), zero_grad(),
+    step(). Same Adam formula and fp32 math; per-group lrs (dirlr) take a per-group pass."""
+
+    def __init__(self, shapes, lr, betas, eps, device, dtype, weight_decay=0.0, amsgrad=False):
+        assert weight_decay == 0.0 and not amsgrad, "FlatAdam: weight_decay / amsgrad not supported"
+        self.b1, self.b2, self.eps = float(betas[0]), float(betas[1]), float(eps)
+        n = sum(int(torch.Size(sh).numel()) for grp in shapes for sh in grp)
+        self.flat = torch.zeros(n, device=device, dtype=dtype)      # parameter storage (no grad itself)
+        self.g = torch.zeros(n, device=device, dtype=dtype)         # flat gradient buffer
+        self.m = torch.zeros(n, device=device, dtype=dtype)
+        self.v = torch.zeros(n, device=device, dtype=dtype)
+        self.step_t = torch.zeros((), device=device, dtype=dtype)
+        self.lr_t = torch.full((), float(lr), device=device, dtype=dtype)
+        self.param_groups, self.state, self.spans = [], {}, []
+        a = 0
+        for grp in shapes:
+            params, span = [], []
+            for sh in grp:
+                k = int(torch.Size(sh).numel())
+                p = self.flat[a:a + k].view(*sh).detach().requires_grad_(True)   # leaf aliasing the buffer
+                params.append(p)
+                self.state[p] = {"step": self.step_t, "exp_avg": self.m[a:a + k].view(*sh),
+                                 "exp_avg_sq": self.v[a:a + k].view(*sh)}
+                span.append((a, a + k)); a += k
+            self.param_groups.append({"params": params, "lr": float(lr), "_base_lr": float(lr)})
+            self.spans.append((span[0][0], span[-1][1]))     # a group's params are contiguous in the buffer
+            self._pspans = getattr(self, "_pspans", []) + [span]
+        self.defaults = {"lr": float(lr), "betas": (self.b1, self.b2), "eps": self.eps}
+
+    def zero_grad(self, set_to_none=True):
+        for grp in self.param_groups:
+            for p in grp["params"]:
+                p.grad = None
+
+    @torch.no_grad()
+    def step(self):
+        grads = [p.grad for grp in self.param_groups for p in grp["params"]]
+        if any(gr is None for gr in grads):
+            return
+        gviews = [self.g[a:b] for grp_spans in self._pspans for (a, b) in grp_spans]
+        torch._foreach_copy_(gviews, [gr.reshape(-1) for gr in grads])
+        g = self.g
+        self.step_t += 1
+        lrs = [grp["lr"] for grp in self.param_groups]
+        if all(x == lrs[0] for x in lrs):
+            self.lr_t.fill_(lrs[0])
+            _adam_update(self.flat, g, self.m, self.v, self.lr_t, self.step_t, self.b1, self.b2, self.eps)
+        else:                                               # per-layer lrs (dirlr): one pass per group
+            for (a, b), lr in zip(self.spans, lrs):
+                self.lr_t.fill_(lr)
+                _adam_update(self.flat[a:b], g[a:b], self.m[a:b], self.v[a:b], self.lr_t, self.step_t,
+                             self.b1, self.b2, self.eps)
+
+
 class StackedTrainer:
     def __init__(self, pop, opts):
         self.P = len(pop); self.L = len(pop[0].layers); self.act = pop[0].act
         self.ids = [id(m) for m in pop]
-        self.W = [torch.stack([m.layers[l].weight.detach() for m in pop]).clone().requires_grad_(True) for l in range(self.L)]
-        self.b = [torch.stack([m.layers[l].bias.detach() for m in pop]).clone().requires_grad_(True) for l in range(self.L)]
         d = opts[0].defaults
         self.base_lr0 = d["lr"]; self.dirlr = None            # --balance-dirlr: per-layer lr = eta * |row| / sqrt(fan_in)
-        self.opt = torch.optim.Adam([{"params": [self.W[l], self.b[l]]} for l in range(self.L)], lr=d["lr"], betas=d["betas"], eps=d["eps"],
-                                    weight_decay=d.get("weight_decay", 0.0), amsgrad=d.get("amsgrad", False))
+        p0 = pop[0].layers[0].weight
+        shapes = [[(self.P,) + tuple(m.layers[l].weight.shape), (self.P,) + tuple(m.layers[l].bias.shape)]
+                  for l, m in ((l, pop[0]) for l in range(self.L))]
+        self.opt = FlatAdam(shapes, lr=d["lr"], betas=d["betas"], eps=d["eps"], device=p0.device, dtype=p0.dtype,
+                            weight_decay=d.get("weight_decay", 0.0), amsgrad=d.get("amsgrad", False))
+        self.W = [self.opt.param_groups[l]["params"][0] for l in range(self.L)]   # views of the flat buffer
+        self.b = [self.opt.param_groups[l]["params"][1] for l in range(self.L)]
+        with torch.no_grad():
+            for l in range(self.L):
+                self.W[l].copy_(torch.stack([m.layers[l].weight.detach() for m in pop]))
+                self.b[l].copy_(torch.stack([m.layers[l].bias.detach() for m in pop]))
         self._import_state(pop, opts)
 
     def matches(self, pop):
@@ -35,10 +133,10 @@ class StackedTrainer:
                 sts = [opts[mi].state.get(getattr(m.layers[l], kind)) for mi, m in enumerate(pop)]
                 if not all(st and "exp_avg" in st for st in sts):
                     continue
-                st = self.opt.state[P_st]
-                st["step"] = sts[0]["step"].clone() if torch.is_tensor(sts[0]["step"]) else torch.tensor(float(sts[0]["step"]))
-                st["exp_avg"] = torch.stack([s["exp_avg"] for s in sts]).clone()
-                st["exp_avg_sq"] = torch.stack([s["exp_avg_sq"] for s in sts]).clone()
+                st = self.opt.state[P_st]                     # entries are VIEWS of the flat moment buffers: copy into them
+                st["step"].fill_(float(sts[0]["step"]))
+                st["exp_avg"].copy_(torch.stack([s["exp_avg"] for s in sts]))
+                st["exp_avg_sq"].copy_(torch.stack([s["exp_avg_sq"] for s in sts]))
 
     @torch.no_grad()
     def pull(self, pop):

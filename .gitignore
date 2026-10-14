@@ -5,3 +5,7 @@ __pycache__/
 *.pt
 *.pyc
 *.log
+
+# live --disk ring directories (hundreds of GB)
+disk/
+rings/

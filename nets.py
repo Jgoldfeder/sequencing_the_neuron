@@ -45,13 +45,15 @@ class MLP(nn.Module):
         return self.layers[-1](x)
 
     def clone(self):
-        new = MLP(self.dims, getattr(self.act, "negative_slope", 0.01),
-                  self.act_name)
+        # Build the copy on the meta device (no random init, no allocation), materialise it
+        # uninitialised at the source's device/dtype, then load. The old path constructed a
+        # real MLP (Glorot normal_ + nn.Linear's own uniform_ on every layer) just to overwrite
+        # it: ~8 ms per clone, 1.2 s per consensus pass. dtype is matched BEFORE the load, else
+        # an fp64 source would be truncated to fp32 (caps param_errors at ~6e-8).
         p = next(self.parameters())
-        # match dtype BEFORE load_state_dict, else an fp64 source is truncated
-        # to the fresh net's default (fp32) -- which silently caps every
-        # param_errors/scale_normalize comparison at fp32 (~6e-8).
-        new = new.to(device=p.device, dtype=p.dtype)
+        with torch.device("meta"):
+            new = MLP(self.dims, getattr(self.act, "negative_slope", 0.01), self.act_name)
+        new = new.to_empty(device=p.device).to(dtype=p.dtype)
         new.load_state_dict(self.state_dict())
         return new
 
