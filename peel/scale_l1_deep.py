@@ -61,19 +61,24 @@ for i, r in sorted(res.items()):
                     continue
                 c = Gs[sh].mean(0); c = c / c.norm()
                 p = (Gs @ c)
-                win = (gs < 1e-2 * pk) & (gs > 1e-9 * pk)
+                # direction purity along the tail: neuron i's own tail keeps the output direction c (its
+                # downstream is frozen once |z_i| > 3); another unit waking up along the line (a clean, SLOWER
+                # exponential that passes the slope test) rotates it -> drop those points (9L demo unit 85:
+                # |w| 3.98 fitted as 0.847 = a neighbour's tail)
+                good = (p.abs() / gs.clamp_min(1e-300)) > 1 - 1e-4
+                win = (gs < 1e-2 * pk) & (gs > 1e-9 * pk) & good
                 tau_w = tau[win].cpu().numpy(); p_w = p[win].cpu().numpy()
                 if len(tau_w) < 20 or np.any(np.sign(p_w) != np.sign(p_w[0])):
                     continue
                 # slope-constancy check on the clean part (1e-3 .. 1e-7 of the peak)
-                chk = (gs < 1e-3 * pk) & (gs > 1e-7 * pk)
+                chk = (gs < 1e-3 * pk) & (gs > 1e-7 * pk) & good
                 tc = tau[chk].cpu().numpy(); lc = np.log(np.abs(p[chk].cpu().numpy()))
                 if len(tc) < 10:
                     continue
                 loc = np.diff(lc[::4]) / np.diff(tc[::4])
                 if loc.max() - loc.min() > 0.05:
                     continue
-                lin = (gs < 1e-2 * pk) & (gs > 1e-5 * pk)
+                lin = (gs < 1e-2 * pk) & (gs > 1e-5 * pk) & good
                 A0 = np.polyfit(tau[lin].cpu().numpy(), np.log(np.abs(p[lin].cpu().numpy()) + 1e-300), 1)
                 a0 = -A0[0] / 2; sgn = np.sign(p_w[0])
                 def model(th, tau):
@@ -85,12 +90,18 @@ for i, r in sorted(res.items()):
                 fit = least_squares(resid, th0, method="lm", max_nfev=4000)
                 if not fit.success or abs(fit.x[1] / a0 - 1) > 5e-3:
                     continue
-                ests.append((side, float(fit.x[1]), a0, int(win.sum())))
-            if len(ests) >= 2:                               # two estimates agreeing to 2e-5 -> done
-                a = np.array(sorted(e[1] for e in ests)); gap = np.diff(a) / a[:-1]
-                if gap.min() < 2e-5:
-                    k = int(gap.argmin()); ests = [e for e in ests if a[k] <= e[1] <= a[k + 1]]; purity = pur
-                    break
+                ests.append((side, float(fit.x[1]), a0, int(win.sum()), tried))
+            # two estimates agreeing to 2e-5 from two DIFFERENT lines -> done (the two sides of one line share
+            # the same contaminant, so their agreement proves nothing)
+            pair = None
+            for ia in range(len(ests)):
+                for ib in range(ia):
+                    if ests[ia][4] != ests[ib][4] and abs(ests[ia][1] / ests[ib][1] - 1) < 2e-5:
+                        pair = (ests[ib][1], ests[ia][1])
+            if pair is not None:
+                lo, hi = min(pair) * (1 - 2e-5), max(pair) * (1 + 2e-5)
+                ests = [e for e in ests if lo <= e[1] <= hi]; purity = pur
+                break
         if len(ests) >= 2 and purity is not None:
             break
     if ests and purity is None:

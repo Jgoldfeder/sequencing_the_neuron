@@ -83,7 +83,7 @@ def sign_align_clone(net, Zref, X, odd=None):
         C = A.T @ B
         if odd:
             from scipy.optimize import linear_sum_assignment
-            rows, cols = linear_sum_assignment((-C.abs()).cpu().numpy())
+            rows, cols = linear_sum_assignment((-torch.nan_to_num(C.abs(), nan=0.0, posinf=0.0, neginf=0.0)).cpu().numpy())
             perm = torch.empty(C.shape[0], dtype=torch.long, device=X.device); perm[torch.as_tensor(rows, device=X.device)] = torch.as_tensor(cols, device=X.device)
             sgn = torch.sign(C[rows, cols]); sgn[sgn == 0] = 1.0
             flip_units = perm[sgn < 0]
@@ -110,6 +110,7 @@ def pairing_preacts(net, X):
     return _preacts(mc, X)
 
 
+@torch.no_grad()
 def scale_normalize_(net):
     """Canonicalize the net's activation isomorphism, in-place.
 
@@ -478,6 +479,7 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
         B = B / B.norm(dim=0, keepdim=True).clamp_min(1e-12)
         C = (A.T @ B).float()                      # (w_t, w_r) unit correlations
         S = C.abs() if absorb is not None else C   # sign gauge: negated unit is as good
+        S = torch.nan_to_num(S, nan=-1.0, posinf=-1.0, neginf=-1.0)   # a diverged member must not crash the run
         rows, cols = linear_sum_assignment((-S).cpu().numpy())
         perm = [0] * S.shape[0]
         for i, j in zip(rows, cols):
@@ -527,7 +529,7 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
         an = (A * A).sum(0)                           # |a_i|^2
         S_ = G.clamp_min(0) / bn[None, :]
         cost = (an[:, None] - 2 * S_ * G + S_ ** 2 * bn[None, :]).clamp_min(0)  # ||a_i - s b_j||^2
-        rows, cols = linear_sum_assignment(cost.float().cpu().numpy())
+        rows, cols = linear_sum_assignment(torch.nan_to_num(cost.float(), nan=1e30, posinf=1e30, neginf=1e30).cpu().numpy())
         hp = [0] * w
         for i, j in zip(rows, cols):
             hp[i] = int(j)
@@ -551,3 +553,26 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
     if return_match:
         out["perms"] = perms
     return out
+
+
+@torch.no_grad()
+def act_align_members(pop, idxs, ref_idx, probe):
+    """Per-layer ISOLATED alignment by activation pairing (the tanh-style consensus pairing): every hidden layer l of
+    every member is paired to the reference member's layer l by the Hungarian assignment on pre-activation
+    correlations over `probe`, each net run with its OWN prefix. The pairing of layer l does not depend on the weights
+    or the consensus of the layers below, and it is a full permutation, so layer l+1's input columns are reordered
+    consistently even for units that are not (yet) in consensus. Returns (aligned clones, normalised ref)."""
+    from head_refine import _act_perm
+    ref = pop[ref_idx].clone(); scale_normalize_(ref)
+    X = probe.to(ref.layers[0].weight.device, ref.layers[0].weight.dtype)
+    Zref = _preacts(ref, X)
+    out = []
+    for i in idxs:
+        c = pop[i].clone(); scale_normalize_(c)
+        Z = _preacts(c, X)
+        for l in range(len(c.layers) - 1):
+            perm, _ = _act_perm(Zref[l], Z[l])
+            permute_layer_(c, l, perm.tolist())
+            # permute_layer_ reorders layer l's rows and layer l+1's columns; pre-activations of layer l+1 are unchanged
+        out.append(c)
+    return out, ref

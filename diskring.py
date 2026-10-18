@@ -26,11 +26,16 @@ reads, slow -- callers in the hot path use `.ram_X` / `.ram_Y`, the RAM tier onl
 import os
 import json
 import concurrent.futures as cf
+import threading
 
 import torch
 
 ALIGN = 4096            # O_DIRECT alignment (buffer address, file offset, length)
 READ_THREADS = 4        # parallel O_DIRECT readers per segment (3.1 GB/s single -> 3.4 GB/s on the 1.8 TB NVMe)
+NB_GPU = 3            # GPU-resident segment buffers (current + 2 prefetched)
+_VERIFY = bool(int(os.environ.get("DISKRING_VERIFY", "0")))   # debug: checksum every segment copy
+COPIERS = 2           # H2D copier threads
+
 
 
 class _AlignedBuf:
@@ -104,6 +109,7 @@ class DiskRing:
         self.seg_rows = max(1024, min(self.q, int(seg_bytes // self.rowb_x)))
         self.nbuf = int(nbuf)
         self._stage = None                      # staging buffers, allocated on first disk epoch
+        self.race_waits = 0                     # refills that had to wait for a DMA (diagnostic)
         self._tmp = _AlignedBuf(64 * self.rowb_x + 2 * ALIGN)   # small random-access reads
         self._rpool = cf.ThreadPoolExecutor(max_workers=READ_THREADS)
         self.fx = self.fy = self.fxd = self.fyd = None
@@ -272,6 +278,13 @@ class DiskRing:
                     torch.cuda.cudart().cudaHostUnregister(t.data_ptr())
             except Exception:
                 pass
+        for bx, by in (self._stage or []):
+            for b in (bx, by):
+                try:
+                    torch.cuda.cudart().cudaHostUnregister(b.raw.data_ptr())
+                except Exception:
+                    pass
+        self._stage = None
         for fd in (self.fx, self.fy, self.fxd, self.fyd):
             if fd is not None:
                 os.close(fd)
@@ -305,11 +318,27 @@ class DiskRing:
         assert depth + 2 <= self.nbuf, "need nbuf >= depth + 2 staging buffers"
         reader = cf.ThreadPoolExecutor(max_workers=1)
         futs = {}
+        # RACE FIX (2026-10-18): the reader refills staging buffer j % nbuf for the disk segment 4 places
+        # later; the copier threads can finish out of order (GIL / scheduling), so that refill could land
+        # while the DMA out of the same staging buffer was still in flight -> rows of the earlier segment
+        # read at a shifted offset (garbage targets -> NaN members; 10L demo crash). A read now waits
+        # until the previous occupant's DMA has landed (release(si) from the batch generator).
+        dma_done = {si: threading.Event() for si in disk_order}
+        prev_occ = {si: (disk_order[j - self.nbuf] if j >= self.nbuf else None) for j, si in enumerate(disk_order)}
 
         def _load(si):
             _, a, c = segs[si]
+            if prev_occ[si] is not None:
+                if not dma_done[prev_occ[si]].is_set():
+                    self.race_waits += 1          # old code would have refilled a staging buffer mid-DMA here
+                    dma_done[prev_occ[si]].wait()
             bx, by = self._stage[buf_of[si]]
             return self._read_rows("X", a, c, buf=bx), self._read_rows("Y", a, c, buf=by)
+
+        def _release(si):
+            ev = dma_done.get(si)
+            if ev is not None:
+                ev.set()
 
         def _prefetch_upto(si_cur):
             # keep every disk segment within the next `depth` segments (and the current) in flight
@@ -325,8 +354,10 @@ class DiskRing:
 
         try:
             yield from _segment_batches(segs, _seg_data, _prefetch_upto, batch, gen, device,
-                                        S, self.d, self.k, ahead=ahead, gpu=gpu)
+                                        S, self.d, self.k, ahead=ahead, gpu=gpu, release=_release)
         finally:
+            for ev in dma_done.values():      # never leave a queued read blocked at shutdown
+                ev.set()
             reader.shutdown(wait=True)
 
 
@@ -352,6 +383,22 @@ def ram_epoch_batches(X, Y, batch, gen, device, seg_rows, ahead=2, gpu=True):
 _PINNED = {}
 
 
+def _clear_cuda_error():
+    """cudaHostRegister failures (e.g. a range sharing a page with an already registered one) are left in
+    the runtime's last-error slot and would surface as an exception at the next torch CUDA call."""
+    try:
+        import ctypes, glob, os as _os
+        import torch as _torch
+        cands = glob.glob(_os.path.join(_os.path.dirname(_torch.__file__), "..", "nvidia", "cuda_runtime", "lib", "libcudart.so*")) + ["libcudart.so.12", "libcudart.so"]
+        for c in cands:
+            try:
+                ctypes.CDLL(c).cudaGetLastError(); return
+            except OSError:
+                continue
+    except Exception:
+        pass
+
+
 def pin_in_place(t, label=""):
     """cudaHostRegister an existing CPU tensor's storage so H2D copies from it are true async DMA
     (no bounce memcpy: a CPU memcpy of a segment fans out over every core and starves the kernel-launch
@@ -363,6 +410,8 @@ def pin_in_place(t, label=""):
         t0 = _t.time()
         r = torch.cuda.cudart().cudaHostRegister(t.data_ptr(), t.numel() * t.element_size(), 0)
         ok = int(r) == 0
+        if not ok:
+            _clear_cuda_error()
         if ok and label:
             print(f"  [disk] pinned {label} ({t.numel() * t.element_size() / 1e9:.0f} GB) in {_t.time() - t0:.0f}s", flush=True)
         return ok
@@ -380,7 +429,7 @@ def _pinned_pair(S, d, k, n=3):
     return _PINNED[key]
 
 
-def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k, ahead=2, gpu=True):
+def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k, ahead=2, gpu=True, release=None):
     """Core of the epoch: per segment a random row order, minibatches of `batch` rows.
     gpu=True: two GPU buffers of S rows; segment j is copied into buffer j%2 on a side CUDA stream
     by a worker thread while segment j-1 trains; the copy into a buffer waits (CUDA event) for the
@@ -401,6 +450,7 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
             return Xs[idx].to(device, non_blocking=False), Ys[idx].to(device, non_blocking=False)
         gather = cf.ThreadPoolExecutor(max_workers=ahead)
         pend = []
+        last_si = None
         try:
             prefetch_upto(0)
             pend = [gather.submit(_fetch, *tasks[j]) for j in range(min(ahead, len(tasks)))]
@@ -409,6 +459,11 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
                 xb, yb = pend.pop(0).result()
                 if j + ahead < len(tasks):
                     pend.append(gather.submit(_fetch, *tasks[j + ahead]))
+                if last_si is not None and si != last_si and release is not None:
+                    # all of last_si's gathers were consumed (results are taken in order) -> its source is free
+                    # (fetches `ahead` tasks early can still touch segment si, never last_si)
+                    release(last_si)
+                last_si = si
                 yield xb, yb
         finally:
             for f in pend:
@@ -417,20 +472,25 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
                 except Exception:
                     pass
             gather.shutdown(wait=True)
+            if release is not None:
+                for si in range(len(segs)):
+                    release(si)
         return
 
     dev = torch.device(device)
     main = torch.cuda.current_stream(dev)
     copy_stream = torch.cuda.Stream(dev)
-    NB = 3                                     # GPU segment buffers: current + 2 prefetched
+    NB = NB_GPU                                # GPU segment buffers: current + 2 prefetched
     bufs = [(torch.empty(S, d, dtype=torch.float32, device=dev), torch.empty(S, k, dtype=torch.float32, device=dev))
             for _ in range(NB)]
     # Sources are pinned in place (DiskRing pins its RAM tier and staging buffers) so the segment copy is
     # a pure async DMA on the side stream. A pageable source falls back to a SINGLE-THREADED numpy memcpy
     # into a pinned bounce buffer (a torch CPU copy fans out over all cores and starves kernel launches).
     pinned = None
+    plock = threading.Lock()
+    _srcsum = {}
     free_ev = [None] * NB                      # event: main stream done reading buffer b
-    copier = cf.ThreadPoolExecutor(max_workers=2)
+    copier = cf.ThreadPoolExecutor(max_workers=COPIERS)
 
     def _copy(si):
         nonlocal pinned
@@ -439,8 +499,9 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
         Xs, Ys = seg_data(si)                   # waits for the disk read if needed
         c = len(Xs)
         if not (Xs.is_pinned() and Ys.is_pinned()):
-            if pinned is None:
-                pinned = _pinned_pair(S, d, k, NB)
+            with plock:
+                if pinned is None:
+                    pinned = _pinned_pair(S, d, k, NB)
             px, py = pinned[b]
             if free_ev[b] is not None:
                 free_ev[b].synchronize()        # bounce buffer b reused: its last DMA must have landed
@@ -454,6 +515,15 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
             bufs[b][1][:c].copy_(Ys, non_blocking=True)
             ev = torch.cuda.Event(); ev.record(copy_stream)
         ev.synchronize()                        # source may be reused once the DMA has landed
+        if _VERIFY:
+            with torch.cuda.stream(copy_stream):
+                dx = float((bufs[b][0][:c].double().sum(1).cpu() - Xs.double().sum(1)).abs().max())
+                dy = float((bufs[b][1][:c].double().sum(1).cpu() - Ys.double().sum(1)).abs().max())
+            if dx > 0 or dy > 0:
+                print(f"  [diskring VERIFY] seg {si} buf {b}: copy landed WRONG (row-sum diff X {dx:.3g} Y {dy:.3g}) src pinned {Xs.is_pinned()}/{Ys.is_pinned()}", flush=True)
+            _srcsum[si] = (Xs.double().sum(1).clone(), Ys.double().sum(1).clone())
+        if release is not None:
+            release(si)                         # staging buffer / RAM rows of segment si are free again
         return ev
 
     cfuts = {}
@@ -468,6 +538,11 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
             ev = cfuts.pop(si).result()
             main.wait_event(ev)                 # segment si is on the GPU
             Xg, Yg = bufs[si % NB][0][:c], bufs[si % NB][1][:c]
+            if _VERIFY:
+                sx, sy = _srcsum.pop(si)
+                dx = float((Xg.double().sum(1).cpu() - sx).abs().max()); dy = float((Yg.double().sum(1).cpu() - sy).abs().max())
+                if dx > 0 or dy > 0:
+                    print(f"  [diskring VERIFY] seg {si} buf {si % NB}: buffer CHANGED between copy and use (row-sum diff X {dx:.3g} Y {dy:.3g})", flush=True)
             perm = perms[si]
             for i in range(0, c, batch):
                 idx = perm[i:i + batch]
@@ -482,6 +557,9 @@ def _segment_batches(segs, seg_data, prefetch_upto, batch, gen, device, S, d, k,
                 pass
         copier.shutdown(wait=True)
         main.wait_stream(copy_stream)
+        if release is not None:
+            for si in range(len(segs)):
+                release(si)
 
 
 def load_ring_rows(path):

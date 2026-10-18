@@ -1,0 +1,30 @@
+{
+ "frontier": 1,
+ "lines": 2,
+ "queries": 323302,
+ "n_rows": 23,
+ "cluster_sizes": [
+  22,
+  1
+ ],
+ "channels_hit": 0,
+ "hits": [
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
+ ],
+ "errs": []
+}

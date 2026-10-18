@@ -948,6 +948,10 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
         # 1e-8 prefix) or a wrong lock (points from several kinks: residual >=1e-4,
         # inliers a fraction of the points). The angle gate alone let a 3e-2-wrong
         # row through when the consensus guess was 1e-1 off.
+        # NOTE (2026-10-15): keep the 4-deg MLP cap. Removing it made the "track" fallback at a WIDE first layer
+        # (3072 inputs, ~3100 kink points for 3073 unknowns) accept rows that are only ~1e-4 accurate (1-cos 7.5e-5)
+        # although residual <= 1e-5 and all points are inliers -- the residual gate is not a precision certificate
+        # there. First layers go through sampling="design" (recover_first) instead; see method._mlp_refine_layer.
         effective_angle = max_deg if is_conv else min(max_deg, 4.0)
         ok = (n_in >= Din + 8 and n_in >= 0.8 * len(H) and ang <= effective_angle and rmed <= 1e-5)
         if is_conv:

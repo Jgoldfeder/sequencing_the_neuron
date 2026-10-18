@@ -324,6 +324,62 @@ def run_cnn(args):
         overrides["targetdeep"] = True
     if args.balance is not None:
         overrides["balance"] = args.balance
+    if args.guessfree_after:
+        overrides["guessfree_after"] = args.guessfree_after
+        overrides["guessfree_lines"] = args.guessfree_lines
+    if args.verify_cands:
+        overrides["verify_cands"] = True
+    if args.repel:
+        overrides["repel"] = args.repel
+    if args.frontier_lr:
+        overrides["frontier_lr"] = args.frontier_lr
+    if getattr(args, "reinit_lr", 0.0):
+        overrides["reinit_lr"] = args.reinit_lr
+    if getattr(args, "reroll_dups", False):
+        overrides["reroll_dups"] = True
+    if getattr(args, "mine_in_h", False):
+        overrides["mine_in_h"] = True
+    if getattr(args, "hot_reroll", 0.0):
+        overrides["hot_reroll"] = args.hot_reroll
+    if getattr(args, "reroll_stale", 0):
+        overrides["reroll_stale"] = args.reroll_stale
+    if getattr(args, "mine_h_range", 0.0):
+        overrides["query_raw_range"] = args.mine_h_range
+    if getattr(args, "query_map_init_only", False):
+        overrides["query_map_init_only"] = True
+    if getattr(args, "cluster_eps", 0.0):
+        overrides["cluster_eps"] = args.cluster_eps
+    if getattr(args, "cluster_eps_l1", 0.0):
+        overrides["cluster_eps_l1"] = args.cluster_eps_l1
+    if getattr(args, "cluster_quorum", 0.0):
+        overrides["cluster_quorum"] = args.cluster_quorum
+    if getattr(args, "residual_warm", False):
+        overrides["residual_warm"] = True
+    if getattr(args, "orient_check", False):
+        overrides["orient_check"] = True
+    if getattr(args, "masked_consensus", False):
+        overrides["masked_consensus"] = True
+    if getattr(args, "qg_init_data", False):
+        _dd = ([int(v) for v in args.query_via_mlp_prefix.split(":")[0].split(",")] if getattr(args, "query_via_mlp_prefix", "")
+               else (dims if "dims" in dir() else [int(torch.tensor(input_shape).prod()), out_dim]))   # CNN path: MNIST by (784, 10)
+        (_xtr_d, _), (_xte_d, _) = load_data(_dd, device)
+        overrides["qg_init"] = "data"; overrides["query_data"] = torch.cat([_xtr_d, _xte_d]).to(device); overrides["query_data_jitter"] = args.qg_data_jitter; overrides["query_data_pool"] = args.qg_data_pool
+        print(f"[setup] --qg-init-data: {overrides['query_data'].shape[0]} natural inputs as mining base points (jitter {args.qg_data_jitter:g})", flush=True)
+    if getattr(args, "query_map_abs", False):
+        overrides["query_map"] = (lambda raw: raw.abs()); overrides["query_raw_dim"] = dims[0]
+    if getattr(args, "h_push", 0):
+        overrides["h_push_steps"] = args.h_push; overrides["h_push_lr"] = args.h_push_lr; overrides["h_push_radius"] = args.h_push_radius
+        overrides["h_push_mode"] = args.h_push_mode
+        if "_query_map" in dir() and _query_map is not None:
+            overrides["h_push_fn"] = _query_map
+        if args.h_push_mode == "oracle":
+            overrides["h_push_oracle"] = teacher.layers[0]          # DIAGNOSTIC upper bound: teacher frontier units
+        print(f"[setup] --h-push {args.h_push} mode {args.h_push_mode}: prefix fn set = {'h_push_fn' in overrides}", flush=True)
+    if args.loc_refine_l1:
+        overrides["loc_refine_l1"] = True
+    if (getattr(args, "query_via_prefix", False) or getattr(args, "query_via_mlp_prefix", "")) and "_query_map" in dir() and _query_map is not None:
+        overrides["query_map"] = _query_map
+        overrides["query_raw_dim"] = 784 if args.query_via_prefix else int(args.query_via_mlp_prefix.split(":")[0].split(",")[0])
     if args.batch is not None:
         overrides["batch"] = args.batch
     if args.qg_tf32:
@@ -487,15 +543,21 @@ def run_cnn(args):
           f"params={count_params(teacher)} budget={cfg.outer * cfg.q} queries",
           flush=True)
 
-    resume_state = None
+    resume_state = None; resume_record = None
     if args.resume:
         rck = torch.load(args.resume, map_location=device, weights_only=True)
         resume_state = rck.get("refined_state", rck.get("state_dict", rck))
         print(f"[resume] loaded student from {args.resume}", flush=True)
+        if getattr(args, "resume_record", False):
+            if rck.get("partial_state") is not None and rck.get("partial_mask"):
+                resume_record = (rck["partial_state"], rck["partial_mask"])
+                print(f"[resume] --resume-record: using the snapshot's fp64 record ({ {l: int(m.sum()) for l, m in rck['partial_mask'].items()} } pinned rows)", flush=True)
+            else:
+                print("[resume] --resume-record requested but the snapshot has no record; re-solving instead", flush=True)
 
     best, log, final = reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim,
                                        cfg, device, seed=args.seed, fc_dims=fc_dims,
-                                       resume_state=resume_state)
+                                       resume_state=resume_state, resume_record=resume_record)
 
     tag = f"_{args.tag}" if args.tag else ""
     if args.hard:
@@ -952,6 +1014,82 @@ def main():
                          "solvable neurons instead of bailing after the first "
                          "couple of hard ones. Lower it to cap per-attempt cost "
                          "on very wide layers.")
+    ap.add_argument("--guessfree-after", type=int, default=0, metavar="N",
+                    help="(CNN --fast-peel-partial) when the frontier layer's solved count has not grown for N "
+                         "outer iterations, recover its unsolved channels GUESS-FREE from black-box kinks "
+                         "(random-line scan, prefix-Jacobian mapback; guessfree.py) and inject them into every "
+                         "member so the normal consensus -> refine -> pin path accepts them. Unblocks stragglers "
+                         "GD never learns (one-sided channels) and frontiers the committee cannot guess (C5). 0 = off")
+    ap.add_argument("--guessfree-lines", type=int, default=8,
+                    help="random lines per guess-free attempt (~160k queries each on LeNet)")
+    ap.add_argument("--query-via-prefix", action="store_true",
+                    help="(MLP arch = a deeper layer's tail, e.g. 400,120,84,10 = LeNet C5->head) every query is "
+                         "parametrised as phi(x) through the exact LeNet prefix (conv1+conv2), disagreement optimised "
+                         "over pixels x: the attack only ever queries the REACHABLE part of the layer's input space")
+    ap.add_argument("--query-via-mlp-prefix", default="",
+                    help="(MLP arch = the tail of a deeper MLP) 'FULLDIMS:K' e.g. '3072,200,200,200,200,200,100:2': every query is "
+                         "parametrised as prefix(x) through the first K layers of the cached full teacher (seed --teacher-seed-full, "
+                         "default 0), disagreement optimised over x -- the real peel's query distribution, with the prefix exact")
+    ap.add_argument("--teacher-seed-full", type=int, default=0)
+    ap.add_argument("--loc-refine-l1", action="store_true",
+                    help="(MLP peel) use the kink_solve solver for layer 1 too (the legacy layer-1 refiner rejects "
+                         "11-15%% of correct consensus candidates; kink_solve solved 200/200 on the same record)")
+    ap.add_argument("--mine-in-h", action="store_true",
+                    help="(MLP peel, leaky) mine queries in the frontier's input space and invert them EXACTLY through "
+                         "the pinned prefix -> the via-prefix attack becomes the direct attack on the tail")
+    ap.add_argument("--cluster-eps", type=float, default=0.0,
+                    help="consensus tolerance override (Cfg.cluster_eps, default 0.02); looser at deep frontiers where the "
+                         "reachable input distribution is anisotropic and rows agree to ~0.995 cos but not 0.02")
+    ap.add_argument("--standardize-h", action="store_true",
+                    help="with --query-via-mlp-prefix: standardise the prefix output per coordinate (tail teacher re-expressed)")
+    ap.add_argument("--query-map-init-only", action="store_true",
+                    help="ablation with --query-via-*: reachable INIT (prefix of random raw) but feature-space ascent")
+    ap.add_argument("--h-push", type=int, default=0,
+                    help="push raw queries along random frontier-input directions through the exact prefix for N Adam steps "
+                         "before disagreement mining (deep prefixes: balances the frontier units without inversion)")
+    ap.add_argument("--qg-init-data", action="store_true",
+                    help="mining base points = natural inputs of the teacher's dataset (+ jitter) instead of Gaussian noise")
+    ap.add_argument("--qg-data-jitter", type=float, default=0.05)
+    ap.add_argument("--qg-data-pool", type=int, default=0, help="with --qg-init-data: draw N x q images, keep the q with the largest committee disagreement")
+    ap.add_argument("--masked-consensus", action="store_true",
+                    help="deep-layer consensus on input columns in consensus only (end-to-end consensus becomes visible)")
+    ap.add_argument("--orient-check", action="store_true",
+                    help="(MLP partial peel) global orientation certificate on pinned+candidate rows (orient.py); corrects flipped signs")
+    ap.add_argument("--resume-record", action="store_true",
+                    help="(CNN --resume) take the pinned rows from the snapshot's fp64 record instead of re-solving them from the member")
+    ap.add_argument("--residual-warm", action="store_true",
+                    help="(CNN --resume) warm committee from the resumed member; only unsolved frontier channels + their outgoing columns train")
+    ap.add_argument("--cluster-quorum", type=float, default=0.0, help="consensus quorum as a fraction of members (default 0.625 = 5/8)")
+    ap.add_argument("--cluster-eps-l1", type=float, default=0.0, help="consensus eps for layer 1 only (deeper layers: --cluster-eps)")
+    ap.add_argument("--h-push-lr", type=float, default=0.1)
+    ap.add_argument("--h-push-mode", type=str, default="dir", choices=["dir", "unit", "rare", "oracle"],
+                    help="dir: random frontier-input direction; unit: random student frontier unit pushed to a random sign")
+    ap.add_argument("--query-map-abs", action="store_true",
+                    help="ablation: students' input = |raw| (nonnegative-orthant query distribution, no prefix)")
+    ap.add_argument("--h-push-radius", type=float, default=0.0, help="|x| cap for --h-push (0 = 1.1 x median initial |x|)")
+    ap.add_argument("--mine-h-range", type=float, default=0.0,
+                    help="(with --mine-in-h / --query-via-*) uniform U[-r,r] init of the raw/h queries instead of N(0, 0.5^2); "
+                         "the direct tail attack used the variant's uniform init with range 1 in the teacher's gauge")
+    ap.add_argument("--reroll-stale", type=int, default=0, help="partial peel: every K iterations re-randomise the frontier's free non-candidate rows")
+    ap.add_argument("--hot-reroll", type=float, default=0.0,
+                    help="(MLP partial peel) multiply the Adam step of rerolled, not-yet-pinned rows by this factor (e.g. 10)")
+    ap.add_argument("--reroll-dups", action="store_true",
+                    help="(MLP partial peel) re-randomise free frontier rows that duplicate a pinned row in most members")
+    ap.add_argument("--reinit-lr", type=float, default=0.0,
+                    help="(freeze-reinit peel, --fast-peel) lr for the reinitialised deeper layers after a layer freezes "
+                         "(default: --lr). Use 1e-3 when resuming a converged committee at --lr 1e-4")
+    ap.add_argument("--frontier-lr", type=float, default=0.0,
+                    help="(MLP peel) learning rate held for the partially pinned layer's free/rerolled rows, independent "
+                         "of the lr schedule (e.g. 1e-3 while --lr 1e-4 for the rest). Rerolled rows at the decayed lr "
+                         "never re-find missing units; at 1e-3 they do")
+    ap.add_argument("--repel", type=float, default=0.0,
+                    help="(MLP peel) penalty weight on cos^2 between free rows of a partially pinned layer and its pinned "
+                         "rows (anti-duplicate: rerolled units stop re-converging to copies of pinned rows). Try 1.0")
+    ap.add_argument("--verify-cands", action="store_true",
+                    help="(CNN --fast-peel-partial) gate every frontier consensus candidate with the global kink test "
+                         "(black box must have a kink wherever the candidate hyperplane crosses zero at fresh points) "
+                         "before the refiner; rejects the ~35%% of C5 guesses that the solver would otherwise 'solve' "
+                         "to a wrong (F6) kink surface. ~500 queries per candidate")
     ap.add_argument("--peel-advance-frac", type=float, default=1.0, metavar="F",
                     help="(peel-try) advance the frontier to the next layer once "
                          "fraction F of it is solved, instead of requiring 100%%. "
@@ -1206,7 +1344,57 @@ def main():
                                seed=args.teacher_seed, device=device,
                                verbose=smooth, act=act)
         (_, _), (xte, _) = load_data(dims, device)
+        if xte.shape[1] != dims[0]:
+            # no dataset matches this input width (e.g. a truncated network queried at an inner
+            # layer): evaluate on Gaussian points of the right width instead
+            print(f"[setup] no dataset with {dims[0]} inputs; eval points = N(0,0.5^2)^{dims[0]}", flush=True)
+            xte = torch.randn(2000, dims[0], device=device) * 0.5
         eval_pts = xte[:2000]
+        _query_map = None
+        if args.query_via_mlp_prefix:
+            _fd, _K = args.query_via_mlp_prefix.split(":"); _fd = [int(v) for v in _fd.split(",")]; _K = int(_K)
+            _full = make_teacher(_fd, epochs=args.teacher_epochs, seed=args.teacher_seed_full, device=device, verbose=False, act=act)
+            for _p in _full.parameters():
+                _p.requires_grad_(False)
+            def _query_map_raw(raw, _net=_full, _K=_K):
+                h = raw
+                for i in range(_K):
+                    h = _net.act(_net.layers[i](h))
+                return h
+            _query_map = _query_map_raw
+            if getattr(args, "standardize_h", False):
+                # --standardize-h: the students see z = (h - mu) / sigma with per-coordinate stats of the prefix output
+                # under random inputs (attacker-legal: the prefix is known). The black box is the tail teacher, so fold
+                # the affine map into ITS first layer: W' = W diag(sigma), b' = b + W mu  (recovered W' -> W = W' / sigma).
+                # Under reachable queries the raw h7 coordinates have a 65x spread of std (0.11 .. 7.2) and 14/200 are
+                # positive <5% of the time; the direct attack's inputs are isotropic. This removes the scale part.
+                with torch.no_grad():
+                    _hs = torch.cat([_query_map_raw(torch.rand(8192, _fd[0], device=device) * 2 - 1) for _ in range(4)])
+                    _mu = _hs.mean(0); _sig = _hs.std(0).clamp_min(1e-3)
+                    _W = teacher.layers[0].weight; _b = teacher.layers[0].bias
+                    _b.add_(_W @ _mu); _W.mul_(_sig[None, :])
+                def _query_map(raw, _f=_query_map_raw, _mu=_mu, _sig=_sig):
+                    return (_f(raw) - _mu) / _sig
+                print(f"[setup] --standardize-h: prefix output standardised per coordinate (sigma min/median/max "
+                      f"{float(_sig.min()):.3f}/{float(_sig.median()):.3f}/{float(_sig.max()):.3f}); tail teacher's first layer re-expressed in z", flush=True)
+            with torch.no_grad():
+                eval_pts = _query_map(torch.rand(2000, _fd[0], device=device) * 2 - 1)
+            overrides_extra = {"query_raw_dim": _fd[0]}
+            print(f"[setup] --query-via-mlp-prefix: queries = first {_K} layers of the {_fd} teacher applied to x; disagreement optimised over x", flush=True)
+        if args.query_via_prefix:
+            _lenet = make_teacher_cnn((1, 28, 28), [(1, 6, 5, 1, 2, 2), (6, 16, 5, 1, 0, 2), (16, 120, 5, 1, 0, 0)], (84,), 10,
+                                      epochs=25, seed=0, device=device, act="leaky_relu")
+            for _p in _lenet.parameters():
+                _p.requires_grad_(False)
+            def _query_map(raw, _net=_lenet):
+                x = raw.view(raw.shape[0], 1, 28, 28)
+                for i in range(2):
+                    x = torch.nn.functional.avg_pool2d(_net.act(_net.layers[i](x)), 2)
+                return x.flatten(1)
+            with torch.no_grad():
+                eval_pts = _query_map(torch.randn(2000, 784, device=device) * 0.5)
+            print("[setup] --query-via-prefix: queries = phi(x) through the exact LeNet conv1+conv2 (reachable set only); "
+                  "disagreement optimised over pixels", flush=True)
 
     overrides = dict(VARIANTS[args.variant])
     if args.window is not None:
@@ -1250,6 +1438,62 @@ def main():
         overrides["targetdeep"] = True
     if args.balance is not None:
         overrides["balance"] = args.balance
+    if args.guessfree_after:
+        overrides["guessfree_after"] = args.guessfree_after
+        overrides["guessfree_lines"] = args.guessfree_lines
+    if args.verify_cands:
+        overrides["verify_cands"] = True
+    if args.repel:
+        overrides["repel"] = args.repel
+    if args.frontier_lr:
+        overrides["frontier_lr"] = args.frontier_lr
+    if getattr(args, "reinit_lr", 0.0):
+        overrides["reinit_lr"] = args.reinit_lr
+    if getattr(args, "reroll_dups", False):
+        overrides["reroll_dups"] = True
+    if getattr(args, "mine_in_h", False):
+        overrides["mine_in_h"] = True
+    if getattr(args, "hot_reroll", 0.0):
+        overrides["hot_reroll"] = args.hot_reroll
+    if getattr(args, "reroll_stale", 0):
+        overrides["reroll_stale"] = args.reroll_stale
+    if getattr(args, "mine_h_range", 0.0):
+        overrides["query_raw_range"] = args.mine_h_range
+    if getattr(args, "query_map_init_only", False):
+        overrides["query_map_init_only"] = True
+    if getattr(args, "cluster_eps", 0.0):
+        overrides["cluster_eps"] = args.cluster_eps
+    if getattr(args, "cluster_eps_l1", 0.0):
+        overrides["cluster_eps_l1"] = args.cluster_eps_l1
+    if getattr(args, "cluster_quorum", 0.0):
+        overrides["cluster_quorum"] = args.cluster_quorum
+    if getattr(args, "residual_warm", False):
+        overrides["residual_warm"] = True
+    if getattr(args, "orient_check", False):
+        overrides["orient_check"] = True
+    if getattr(args, "masked_consensus", False):
+        overrides["masked_consensus"] = True
+    if getattr(args, "qg_init_data", False):
+        _dd = ([int(v) for v in args.query_via_mlp_prefix.split(":")[0].split(",")] if getattr(args, "query_via_mlp_prefix", "")
+               else (dims if "dims" in dir() else [int(torch.tensor(input_shape).prod()), out_dim]))   # CNN path: MNIST by (784, 10)
+        (_xtr_d, _), (_xte_d, _) = load_data(_dd, device)
+        overrides["qg_init"] = "data"; overrides["query_data"] = torch.cat([_xtr_d, _xte_d]).to(device); overrides["query_data_jitter"] = args.qg_data_jitter; overrides["query_data_pool"] = args.qg_data_pool
+        print(f"[setup] --qg-init-data: {overrides['query_data'].shape[0]} natural inputs as mining base points (jitter {args.qg_data_jitter:g})", flush=True)
+    if getattr(args, "query_map_abs", False):
+        overrides["query_map"] = (lambda raw: raw.abs()); overrides["query_raw_dim"] = dims[0]
+    if getattr(args, "h_push", 0):
+        overrides["h_push_steps"] = args.h_push; overrides["h_push_lr"] = args.h_push_lr; overrides["h_push_radius"] = args.h_push_radius
+        overrides["h_push_mode"] = args.h_push_mode
+        if "_query_map" in dir() and _query_map is not None:
+            overrides["h_push_fn"] = _query_map
+        if args.h_push_mode == "oracle":
+            overrides["h_push_oracle"] = teacher.layers[0]          # DIAGNOSTIC upper bound: teacher frontier units
+        print(f"[setup] --h-push {args.h_push} mode {args.h_push_mode}: prefix fn set = {'h_push_fn' in overrides}", flush=True)
+    if args.loc_refine_l1:
+        overrides["loc_refine_l1"] = True
+    if (getattr(args, "query_via_prefix", False) or getattr(args, "query_via_mlp_prefix", "")) and "_query_map" in dir() and _query_map is not None:
+        overrides["query_map"] = _query_map
+        overrides["query_raw_dim"] = 784 if args.query_via_prefix else int(args.query_via_mlp_prefix.split(":")[0].split(",")[0])
     if args.batch is not None:
         overrides["batch"] = args.batch
     if args.qg_tf32:
@@ -1654,7 +1898,7 @@ def main():
     print(f"[save] {model_path}", flush=True)
     out = {
         "variant": args.variant,
-        "cfg": {k: (list(v) if isinstance(v, tuple) else v)
+        "cfg": {k: (list(v) if isinstance(v, tuple) else (None if callable(v) else v))
                 for k, v in cfg.__dict__.items()},
         "arch": dims,
         "n_params": count_params(teacher),
