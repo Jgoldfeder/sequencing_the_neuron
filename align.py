@@ -20,23 +20,63 @@ Sigmoid / tanh have NO scaling isomorphism; their only per-neuron gauge is
 polarity: sigma(-z) = 1 - sigma(z) (flip + absorb a constant into the next
 bias) and tanh(-z) = -tanh(z) (pure odd flip, nothing to absorb). Both are
 canonicalized by sign_canonicalize_.
+
+Square f(z) = z^2 has BOTH: it is even, f(-z) = f(z), so a neuron's row and
+bias can be negated with NO change to the next layer at all (nothing to absorb,
+no column flip); and it is 2-homogeneous, f(a z) = a^2 f(z), so scaling row c
+of W_l and b_l by 1/alpha scales column c of W_{l+1} by alpha^2. Together: any
+nonzero real per-neuron scale s on the row with 1/s^2 on the column.
+Canonical form: unit-L2 row (norm^2 pushed into the next column) and the
+max-|.| entry of [row|bias] positive (sign_canonicalize_ with absorb="even").
+
+The per-neuron gauge helpers below are keyed on the activation:
+  _scale_power(net): 1 (leaky-ReLU), 2 (square) or None (sigmoid/tanh);
+  _sign_gauge(net):  None (leaky-ReLU), True (sigmoid: absorb), False (tanh:
+                     negate the next column) or "even" (square: nothing).
 """
 import torch
 from scipy.optimize import linear_sum_assignment
 
+from nets import Square
+
+
+def _scale_power(net):
+    """Exponent p of the scaling isomorphism: scaling a hidden neuron's row (and
+    bias) by 1/a is undone by scaling its next-layer column by a^p. 1 for
+    (leaky) ReLU (positively homogeneous, a > 0), 2 for square (a != 0),
+    None for sigmoid / tanh (no scaling isomorphism)."""
+    if isinstance(net.act, (torch.nn.LeakyReLU, torch.nn.ReLU)):
+        return 1
+    if isinstance(net.act, Square):
+        return 2
+    return None
+
+
+def _flip_next_(nxt, flip, s, absorb):
+    """Next-layer side of negating the hidden neurons `flip` (bool mask; s = -1
+    there, +1 elsewhere). sigmoid (absorb=True): add the flipped columns into the
+    bias (1 - sigma) then negate them; tanh (absorb=False): negate the columns;
+    square (absorb="even"): nothing -- (-z)^2 = z^2."""
+    if absorb == "even":
+        return
+    if absorb:
+        nxt.bias.add_(nxt.weight[:, flip].sum(1))
+    nxt.weight.mul_(s.unsqueeze(0))
+
 
 @torch.no_grad()
 def sign_canonicalize_(net, absorb=True):
-    """Canonicalize the polarity isomorphism of an odd-symmetric-ish
-    activation: sigmoid sigma(-z) = 1 - sigma(z) (absorb=True) or tanh
-    tanh(-z) = -tanh(z) (absorb=False). Flip every hidden neuron whose
+    """Canonicalize the polarity isomorphism of a symmetric activation:
+    sigmoid sigma(-z) = 1 - sigma(z) (absorb=True), tanh tanh(-z) = -tanh(z)
+    (absorb=False) or square (-z)^2 = z^2 (absorb="even"). Flip every hidden neuron whose
     largest-|.| entry of [row|bias] is negative. (The refactor Standardizer
     keyed on the SUM of the row; that is unstable -- a row whose entries sum
     to ~0 flips under 1e-2 noise and scores as a ~2||w|| error -- whereas the
     max-|.| entry only flips if the top two entries tie.) Flipping neuron k
     of layer l: negate row k of W_l/b_l; for
     sigmoid ABSORB column k of W_{l+1} into b_{l+1} (the "1" in 1 - sigma;
-    tanh needs no such term); then negate that column.
+    tanh needs no such term); then negate that column (tanh, sigmoid) or
+    leave the next layer untouched (square: even activation).
     Function-preserving and exact; in-place."""
     for l in range(len(net.layers) - 1):
         W = net.layers[l].weight  # (out_l, in_l)
@@ -47,21 +87,17 @@ def sign_canonicalize_(net, absorb=True):
         flip = s < 0
         if not flip.any():
             continue
-        nxt = net.layers[l + 1]
-        if absorb:
-            nxt.bias.add_(nxt.weight[:, flip].sum(1))
-        nxt.weight.mul_(s.unsqueeze(0))
+        _flip_next_(net.layers[l + 1], flip, s, absorb)
         W.mul_(s.unsqueeze(1))
         b.mul_(s)
 
 
 @torch.no_grad()
-@torch.no_grad()
 def sign_align_clone(net, Zref, X, odd=None):
     """Clone of `net` whose hidden units are paired to a REFERENCE net (whose hidden
-    pre-activations on X are Zref, a list per hidden layer) and, for odd activations
-    (tanh / sigmoid), flipped so that each unit's polarity matches its reference
-    partner's. Returns (clone, perms, corrs): perms[l][i] = clone unit paired with
+    pre-activations on X are Zref, a list per hidden layer) and, for activations with
+    a polarity gauge (tanh / sigmoid / square), flipped so that each unit's polarity
+    matches its reference partner's. Returns (clone, perms, corrs): perms[l][i] = clone unit paired with
     reference unit i of hidden layer l, corrs[l][i] = |correlation| of the pair.
 
     Why not the max-|entry| sign rule (sign_canonicalize_): while rows are still
@@ -72,9 +108,9 @@ def sign_align_clone(net, Zref, X, odd=None):
     the pairing is (|corr| ~ 1). Leaky-ReLU has no polarity gauge: no flips, plain corr."""
     from head_refine import _act_perm
     mc = net.clone()
+    absorb = _sign_gauge(mc)
     if odd is None:
-        odd = not isinstance(mc.act, torch.nn.LeakyReLU)
-    absorb = isinstance(mc.act, torch.nn.Sigmoid)
+        odd = absorb is not None
     Z = _preacts(mc, X)                       # flipping layer l-1 units leaves layer l pre-activations unchanged
     perms, corrs = [], []
     for l in range(len(mc.layers) - 1):
@@ -88,12 +124,8 @@ def sign_align_clone(net, Zref, X, odd=None):
             sgn = torch.sign(C[rows, cols]); sgn[sgn == 0] = 1.0
             flip_units = perm[sgn < 0]
             if flip_units.numel():
-                W, b = mc.layers[l].weight, mc.layers[l].bias
-                nxt = mc.layers[l + 1]
-                if absorb:
-                    nxt.bias.add_(nxt.weight[:, flip_units].sum(1))
-                nxt.weight[:, flip_units] *= -1
-                W[flip_units] *= -1; b[flip_units] *= -1
+                mask = torch.zeros(C.shape[1], dtype=torch.bool, device=X.device); mask[flip_units] = True
+                flip_neurons_(mc, l, mask, absorb)
             corrs.append(C[rows, cols].abs()); perms.append(perm)
         else:
             perm, c = _act_perm(Zref[l], Z[l]); perms.append(perm); corrs.append(c)
@@ -103,7 +135,7 @@ def sign_align_clone(net, Zref, X, odd=None):
 def pairing_preacts(net, X):
     """Pre-activations of a CANONICALISED copy of `net` for activation pairing.
     Correlation is scale-invariant, so for leaky-ReLU this equals _preacts(net, X);
-    for tanh/sigmoid the sign canonicalisation fixes the polarity gauge
+    for tanh/sigmoid/square the sign canonicalisation fixes the polarity gauge
     tanh(-z) = -tanh(z): without it half the members' units are anti-correlated
     (-0.99) with the reference's and the Hungarian pairing misses them."""
     mc = net.clone(); scale_normalize_(mc)
@@ -118,25 +150,24 @@ def scale_normalize_(net):
     gets unit L2 norm; the scale is pushed into the next layer's column.
     Sigmoid / tanh (no scaling isomorphism): polarity canonicalization
     instead, via sign_canonicalize_ (sigmoid absorbs the 1 - sigma constant
-    into the next bias; tanh is odd so nothing is absorbed). Either way,
-    functionally equivalent nets emerge with identical parameters up to
-    neuron permutation, so downstream matching / clustering / averaging
+    into the next bias; tanh is odd so nothing is absorbed).
+    Square (2-homogeneous AND even): unit L2 row with the SQUARED norm pushed
+    into the next column, then polarity (row/bias sign, next layer untouched).
+    Either way, functionally equivalent nets emerge with identical parameters
+    up to neuron permutation, so downstream matching / clustering / averaging
     operate on comparable raw weights."""
-    if isinstance(net.act, torch.nn.Sigmoid):
-        sign_canonicalize_(net, absorb=True)
-        return
-    if isinstance(net.act, torch.nn.Tanh):
-        sign_canonicalize_(net, absorb=False)
-        return
-    if not isinstance(net.act, torch.nn.LeakyReLU):
-        return
-    for l in range(len(net.layers) - 1):
-        W = net.layers[l].weight  # (out_l, in_l)
-        b = net.layers[l].bias
-        norms = W.norm(dim=1).clamp_min(1e-12)  # per hidden neuron
-        W.div_(norms.unsqueeze(1))
-        b.div_(norms)
-        net.layers[l + 1].weight.mul_(norms.unsqueeze(0))
+    p = _scale_power(net)
+    if p is not None:
+        for l in range(len(net.layers) - 1):
+            W = net.layers[l].weight  # (out_l, in_l)
+            b = net.layers[l].bias
+            norms = W.norm(dim=1).clamp_min(1e-12)  # per hidden neuron
+            W.div_(norms.unsqueeze(1))
+            b.div_(norms)
+            net.layers[l + 1].weight.mul_((norms ** p).unsqueeze(0))
+    absorb = _sign_gauge(net)
+    if absorb is not None:
+        sign_canonicalize_(net, absorb=absorb)
 
 
 @torch.no_grad()
@@ -185,25 +216,26 @@ def greedy_perm(A, B, signed=False):
 def flip_neurons_(net, l, flip, absorb):
     """Negate hidden neurons `flip` (bool mask) of layer l, function-
     preserving: negate their rows/biases, for sigmoid (absorb=True) add the
-    affected columns of W_{l+1} into b_{l+1} (1 - sigma), negate the columns."""
+    affected columns of W_{l+1} into b_{l+1} (1 - sigma), negate the columns
+    (sigmoid, tanh); square (absorb="even") leaves the next layer as is."""
     if not bool(flip.any()):
         return
     s = torch.where(flip, -1.0, 1.0).to(net.layers[l].weight.dtype)
-    nxt = net.layers[l + 1]
-    if absorb:
-        nxt.bias.add_(nxt.weight[:, flip].sum(1))
-    nxt.weight.mul_(s.unsqueeze(0))
+    _flip_next_(net.layers[l + 1], flip, s, absorb)
     net.layers[l].weight.mul_(s.unsqueeze(1))
     net.layers[l].bias.mul_(s)
 
 
 def _sign_gauge(net):
-    """None for (leaky)ReLU (scale gauge, handled by scale_normalize_);
-    else the absorb flag for the activation's polarity gauge."""
+    """None for (leaky)ReLU (no polarity gauge; its scale gauge is handled by
+    scale_normalize_); else the absorb flag for the activation's polarity
+    gauge: True (sigmoid), False (tanh), "even" (square: next layer untouched)."""
     if isinstance(net.act, torch.nn.Sigmoid):
         return True
     if isinstance(net.act, torch.nn.Tanh):
         return False
+    if isinstance(net.act, Square):
+        return "even"
     return None
 
 
@@ -352,24 +384,28 @@ def _push_to_next(nxt, factor, conv_prev):
 @torch.no_grad()
 def cnn_canonicalize_(net):
     """In-place scale/sign canonicalization of every hidden (non-final) layer.
-    ReLU: unit-L2 per out-unit; tanh: sign (odd flip). Function-preserving; the
-    factor is pushed into the next layer. The final Linear head is left as-is
-    (its outputs are the fixed logits -- no output gauge)."""
+    ReLU: unit-L2 per out-unit; tanh: sign (odd flip); square: unit-L2 with the
+    squared norm pushed, then sign (even: nothing pushed). Function-preserving;
+    the factor is pushed into the next layer. The final Linear head is left
+    as-is (its outputs are the fixed logits -- no output gauge)."""
     L = net.layers
     relu = net.act_name in ("relu", "leaky_relu")
+    square = net.act_name == "square"
     for i in range(len(L) - 1):
         W, b = L[i].weight, L[i].bias
         conv = W.dim() == 4
         Wb = torch.cat([W.view(W.shape[0], -1), b[:, None]], 1)
-        if relu:
+        if relu or square:
             f = Wb.norm(dim=1).clamp_min(1e-8)          # positive scale
             W.div_(f.view(-1, 1, 1, 1) if conv else f[:, None]); b.div_(f)
-            _push_to_next(L[i + 1], f, conv)
-        else:                                           # tanh: sign of max-|.| entry
+            _push_to_next(L[i + 1], f ** 2 if square else f, conv)
+        if not relu:                                    # tanh / square: sign of max-|.| entry
+            Wb = torch.cat([W.view(W.shape[0], -1), b[:, None]], 1)
             s = torch.sign(Wb.gather(1, Wb.abs().argmax(1, keepdim=True)).squeeze(1))
             s[s == 0] = 1.0
             W.mul_(s.view(-1, 1, 1, 1) if conv else s[:, None]); b.mul_(s)
-            _push_to_next(L[i + 1], s, conv)
+            if not square:                              # even activation: next layer unchanged
+                _push_to_next(L[i + 1], s, conv)
 
 
 @torch.no_grad()
@@ -448,8 +484,8 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
     with ITS OWN prefix, via an optimal assignment (Hungarian). Layer l's
     weight matrix is then compared with rows ordered by layer l's pairing and
     columns by layer l-1's pairing -- no pairing depends on weights below.
-    Sign gauge (tanh/sigmoid): units may match negated (flipped function-
-    preservingly). Scale gauge (leaky relu): scale_normalize_ as usual.
+    Sign gauge (tanh/sigmoid/square): units may match negated (flipped function-
+    preservingly). Scale gauge (leaky relu, square): scale_normalize_ as usual.
 
     probe: (n, d) inputs on the teacher's device/dtype or None (N(0,1), fixed
     seed). Returns the param_errors dict (+ 'match_corr_per_layer': mean
@@ -512,9 +548,11 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
         "match_corr_per_layer": corrs,
         "align": "actmatch",
     }
-    if head_opt and absorb is None:
+    if head_opt and _scale_power(r) is not None:
         # HEAD in its gauge-OPTIMAL frame: the remaining head gauge is a
-        # permutation + positive per-column scale of the last hidden units.
+        # permutation + positive per-column scale of the last hidden units
+        # (leaky-ReLU: alpha > 0; square: alpha^2 > 0 -- the sign gauge was
+        # already fixed by the activation pairing above).
         # Pick the pairing AND the scales that minimize the head error (the
         # activation pairing + unit-row-norm scale is one admissible choice;
         # this is the best admissible one) -- so head eps is a lower bound over

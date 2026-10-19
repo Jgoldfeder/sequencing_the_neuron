@@ -9,7 +9,7 @@ usage: python consensus_eps.py recon/_pop__....pt [--probe N]
 """
 import sys, math, argparse, types, torch
 from nets import MLP
-from align import scale_normalize_, _preacts, pairing_preacts, sign_align_clone
+from align import scale_normalize_, _preacts, pairing_preacts, sign_align_clone, _scale_power
 from head_refine import _act_perm
 from reverse_peel import ReversePeel
 
@@ -22,7 +22,7 @@ def consensus_eps(pop, teacher, losses, cfg, device, n_probe=8192):
     ref = min(range(P), key=lambda i: losses[i])
     order = sorted(range(P), key=lambda i: losses[i])
     probe = rp._probe(torch.empty(1, dims[0]))
-    leaky = isinstance(pop[0].act, torch.nn.LeakyReLU)
+    leaky = _scale_power(pop[0]) is not None         # scale gauge (leaky-ReLU / square)
     def _rown(Rk):                                   # tanh/sigmoid: no scale gauge -> compare RAW weights
         return Rk / Rk.norm(dim=1, keepdim=True).clamp_min(1e-12) if leaky else Rk
     def _coln(Ck):
@@ -178,7 +178,8 @@ def entry_coverage(pop, teacher, losses, cfg, device, ref=None, cert_gauge=False
     ref = min(range(P), key=lambda i: losses[i]) if ref is None else ref
     order = sorted(range(P), key=lambda i: losses[i])
     probe = rp._probe(torch.empty(1, dims[0]))
-    leaky = isinstance(pop[0].act, torch.nn.LeakyReLU)
+    leaky = _scale_power(pop[0]) is not None         # scale gauge (leaky-ReLU / square)
+    spow = _scale_power(pop[0]) or 1                  # exponent of the pushed row norm (1 leaky, 2 square)
     Zref = _preacts(pop[ref], probe)
     aligned, perms, corrs = [], [], []
     for m in pop:                                   # paired to the reference; polarity aligned by activation (tanh/sigmoid)
@@ -214,8 +215,8 @@ def entry_coverage(pop, teacher, losses, cfg, device, ref=None, cert_gauge=False
         Ms, biases = [], []
         prev_state = list(state)
         if cert_gauge:
-            odd = not isinstance(pop[0].act, torch.nn.LeakyReLU)       # tanh/sigmoid: polarity gauge, no scale gauge
-            def _chain(W, b, st, perm_rows, perm_cols):
+            odd = not leaky                                            # tanh/sigmoid: polarity gauge, no scale gauge
+            def _chain(W, b, st, perm_rows, perm_cols):          # st = factor pushed into this layer's columns (norm^spow)
                 We = W if st is None else W * st[None, :]
                 if not is_head:
                     if odd:                                            # polarity already aligned by activation (sign_align_clone); no scale gauge
@@ -229,7 +230,7 @@ def entry_coverage(pop, teacher, losses, cfg, device, ref=None, cert_gauge=False
                     else:
                         cm = torch.zeros(n_in, dtype=torch.bool, device=device); cm[perm_cols] = row_ok_prev
                     nr = (We * cm[None, :]).norm(dim=1).clamp_min(1e-12)
-                    We = We / nr[:, None]; bc = b / nr; st = nr
+                    We = We / nr[:, None]; bc = b / nr; st = nr ** spow
                     We = We[perm_rows]; bc = bc[perm_rows]
                 else:
                     bc = b

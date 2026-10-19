@@ -1,4 +1,4 @@
-"""tanh_solve.py -- joint jet refiner for SMOOTH (tanh / sigmoid) MLPs.
+"""tanh_solve.py -- joint jet refiner for SMOOTH (tanh / sigmoid / square) MLPs.
 
 Given a black box f (queryable forward pass only) and a good whole-net guess
 (every layer within ~1e-2), refine ALL parameters jointly by matching the
@@ -11,9 +11,13 @@ Why the jet and not just values: value-only distillation floors around 1e-2
 deep parameter directions; the Jacobian rows are where those directions are
 excited. Why a smooth net needs this at all: there are no kinks, so the exact
 piecewise-linear refiners (verify_layer1 / kink_solve) do not apply, and a
-smooth refiner is a nonlinear least squares. Its gauge is discrete only
-(per-neuron sign flip + permutation), fixed by the guess, so the Gauss-Newton
-normal matrix is nonsingular and the guess is the only correspondence needed.
+smooth refiner is a nonlinear least squares. For tanh / sigmoid its gauge is
+discrete only (per-neuron sign flip + permutation), fixed by the guess, so the
+Gauss-Newton normal matrix is nonsingular and the guess is the only
+correspondence needed. Square (z^2) adds a continuous per-neuron scale gauge
+(row * s, next column / s^2); the normal matrix is singular along it and the
+LM damping picks the minimum-norm step -- the gauge is fixed afterwards by
+align.scale_normalize_, not by the solver.
 
 Solver: matrix-free Gauss-Newton with Levenberg-Marquardt damping, normal
 equations solved by CG using torch.func jvp/vjp (never forms J). fp64.
@@ -91,7 +95,9 @@ def _act_and_deriv(z, act):
     if act == "sigmoid":
         a = torch.sigmoid(z)
         return a, a * (1.0 - a)
-    raise ValueError(f"tanh_solve supports smooth activations only, got {act!r}")
+    if act == "square":
+        return z * z, 2.0 * z
+    raise ValueError(f"tanh_solve supports smooth activations only (tanh / sigmoid / square), got {act!r}")
 
 
 def model_jets(params, X, U, act, n_layers):

@@ -29,7 +29,7 @@ gradient hook-masked, Adam state zeroed and re-written at every check.
 """
 import math
 import torch
-from align import _preacts, scale_normalize_, pairing_preacts, sign_align_clone
+from align import _preacts, scale_normalize_, pairing_preacts, sign_align_clone, _scale_power
 from head_refine import head_consensus_columns, refine_head, _act_perm
 
 
@@ -408,16 +408,18 @@ class ReversePeel:
     @torch.no_grad()
     def _in_scales(self, m, l):
         """Live canonical scale of every INPUT unit of layer l in member m, i.e.
-        the bottom-up row norms align.scale_normalize_ would push into layer l's
-        columns (n_k = norms of layer k's rows after scaling its columns by n_{k-1}).
+        the bottom-up factors align.scale_normalize_ would push into layer l's
+        columns (n_k = norms of layer k's rows after scaling its columns by n_{k-1},
+        raised to the activation's scale power: 1 for leaky-ReLU, 2 for square).
         Canonical row entries of layer l are W_m[j, i] * n[i]; the member is NOT
         modified (in-place canonicalization is function-preserving but rescales the
         parametrization and wrecks the optimizer's conditioning)."""
         n = None
+        p = _scale_power(m) or 1
         for k in range(l):
             W = m.layers[k].weight
             We = W if n is None else W * n[None, :]
-            n = We.norm(dim=1).clamp_min(1e-12)
+            n = We.norm(dim=1).clamp_min(1e-12) ** p
         return n                                               # None for l == 0
 
     @torch.no_grad()
@@ -427,11 +429,12 @@ class ReversePeel:
         columns (leaky-ReLU homogeneity). Must match align.scale_normalize_, which
         the consensus clones use: the gauge of layer k's rows depends on the push
         from layer k-1, so normalizing layer l-1 alone is a DIFFERENT gauge."""
+        p = _scale_power(m) or 1
         for k in range(l):
             Wp, bp = m.layers[k].weight, m.layers[k].bias
             n = Wp.norm(dim=1).clamp_min(1e-12)
             Wp.div_(n[:, None]); bp.div_(n)
-            m.layers[k + 1].weight.mul_(n[None, :])
+            m.layers[k + 1].weight.mul_((n ** p)[None, :])
 
     @torch.no_grad()
     def project(self, net):
@@ -458,7 +461,7 @@ class ReversePeel:
         canon, perms, corrs = [], [], []
         for m in pop:                                   # paired to the reference; polarity aligned by activation (tanh/sigmoid)
             mc, ps, cs = sign_align_clone(m, Zref, probe)
-            if isinstance(m.act, torch.nn.LeakyReLU):
+            if _scale_power(m) is not None:            # leaky-ReLU / square: scale gauge (sign already aligned)
                 scale_normalize_(mc)
             canon.append(mc); perms.append(ps); corrs.append(cs)
         quorum = math.ceil(self.quorum_ratio * len(pop))
@@ -483,7 +486,7 @@ class ReversePeel:
         # tanh/sigmoid have NO scale gauge: row/column magnitudes are real parameters, so the tests
         # compare RAW weights (inf-norm eps, like the chained counter). Unit-normalising hid 1.0-1.8x
         # row-norm disagreements in layer 1 of the 6-layer tanh run (direction spread 0.007, raw 0.047).
-        scale_free = isinstance(pop[0].act, torch.nn.LeakyReLU)
+        scale_free = _scale_power(pop[0]) is not None
         def _rown(Rk):
             return Rk / Rk.norm(dim=1, keepdim=True).clamp_min(1e-12) if scale_free else Rk
         def _coln(Ck):

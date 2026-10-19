@@ -12,6 +12,7 @@ weights back so the sampler / consensus / snapshots see them unchanged.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from nets import Square
 
 
 def _adam_kernel(p, g, m, v, lr, step, b1, b2, eps):
@@ -185,6 +186,8 @@ class StackedTrainer:
             return 1 - torch.tanh(z) ** 2
         if isinstance(a, nn.Sigmoid):
             s = torch.sigmoid(z); return s * (1 - s)
+        if isinstance(a, Square):
+            return 2 * z
         raise ValueError(f"stacked boundary loss: unsupported activation {type(a).__name__}")
 
     def boundary_loss(self, xb, yb, floor=1e-6):

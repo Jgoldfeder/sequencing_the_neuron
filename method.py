@@ -70,11 +70,13 @@ class Cfg:
                                # weight-vs-teacher scoring/consensus is skipped
                                # (dims mismatch) and only the fit loss is logged.
     act: str = "leaky_relu"  # hidden activation of teacher AND committee
-                             # ('leaky_relu' | 'sigmoid' | 'tanh'); sigmoid/
-                             # tanh have no scaling isomorphism -- alignment
-                             # canonicalizes their polarity isomorphism
-                             # (sigma(-z)=1-sigma(z), tanh(-z)=-tanh(z))
-                             # instead (align.sign_canonicalize_)
+                             # ('leaky_relu' | 'sigmoid' | 'tanh' | 'square');
+                             # sigmoid/tanh have no scaling isomorphism --
+                             # alignment canonicalizes their polarity
+                             # isomorphism (sigma(-z)=1-sigma(z),
+                             # tanh(-z)=-tanh(z)) instead; 'square' (z^2) has
+                             # scale (row/s, column*s^2) AND an even sign
+                             # gauge (next layer untouched) (align.py)
     epochs: int = 10         # training epochs per outer iteration
                            # (VALIDATED: must be high enough to fit D tightly;
                            #  epochs=2 stalls completely - the underfit trap)
@@ -2340,6 +2342,8 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
             return torch.sigmoid(z)
         if act_name == "tanh":
             return torch.tanh(z)
+        if act_name == "square":
+            return z * z
         return F.leaky_relu(z, 0.01)
 
     # --- pinned rows {layer: (W, b, mask)} merged from peel frozen + partial ---

@@ -11,6 +11,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class Square(nn.Module):
+    """Hidden activation f(z) = z^2. Even (f(-z) = f(z)) and 2-homogeneous
+    (f(a z) = a^2 f(z)), so a hidden neuron's per-unit gauge is row -> s*row for
+    ANY nonzero s with the next layer's column scaled by 1/s^2 (align.py)."""
+
+    def forward(self, z):
+        return z * z
+
+
 def init_layer(layer: nn.Linear) -> None:
     std = math.sqrt(2.0 / (layer.in_features + layer.out_features))
     nn.init.normal_(layer.weight, mean=0.0, std=std)
@@ -18,8 +27,8 @@ def init_layer(layer: nn.Linear) -> None:
 
 
 class MLP(nn.Module):
-    """Feed-forward net, LeakyReLU (default), sigmoid or tanh hidden
-    activations, linear output."""
+    """Feed-forward net, LeakyReLU (default), sigmoid, tanh or square (z^2)
+    hidden activations, linear output."""
 
     def __init__(self, dims, negative_slope=0.01, act="leaky_relu"):
         super().__init__()
@@ -34,6 +43,8 @@ class MLP(nn.Module):
             self.act = nn.Sigmoid()
         elif act == "tanh":
             self.act = nn.Tanh()
+        elif act == "square":
+            self.act = Square()
         else:
             raise ValueError(f"unknown activation {act!r}")
         for layer in self.layers:
@@ -80,6 +91,8 @@ class ConvNet(nn.Module):
             self.act = nn.Tanh()
         elif act == "leaky_relu":
             self.act = nn.LeakyReLU(negative_slope=0.01)
+        elif act == "square":
+            self.act = Square()
         else:
             raise ValueError(f"unknown activation {act!r}")
         self.layers = nn.ModuleList()

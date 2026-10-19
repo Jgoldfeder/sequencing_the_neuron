@@ -1217,6 +1217,16 @@ def main():
                          "enough for tanh nets; deep SIGMOID nets are far more "
                          "ill-conditioned -- raise to ~1000 at ~5x the per-step "
                          "cost, see tanh_solve.py).")
+    ap.add_argument("--square", action="store_true",
+                    help="f(z) = z^2 hidden activations in BOTH the teacher and "
+                         "the committee (trains + caches a separate square "
+                         "teacher; output files get a _square tag). Alignment "
+                         "canonicalizes the full per-neuron gauge of an even, "
+                         "2-homogeneous activation: unit-norm rows with the "
+                         "SQUARED norm pushed into the next column, plus the "
+                         "sign of the row (nothing changes in the next layer). "
+                         "No kinks: --verify / peel refiners are unavailable; "
+                         "--tanhsolver (jet refiner) is supported.")
     ap.add_argument("--sigmoid", action="store_true",
                     help="sigmoid hidden activations in BOTH the teacher and "
                          "the committee (trains + caches a separate sigmoid "
@@ -1241,7 +1251,7 @@ def main():
                     help="CNN input shape C,H,W (default 1,28,28 = MNIST).")
     ap.add_argument("--out-dim", type=int, default=10, help="CNN output dim.")
     ap.add_argument("--cnn-act", default="relu",
-                    choices=["relu", "leaky_relu", "tanh"],
+                    choices=["relu", "leaky_relu", "tanh", "square"],
                     help="CNN hidden activation (default relu). Use 'leaky_relu' "
                          "to avoid dying units; the kink refiner supports it.")
     ap.add_argument("--xspace-refine", action="store_true",
@@ -1286,17 +1296,17 @@ def main():
               "layer(s) from the start; this is privileged access, not simulated peeling", flush=True)
 
     if args.normalized_peel:
-        if args.conv or args.sigmoid or args.tanh or args.hard or args.peel_direct:
+        if args.conv or args.sigmoid or args.tanh or args.square or args.hard or args.peel_direct:
             ap.error('--normalized-peel requires a leaky-ReLU MLP; omit --peel-direct')
-    if args.sigmoid and args.tanh:
-        ap.error("--sigmoid and --tanh are mutually exclusive")
+    if sum(bool(f) for f in (args.sigmoid, args.tanh, args.square)) > 1:
+        ap.error("--sigmoid, --tanh and --square are mutually exclusive")
     if args.tanhsolver:
-        if not (args.sigmoid or args.tanh):
-            ap.error("--tanhsolver refines smooth nets only; add --tanh or --sigmoid")
+        if not (args.sigmoid or args.tanh or args.square):
+            ap.error("--tanhsolver refines smooth nets only; add --tanh, --sigmoid or --square")
         if args.conv or args.hard:
             ap.error("--tanhsolver needs a real-valued MLP black box (no --conv/--hard)")
     if args.design_refine:
-        if args.conv or args.sigmoid or args.tanh or args.hard:
+        if args.conv or args.sigmoid or args.tanh or args.square or args.hard:
             ap.error('--design-refine requires a real-valued ReLU/leaky-ReLU MLP')
         if args.loc_refine or args.xspace_refine:
             ap.error('--design-refine selects its own refiner; omit --loc-refine and --xspace-refine')
@@ -1316,16 +1326,17 @@ def main():
                      "the kink prober (real-valued outputs)")
     if args.conv:
         return run_cnn(args)
-    smooth = args.sigmoid or args.tanh
+    smooth = args.sigmoid or args.tanh or args.square
     if smooth and args.verify:
         ap.error("--verify probes ReLU kink hyperplanes; incompatible "
-                 "with --sigmoid / --tanh")
+                 "with --sigmoid / --tanh / --square")
 
     dims = [int(x) for x in args.arch.split(",")]
     device = args.device
     torch.manual_seed(args.teacher_seed)
 
-    act = "sigmoid" if args.sigmoid else ("tanh" if args.tanh else "leaky_relu")
+    act = ("sigmoid" if args.sigmoid else "tanh" if args.tanh
+           else "square" if args.square else "leaky_relu")
     if args.teacher_full:
         # blackbox = a bigger trained teacher with its first `drop` layers removed;
         # queried DIRECTLY in the sub-net's input space (no L1, no inversion, no seal).
@@ -1731,6 +1742,8 @@ def main():
         tag = "_sigmoid" + tag
     if args.tanh:
         tag = "_tanh" + tag
+    if args.square:
+        tag = "_square" + tag
     if args.hard:
         tag = "_hard" + tag
     if args.cheat:
