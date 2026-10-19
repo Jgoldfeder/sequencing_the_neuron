@@ -2,6 +2,7 @@
 """qg_tune.py -- find the fastest disagreement-sampler batching for THIS GPU and THIS network.
 
     python qg_tune.py --arch 3072,200,200,200,200,200,200,200,200,200,100 --act tanh [--p 8] [--tf32]
+    python qg_tune.py --conv lenet [--p 8]            # LeNet-5 ConvNet committee (leaky_relu)
 
 Independent of the run's --q: the sampler processes q in blocks, so only the block/chunk size matters.
 
@@ -18,8 +19,8 @@ import time
 
 import torch
 
-from method import Cfg, gen_queries
-from nets import MLP
+from method import Cfg, gen_queries, _per_sample_hidden
+from nets import MLP, ConvNet
 
 
 def gpu_state():
@@ -33,7 +34,8 @@ def gpu_state():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arch", required=True, help="comma-separated widths, e.g. 3072,200,200,100")
+    ap.add_argument("--arch", default="", help="MLP: comma-separated widths, e.g. 3072,200,200,100")
+    ap.add_argument("--conv", default="", help="ConvNet preset instead of --arch: 'lenet' (1x28x28, LeNet-5, leaky_relu)")
     ap.add_argument("--act", default="leaky_relu")
     ap.add_argument("--p", type=int, default=8, help="committee size")
     ap.add_argument("--min-rows", type=int, default=4096)
@@ -44,13 +46,25 @@ def main():
     ap.add_argument("--disagree", default=None, help="disagreement mode override (default: Cfg default)")
     args = ap.parse_args()
 
-    dims = [int(x) for x in args.arch.split(",")]
-    d, D, hid, P = dims[0], dims[-1], sum(dims[1:-1]), args.p
-    dev = "cuda"
+    dev = "cuda"; P = args.p
     total = torch.cuda.get_device_properties(0).total_memory
-    print(f"GPU: {torch.cuda.get_device_name(0)} ({total / 1e9:.0f} GB) | net {'x'.join(map(str, dims))} "
-          f"({args.act}) | {P} members", flush=True)
-    pop = [MLP(dims, act=args.act).to(dev) for _ in range(P)]
+    if args.conv:
+        if args.conv != "lenet":
+            raise SystemExit("--conv: only 'lenet' is wired here")
+        args.act = "leaky_relu"
+        pop = [ConvNet((1, 28, 28), [(1, 6, 5, 1, 2, 2), (6, 16, 5, 1, 0, 2), (16, 120, 5, 1, 0, 0)], (84,), 10, args.act).to(dev)
+               for _ in range(P)]
+        d, D = 784, 10
+        hid = _per_sample_hidden(pop[0], None, torch.zeros(2, d, device=dev))   # same count gen_queries uses for ConvNets
+        name = f"lenet (hidden {hid} floats/sample)"
+    elif args.arch:
+        dims = [int(x) for x in args.arch.split(",")]
+        d, D, hid = dims[0], dims[-1], sum(dims[1:-1])
+        pop = [MLP(dims, act=args.act).to(dev) for _ in range(P)]
+        name = "x".join(map(str, dims))
+    else:
+        raise SystemExit("give --arch or --conv lenet")
+    print(f"GPU: {torch.cuda.get_device_name(0)} ({total / 1e9:.0f} GB) | net {name} ({args.act}) | {P} members", flush=True)
     extra = {"disagree": args.disagree} if args.disagree else {}
 
     # memory per query row of the two budgets, exactly as method.gen_queries converts GB -> rows
