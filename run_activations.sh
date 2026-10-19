@@ -21,6 +21,6 @@ for act in $ACTS; do
     esac
     echo "=== $act ($(date '+%F %T')) ==="
     python run.py --variant mergedbest $flag --tag "act_$act" \
-        --arch 784,128,10 --teacher-epochs 3 --outer 40 --q 1500 --p 8 \
+        --arch 784,128,10 --teacher-epochs 25 --outer 40 --q 1500 --p 8 \
         --pop-save-every 0 --device "$DEVICE" "$@" 2>&1 | tee "logs/act_$act.log" | grep -E "^\[setup\]|^\[done\]|^\[act\]|Error|Traceback"
 done
