@@ -499,6 +499,8 @@ def run_cnn(args):
         overrides["layer_mine"] = True
     if args.hard:
         overrides["hard"] = True
+        overrides["hard_loss"] = args.hard_loss
+        overrides["hard_floor"] = args.hard_floor
     if args.cheat:
         overrides["cheat"] = True
         overrides["cheat_peel_max"] = args.cheat_peel_max
@@ -1172,6 +1174,17 @@ def main():
                          "outputs: --verify, --extract-freeze, the CNN "
                          "peel/--resume (kink probing), --solver-polish, and "
                          "variants with lastlayer/lbfgs/f64 solvers.")
+    ap.add_argument("--hard-loss", choices=["xent", "boundary"], default="xent",
+                    help="--hard training objective. xent: cross-entropy on the labels "
+                         "(default). boundary: zero on every correctly classified point; "
+                         "a misclassified point costs the squared first-order distance "
+                         "its member's boundary must move, (f_j-f_y)^2/||grad_x(f_y-f_j)||^2 "
+                         "for the runner-up class j. Invariant under the unidentifiable "
+                         "head family (no logit-scale inflation); members are ranked by "
+                         "mean boundary-distance violation instead of mean xent, and the "
+                         "endgame/inject polish uses the same loss. Needs a double backward.")
+    ap.add_argument("--hard-floor", type=float, default=1e-6,
+                    help="--hard-loss boundary: floor on ||grad_x(f_y-f_j)|| (default 1e-6).")
     ap.add_argument("--tanh", action="store_true",
                     help="tanh hidden activations in BOTH the teacher and "
                          "the committee (trains + caches a separate tanh "
@@ -1287,6 +1300,8 @@ def main():
             ap.error('--design-refine requires a real-valued ReLU/leaky-ReLU MLP')
         if args.loc_refine or args.xspace_refine:
             ap.error('--design-refine selects its own refiner; omit --loc-refine and --xspace-refine')
+    if args.hard_loss != "xent" and not args.hard:
+        ap.error("--hard-loss needs --hard")
     if args.hard:
         for on, name in [(args.solver_polish, "--solver-polish"),
                          (args.verify, "--verify"),
@@ -1649,6 +1664,8 @@ def main():
         overrides["log_every"] = args.log_every
     if args.hard:
         overrides["hard"] = True
+        overrides["hard_loss"] = args.hard_loss
+        overrides["hard_floor"] = args.hard_floor
     if args.cheat:
         overrides["cheat"] = True
         overrides["cheat_peel_max"] = args.cheat_peel_max
@@ -1807,7 +1824,8 @@ def main():
                 # hard labels: no regression solve exists; low-LR xent
                 # fine-tune removes the consensus assembly artifact instead
                 cons = polish_consensus(cons, Xf, Yf, lr=1e-4, steps=400,
-                                        hard=True)
+                                        hard=True, hard_loss=args.hard_loss,
+                                        hard_floor=args.hard_floor)
                 _phase("xent polish", cons)
             else:
                 solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,

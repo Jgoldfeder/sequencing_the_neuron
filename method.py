@@ -209,6 +209,13 @@ class Cfg:
     stop_patience: int = 3
     # batch-2 hypotheses
     fit_loss: str = "l1"       # 'l1' (paper) | 'mse' (Opus A2: residual-proportional grads)
+    hard_loss: str = "xent"    # --hard training objective: 'xent' (cross-entropy on the labels) |
+                               # 'boundary' (zero on every correctly classified point; on a
+                               # misclassified point the squared first-order distance the
+                               # member's boundary has to move: (f_j-f_y)^2/||grad_x(f_y-f_j)||^2
+                               # for the runner-up j. Invariant under the unidentifiable head
+                               # family s*W+1u^T, so no gradient is spent on it; see boundary_loss)
+    hard_floor: float = 1e-6   # boundary loss: floor on ||grad_x(f_y-f_j)|| (keeps the ratio finite)
     hard: bool = False         # hard-label regime: the blackbox returns ONLY the
                                # argmax class index (0..C-1), never the logit
                                # vector. Y holds long class indices; the committee
@@ -2056,7 +2063,7 @@ def solver_polish_(net, X, Y, mse_steps=15, mae_steps=15,
 
 
 def polish_consensus(net, X, Y, lr=1e-4, steps=200, max_samples=30000,
-                     hard=False):
+                     hard=False, hard_loss="xent", hard_floor=1e-6):
     """Gentle low-LR polish of a consensus net on query MSE (hard=True:
     cross-entropy on hard labels). The consensus has
     good parameters but a small function-assembly artifact from averaging
@@ -2074,8 +2081,11 @@ def polish_consensus(net, X, Y, lr=1e-4, steps=200, max_samples=30000,
         opt.zero_grad()
         # hard=True: Y holds class indices -- same objective the members train
         # on. The consensus/combine mechanics are teacher-free either way.
-        loss = (F.cross_entropy(net(Xs), Ys) if hard
-                else ((net(Xs) - Ys) ** 2).mean())
+        if hard:
+            loss = (boundary_loss(net, Xs, Ys, floor=hard_floor) if hard_loss == "boundary"
+                    else F.cross_entropy(net(Xs), Ys))
+        else:
+            loss = ((net(Xs) - Ys) ** 2).mean()
         loss.backward()
         opt.step()
     return net
@@ -2131,6 +2141,56 @@ def mse_on(pop, X, Y, bs=4096):
 
 
 @torch.no_grad()
+def boundary_loss(net, xb, yb, floor=1e-6, reduce=True):
+    """Hard-label BOUNDARY loss (cfg.hard_loss='boundary').
+
+    For each labelled point (x, y) take the runner-up class j = argmax_{k!=y} f_k(x).
+    If f_j(x) < f_y(x) the point is on the correct side and contributes exactly 0.
+    Otherwise the loss is the squared first-order distance from x to the member's
+    y/j boundary,  (f_j - f_y)^2 / ||grad_x (f_y - f_j)||^2  -- i.e. how far the
+    boundary has to move to put x on its labelled side, in input units.
+
+    Only wrong boundaries are penalised (a pure consistency loss, no margin: members
+    settle on different edges of the version space, which is what the disagreement
+    sampler needs). The ratio is invariant under the whole label-preserving head family
+    W -> s*W + 1u^T, b -> s*b + beta (u.h+beta cancels in the difference, s in the ratio),
+    so unlike cross-entropy no gradient is spent on unidentifiable directions and the
+    logit scale cannot inflate. Needs a double backward (create_graph) through the net.
+    reduce=False returns the per-sample UNsquared distances (for ranking)."""
+    xb = xb.detach().requires_grad_(True)
+    with torch.enable_grad():
+        out = net(xb)                                           # (B, C)
+        fy = out.gather(1, yb[:, None])                         # (B, 1)
+        masked = out.scatter(1, yb[:, None], float("-inf"))
+        j = masked.argmax(1, keepdim=True)                      # runner-up class
+        diff = (out.gather(1, j) - fy).squeeze(1)               # f_j - f_y  (>= 0 <=> misclassified)
+        viol = diff.clamp_min(0)
+        g, = torch.autograd.grad((fy - out.gather(1, j)).sum(), xb, create_graph=True)
+        gn = g.flatten(1).norm(dim=1).clamp_min(floor)          # ||grad_x (f_y - f_j)||
+        dist = viol / gn                                        # signed-distance violation, input units
+        if not reduce:
+            return dist.detach()
+        return (dist ** 2).mean()
+
+
+def bdist_on(pop, X, Y, bs=4096, floor=1e-6):
+    """Per-sample mean boundary-distance violation of each member on (X, Y) with hard
+    labels Y: 0 iff the member is consistent with every label, else the mean distance its
+    boundary must move. Ranking/gating metric under cfg.hard_loss='boundary' (xent's scale
+    drift makes mean cross-entropy a poor ranking there)."""
+    losses = []
+    for net in pop:
+        dev = next(net.parameters()).device
+        dt = next(net.parameters()).dtype
+        tot, n = 0.0, 0
+        for i in range(0, len(X), bs):
+            xb, yb = X[i:i + bs].to(dev, dt), Y[i:i + bs].to(dev)
+            tot += boundary_loss(net, xb, yb, floor=floor, reduce=False).sum().item()
+            n += len(yb)
+        losses.append(tot / n)
+    return losses
+
+
 def xent_on(pop, X, Y, bs=4096):
     """Per-sample mean cross-entropy of each member on (X, Y) where Y holds HARD
     class indices (cfg.hard). The hard-label counterpart of l1_on: used for
@@ -2513,7 +2573,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
     if cfg.peel_try and cfg.factor_tail:
         raise ValueError("cfg.peel_try reinits the committee with plain Adam; "
                          "incompatible with factor_tail (stale factored opts)")
-    loss_on = xent_on if cfg.hard else l1_on   # member ranking/gating metric
+    loss_on = ((bdist_on if cfg.hard_loss == "boundary" else xent_on) if cfg.hard
+               else l1_on)                     # member ranking/gating metric
     gen = torch.Generator(device=device).manual_seed(seed)
     # Expand-and-Cluster fit gate: widen hidden layers (input/output fixed).
     student_dims = ([dims[0]]
@@ -3122,7 +3183,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             else:
                 opt.zero_grad()
             if cfg.hard:
-                loss = F.cross_entropy(net(xb), yb)
+                loss = (boundary_loss(net, xb, yb, floor=cfg.hard_floor)
+                        if cfg.hard_loss == "boundary" else F.cross_entropy(net(xb), yb))
             elif cfg.fit_loss == "mse":
                 loss = ((net(xb) - yb) ** 2).mean()
             else:
@@ -3662,7 +3724,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if cfg.combine and not combined_done and cnet is not None:
                 polished = polish_consensus(
                     cnet, X, Y, lr=cfg.combine_polish_lr,
-                    steps=cfg.combine_polish_steps, hard=cfg.hard)
+                    steps=cfg.combine_polish_steps, hard=cfg.hard,
+                    hard_loss=cfg.hard_loss, hard_floor=cfg.hard_floor)
                 wi = max(range(cfg.p), key=lambda i: losses[i])
                 cur_lr = opts[wi].param_groups[0]["lr"]
                 pop[wi] = polished.to(device)
@@ -5193,7 +5256,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         "final_max_eps_per_matrix": errs["max_eps_per_matrix"],
         "final_agree": final_agree,
         # loss of the selected reconstruction on the accumulated query set D
-        **({"final_xent": xent_on([best_bufwd], X, Y)[0]} if cfg.hard
+        **({"final_xent": xent_on([best_bufwd], X, Y)[0],
+            "final_bdist": bdist_on([best_bufwd], X, Y, floor=cfg.hard_floor)[0]} if cfg.hard
            else {"final_mae": l1_on([best_bufwd], _Xe, _Ye)[0],      # --disk: RAM tier (the full ring view walks
                  "final_mse": mse_on([best_bufwd], _Xe, _Ye)[0]}),    #  ~300 GB at ~130 MB/s = an hour per metric)
         "queries": queries_used,
@@ -6804,7 +6868,7 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
         raise ValueError("cfg.hard: the CNN peel/peel-try/resume path refines "
                          "layers with the kink prober (real-valued teacher "
                          "outputs); incompatible with the hard-label regime")
-    loss_on = xent_on if cfg.hard else l1_on
+    loss_on = (bdist_on if cfg.hard_loss == "boundary" else xent_on) if cfg.hard else l1_on
     gen = torch.Generator(device=device).manual_seed(seed)
     in_dim = int(input_shape[0] * input_shape[1] * input_shape[2])
     pop = [ConvNet(input_shape, conv_cfgs, fc_dims, out_dim, cfg.act).to(device)
@@ -7139,7 +7203,8 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                 for net, opt in zip(pop, opts):
                     opt.zero_grad()
                     if cfg.hard:
-                        loss = F.cross_entropy(net(xb), yb)
+                        loss = (boundary_loss(net, xb, yb, floor=cfg.hard_floor)
+                                if cfg.hard_loss == "boundary" else F.cross_entropy(net(xb), yb))
                     elif cfg.fit_loss == "mse":
                         loss = ((net(xb) - yb) ** 2).mean()
                     else:
