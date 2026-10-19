@@ -10,6 +10,8 @@ them into the stack before an iteration's training, `push` copies the trained
 weights back so the sampler / consensus / snapshots see them unchanged.
 """
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 def _adam_kernel(p, g, m, v, lr, step, b1, b2, eps):
@@ -171,14 +173,59 @@ class StackedTrainer:
                 h = self.act(h)
         return h                                              # (P, B, out)
 
-    def step(self, xb, yb, fit_loss="l1"):
-        """One optimizer step for every member on the same minibatch; returns the per-member losses (detached)."""
+    def _act_prime(self, z):
+        """Elementwise derivative of the hidden activation at pre-activation z (same for every member)."""
+        a = self.act
+        if isinstance(a, nn.LeakyReLU):
+            return torch.where(z > 0, torch.ones((), dtype=z.dtype, device=z.device),
+                               torch.full((), a.negative_slope, dtype=z.dtype, device=z.device))
+        if isinstance(a, nn.ReLU):
+            return (z > 0).to(z.dtype)
+        if isinstance(a, nn.Tanh):
+            return 1 - torch.tanh(z) ** 2
+        if isinstance(a, nn.Sigmoid):
+            s = torch.sigmoid(z); return s * (1 - s)
+        raise ValueError(f"stacked boundary loss: unsupported activation {type(a).__name__}")
+
+    def boundary_loss(self, xb, yb, floor=1e-6):
+        """Hard-label boundary loss for all members at once (method.boundary_loss, batched).
+        yb: (B,) long labels. Returns the per-member mean squared distance violation (P,).
+        The input gradient of f_y - f_j is a manual vector-Jacobian product through the
+        batched forward (one bmm per layer times the activation derivative), so the whole
+        loss is an ordinary graph: one backward, no create_graph double backward."""
+        h = xb.unsqueeze(0).expand(self.P, -1, -1); pres = []
+        for l in range(self.L):
+            z = torch.baddbmm(self.b[l].unsqueeze(1), h, self.W[l].transpose(1, 2))
+            if l < self.L - 1:
+                pres.append(z); h = self.act(z)
+            else:
+                out = z                                            # (P, B, C)
+        yi = yb.view(1, -1, 1).expand(self.P, -1, 1)
+        fy = out.gather(2, yi)
+        j = out.scatter(2, yi, float("-inf")).argmax(2, keepdim=True)   # runner-up class
+        viol = (out.gather(2, j) - fy).clamp_min(0).squeeze(2)         # (P, B): f_j - f_y if misclassified
+        g = torch.zeros_like(out).scatter_(2, yi, 1.0).scatter_(2, j, -1.0)   # d(f_y - f_j)/d out
+        for l in reversed(range(self.L)):
+            g = torch.bmm(g, self.W[l])                                # (P, B, in_l)
+            if l > 0:
+                g = g * self._act_prime(pres[l - 1])
+        gn = g.norm(dim=2).clamp_min(floor)                            # ||grad_x (f_y - f_j)||
+        return ((viol / gn) ** 2).mean(dim=1)
+
+    def step(self, xb, yb, fit_loss="l1", floor=1e-6):
+        """One optimizer step for every member on the same minibatch; returns the per-member losses (detached).
+        fit_loss: 'l1' | 'mse' (yb float targets) | 'xent' | 'boundary' (yb long hard labels)."""
         self.opt.zero_grad(set_to_none=True)
-        out = self.forward(xb)
-        if fit_loss == "mse":
-            per = ((out - yb.unsqueeze(0)) ** 2).mean(dim=(1, 2))
+        if fit_loss == "boundary":
+            per = self.boundary_loss(xb, yb, floor)
         else:
-            per = (out - yb.unsqueeze(0)).abs().mean(dim=(1, 2))
+            out = self.forward(xb)
+            if fit_loss == "xent":
+                per = F.cross_entropy(out.flatten(0, 1), yb.repeat(self.P), reduction="none").view(self.P, -1).mean(dim=1)
+            elif fit_loss == "mse":
+                per = ((out - yb.unsqueeze(0)) ** 2).mean(dim=(1, 2))
+            else:
+                per = (out - yb.unsqueeze(0)).abs().mean(dim=(1, 2))
         per.sum().backward()
         if self.dirlr is not None:
             self.apply_dirlr()

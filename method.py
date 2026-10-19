@@ -2165,7 +2165,7 @@ def boundary_loss(net, xb, yb, floor=1e-6, reduce=True):
         j = masked.argmax(1, keepdim=True)                      # runner-up class
         diff = (out.gather(1, j) - fy).squeeze(1)               # f_j - f_y  (>= 0 <=> misclassified)
         viol = diff.clamp_min(0)
-        g, = torch.autograd.grad((fy - out.gather(1, j)).sum(), xb, create_graph=True)
+        g, = torch.autograd.grad((fy - out.gather(1, j)).sum(), xb, create_graph=reduce)   # metric (reduce=False): values only
         gn = g.flatten(1).norm(dim=1).clamp_min(floor)          # ||grad_x (f_y - f_j)||
         dist = viol / gn                                        # signed-distance violation, input units
         if not reduce:
@@ -3246,10 +3246,11 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
         training_members = [TrainingView(s,cached=True) for s in stages] if stages is not None else qg_members
         training_opts = [s.optimizer for s in stages] if stages is not None else opts
         # ---- stacked fast path: plain mode only (no stages / solo / factored tails / peel masks /
-        #      pins / reverse-peel / frontier views / hard labels); members all the same shape.
+        #      pins / reverse-peel / frontier views); members all the same shape. Hard labels train
+        #      here too (xent / boundary batched over members; the boundary input-gradient is a manual vjp).
         _fast = (cfg.stacked and stages is None and solo_pools is None and all(f is None for f in facs)
                  and _targeter is None and _reverse is None and not frozen and not partial_mask
-                 and not cfg.hard and cfg.fit_loss in ("l1", "mse")
+                 and (cfg.hard_loss in ("xent", "boundary") if cfg.hard else cfg.fit_loss in ("l1", "mse"))
                  and all(tm is m for tm, m in zip(training_members, pop))
                  and len({tuple(m.dims) for m in pop}) == 1)
         if _fast:
@@ -3335,7 +3336,8 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                         idx = _perm_cpu[i:i + cfg.batch]
                         return X[idx].to(device, non_blocking=False), Yfit[idx].to(device, non_blocking=False)
                     _AHEAD = 2                                   # 2 gather workers, 2 batches ahead: GPU-bound (2.7 ms vs 17.7 sequential)
-                    if _ring is not None or cfg.gpu_seg:
+                    _lk = cfg.hard_loss if cfg.hard else cfg.fit_loss     # stacked loss kind
+                    if _ring is not None or (cfg.gpu_seg and not cfg.hard):   # (ram_epoch_batches wants 2-D float Y)
                         # segment-shuffled stream (disk ring: both tiers, prefetched; else the host buffer),
                         # minibatches gathered on the GPU from a resident segment (cfg.gpu_seg); same step math
                         if _ring is not None:
@@ -3346,7 +3348,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                                     int(cfg.disk_seg_gb * 1e9 // (X.shape[1] * 4)), ahead=_AHEAD, gpu=cfg.gpu_seg)
                         for xb, yb in _it:
                             _stacked.set_lr(opts[0].param_groups[0]["lr"])
-                            _per = _stacked.step(xb, yb, cfg.fit_loss)
+                            _per = _stacked.step(xb, yb, _lk, cfg.hard_floor)
                             _ep_acc = _per.sum() if _ep_acc is None else _ep_acc + _per.sum()
                             _ep_vec = _per.detach() if _ep_vec is None else _ep_vec + _per.detach()
                             nb += 1
@@ -3358,7 +3360,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                             if j + _AHEAD < len(_starts):
                                 _futs.append(_pool.submit(_fetch, _starts[j + _AHEAD]))
                             _stacked.set_lr(opts[0].param_groups[0]["lr"])
-                            _per = _stacked.step(xb, yb, cfg.fit_loss)       # per-member losses, no host sync
+                            _per = _stacked.step(xb, yb, _lk, cfg.hard_floor)       # per-member losses, no host sync
                             _ep_acc = _per.sum() if _ep_acc is None else _ep_acc + _per.sum()
                             _ep_vec = _per.detach() if _ep_vec is None else _ep_vec + _per.detach()
                             nb += 1
