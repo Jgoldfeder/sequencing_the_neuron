@@ -14,7 +14,7 @@ cd "$(dirname "$0")"
 Q=1500
 if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then Q="$1"; shift; fi
 DEVICE="${DEVICE:-cuda}"
-ALL_ACTS="leaky_relu sigmoid tanh square elu gelu silu mish softplus softsign celu selu hardswish squareplus abs pow3 pow5 sine softmax prelu glu swiglu"
+ALL_ACTS="leaky_relu nonleakyrelu sigmoid tanh square elu gelu silu mish softplus softsign celu selu hardswish squareplus abs pow3 pow5 sine softmax prelu glu swiglu"
 ACTS="${ACTS:-$ALL_ACTS}"
 ARCH="784,128,10"
 mkdir -p logs

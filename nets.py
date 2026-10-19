@@ -92,8 +92,8 @@ def make_act(act, negative_slope=0.01):
     """Hidden activation module by name (shared by MLP and ConvNet)."""
     if act == "leaky_relu":
         return nn.LeakyReLU(negative_slope=negative_slope)
-    if act == "relu":
-        return nn.ReLU()
+    if act in ("relu", "nonleakyrelu"):
+        return nn.ReLU()             # plain ReLU ('nonleakyrelu' for MLPs): same positive scale gauge as leaky
     if act == "sigmoid":
         return nn.Sigmoid()
     if act == "tanh":

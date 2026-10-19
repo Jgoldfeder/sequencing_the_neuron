@@ -12,6 +12,9 @@ Torch convention: for nn.Linear, weight is (out, in). Hidden neuron c of
 layer l owns row c of layers[l].weight and bias c of layers[l].bias, and is
 consumed via column c of layers[l+1].weight.
 
+Plain ReLU ('nonleakyrelu') has exactly the leaky-ReLU gauge below (positive
+scale, no polarity); the only difference is that a unit can go fully silent.
+
 LeakyReLU is positively homogeneous, so the scaling isomorphism applies
 (alpha > 0): scale row c of W_l and b_l by 1/alpha, scale column c of
 W_{l+1} by alpha. Polarity does NOT apply (LeakyReLU is not odd).

@@ -1227,10 +1227,10 @@ def main():
                          "sign of the row (nothing changes in the next layer). "
                          "No kinks: --verify / peel refiners are unavailable; "
                          "--tanhsolver (jet refiner) is supported.")
-    ap.add_argument("--act", default="", choices=["elu", "gelu", "silu", "mish", "softplus", "softsign", "celu", "selu", "hardswish", "squareplus", "abs", "pow3", "pow5", "sine", "softmax", "prelu", "glu", "swiglu"],
+    ap.add_argument("--act", default="", choices=["elu", "gelu", "silu", "mish", "softplus", "softsign", "celu", "selu", "hardswish", "squareplus", "abs", "pow3", "pow5", "sine", "softmax", "prelu", "glu", "swiglu", "nonleakyrelu"],
                     help="hidden activation of BOTH the teacher and the committee. "
                          "Alignment canonicalizes each activation's own gauge (align.py): "
-                         "permutation only for elu/gelu/silu/mish/softplus/celu/selu/"
+                         "leaky-ReLU scale gauge for nonleakyrelu (plain ReLU); permutation only for elu/gelu/silu/mish/softplus/celu/selu/"
                          "hardswish/squareplus; odd sign flip for softsign; sign + linear "
                          "scale for abs; sign + k-th-power scale for pow3/pow5; odd flip + "
                          "bias mod pi for sine; layer-level shifts for softmax; positive "

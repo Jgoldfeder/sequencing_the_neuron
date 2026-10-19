@@ -2366,6 +2366,8 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
             return 0.5 * (z + torch.sqrt(z * z + 4.0))
         if act_name.startswith("pow") and act_name[3:].isdigit():
             return z ** int(act_name[3:])
+        if act_name == "nonleakyrelu":
+            return F.relu(z)
         if act_name == "abs":
             return z.abs()
         if act_name == "softmax":

@@ -134,11 +134,13 @@ def _act_and_deriv(z, act):
         return a * (torch.sigmoid(g) if act == "glu" else F.silu(g)), None   # Jacobian in _act_jvp
     if act == "prelu":
         raise ValueError("tanh_solve: PReLU's slope lives outside the layer parameters; not supported")
+    if act == "nonleakyrelu":
+        return torch.relu(z), (z > 0).to(z.dtype)                   # piecewise linear, Jacobian a.e.
     if act == "abs":
         return z.abs(), torch.sign(z)                                # |z|: piecewise linear, Jacobian a.e.
     if act == "sine":
         return torch.sin(z), torch.cos(z)                            # SIREN sine (omega = 1)
-    raise ValueError(f"tanh_solve supports smooth activations only (tanh / sigmoid / square / elu / gelu / silu / mish / softplus / softsign / celu / selu / hardswish / squareplus / abs / pow<k> / sine / softmax / glu / swiglu), got {act!r}")
+    raise ValueError(f"tanh_solve supports smooth activations only (tanh / sigmoid / square / elu / gelu / silu / mish / softplus / softsign / celu / selu / hardswish / squareplus / abs / pow<k> / sine / softmax / glu / swiglu / nonleakyrelu), got {act!r}")
 
 
 def _act_jvp(z, G, act):
