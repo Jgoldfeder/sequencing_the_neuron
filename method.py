@@ -811,6 +811,11 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
     #      the queries in blocks of <= ~2 GB of leaf state; identical result up to Adam's eps term.
     if init_override is None:
         _block = max(1024, int(cfg.qg_block_gb * 1e9 / (4 * input_dim * 4)))   # leaf+grad+2 Adam moments per block
+        if not getattr(gen_queries, "_said", False):
+            gen_queries._said = True
+            print(f"  [sampler] q {cfg.q}: block {min(_block, cfg.q)} queries (--qg-block-gb {cfg.qg_block_gb:g}) -> "
+                  f"{-(-cfg.q // _block)} block(s); forward chunk budget --qg-chunk-gb {cfg.qg_chunk_gb:g}"
+                  + (f", fixed chunk {cfg.qg_chunk} rows" if cfg.qg_chunk else ""), flush=True)
         if cfg.q > _block:
             out = None                                   # preallocated: peak = result + one block of state (no 2x cat)
             for b0 in range(0, cfg.q, _block):
@@ -904,6 +909,10 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
             _hid = _per_sample_hidden(members[0], fns[0] if fns is not None else None, _probe_in) or _D
         _P = len(members)
         chunk = max(1024, min(q, int(cfg.qg_chunk_gb * 1e9 / (_P * _P * _D * 4 + 3 * _P * _hid * 4))))
+        if not getattr(_qg_steps, "_said", False):
+            _qg_steps._said = True
+            print(f"  [sampler] chunk {chunk} rows per forward ({_P} members, {_hid} hidden floats/sample, out {_D}) -> "
+                  f"{-(-q // chunk)} chunk(s) per block of {q}", flush=True)
     # Only the query leaf needs a gradient: switch the members' parameter grads off for the search so
     # autograd skips every dW GEMM (was ~1/3 of the sampler's GEMM time, incl. the unaligned cutlass
     # kernels) -- bit-identical queries, less memory. Restored on exit. Optional TF32 (cfg.qg_tf32) is
