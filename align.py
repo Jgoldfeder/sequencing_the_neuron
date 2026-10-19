@@ -29,27 +29,174 @@ nonzero real per-neuron scale s on the row with 1/s^2 on the column.
 Canonical form: unit-L2 row (norm^2 pushed into the next column) and the
 max-|.| entry of [row|bias] positive (sign_canonicalize_ with absorb="even").
 
+GLU / SwiGLU (nets.GatedUnit): a hidden unit is a (value row, gate row) PAIR
+of the 2w-row hidden Linear and one next-layer column. The value half is
+linear, so any nonzero s on the value row/bias with 1/s on the column is a
+gauge (scale p = 1 plus a tanh-style sign flip that touches the value row
+only); the gate row has no symmetry. All per-unit operations below act on the
+value rows via _unit_rows and permute both halves together (permute_layer_).
+
+PReLU with one shared learned slope a (f(z) = z for z > 0, a z else) has the
+ReLU scale gauge (positive, p = 1) and a GLOBAL discrete flip: f_{1/a}(-z) =
+-(1/a) f_a(z) for all z, so negating EVERY hidden row/bias, multiplying every
+next-layer column by -a and replacing a by 1/a is function-preserving.
+Canonical form: |a| <= 1 (_prelu_canonicalize_, before the scale rule). The
+slope is a genuine parameter and is included in the eps metrics.
+
+Softmax over a hidden layer's units has NO per-neuron gauge but two LAYER-level
+ones: (a) adding the same affine function v.x + c to every unit's pre-activation
+(W_l + 1 v^T, b_l + c 1) leaves the softmax unchanged, and (b) since the outputs
+sum to 1, the next layer may add u to every column and subtract it from its
+bias (W_{l+1} + u 1^T, b_{l+1} - u). Canonical form: zero-mean rows across the
+layer's units (mean row and mean bias removed) and zero-mean rows of the next
+layer (_softmax_canonicalize_). Softmax is NOT scale invariant (temperature).
+
+Sine sin(z) is odd (tanh-style flip) and PERIODIC: b -> b + 2 pi k is free and
+b -> b + pi together with negating the next column is free (sin(z + pi) =
+-sin z). Canonical form: sign by the ROW's largest entry (the bias is not a
+stable sign key when it is only defined mod pi), then the bias reduced to
+[-pi/2, pi/2) with the column sign adjusted (_periodic_reduce_).
+
+Monomials z^k (nets.Power, 'pow3'/'pow5'/...) generalise square: scale gauge
+with exponent k (row/a, column*a^k), sign gauge odd (k odd: negate the next
+column) or even (k even: nothing). Together: any nonzero s on the row, 1/s^k on
+the column.
+
+|z| is even (sign gauge like square: nothing in the next layer) and positively
+homogeneous (scale gauge like ReLU: norm pushed linearly, p = 1).
+
+Softsign z/(1+|z|) is odd like tanh: same polarity gauge (sign flip, next
+column negated), no scale gauge.
+
+ELU and the other nets.PERMUTATION_ONLY_ACTS are neither homogeneous (no scale
+gauge) nor odd / even (no sign gauge; e.g. softplus(-z) = softplus(z) - z
+leaves a linear remainder the next layer cannot absorb). Their only per-neuron
+symmetry is permutation: the canonical form is the identity and units are
+matched unsigned.
+
 The per-neuron gauge helpers below are keyed on the activation:
-  _scale_power(net): 1 (leaky-ReLU), 2 (square) or None (sigmoid/tanh);
-  _sign_gauge(net):  None (leaky-ReLU), True (sigmoid: absorb), False (tanh:
-                     negate the next column) or "even" (square: nothing).
+  _scale_power(net): 1 (leaky-ReLU), 2 (square) or None (sigmoid/tanh/
+                     permutation-only);
+  _sign_gauge(net):  None (leaky-ReLU, permutation-only), True (sigmoid:
+                     absorb), False (tanh: negate the next column) or "even"
+                     (square: nothing).
 """
 import torch
 from scipy.optimize import linear_sum_assignment
 
-from nets import Square
+import math
+
+from nets import Square, Abs, Power, Sine, GatedUnit
 
 
 def _scale_power(net):
     """Exponent p of the scaling isomorphism: scaling a hidden neuron's row (and
     bias) by 1/a is undone by scaling its next-layer column by a^p. 1 for
     (leaky) ReLU (positively homogeneous, a > 0), 2 for square (a != 0),
-    None for sigmoid / tanh (no scaling isomorphism)."""
-    if isinstance(net.act, (torch.nn.LeakyReLU, torch.nn.ReLU)):
+    None for sigmoid / tanh / permutation-only (no scaling isomorphism)."""
+    if isinstance(net.act, (torch.nn.LeakyReLU, torch.nn.ReLU, torch.nn.PReLU, Abs, GatedUnit)):
         return 1
     if isinstance(net.act, Square):
         return 2
+    if isinstance(net.act, Power):
+        return net.act.k
     return None
+
+
+@torch.no_grad()
+def _periodic_reduce_(net, layers=None):
+    """Sine: reduce every hidden bias to [-pi/2, pi/2) by b -> b - k pi and negate the
+    next column by (-1)^k (sin(z - k pi) = (-1)^k sin z). Function-preserving; no-op
+    for other activations. `layers` = hidden layer indices to touch (default all)."""
+    if not isinstance(net.act, Sine):
+        return
+    L = net.layers
+    for l in (range(len(L) - 1) if layers is None else layers):
+        b = L[l].bias
+        k = torch.floor(b / math.pi + 0.5)                  # nearest multiple: residue in [-pi/2, pi/2)
+        if not bool(k.any()):
+            continue
+        b.sub_(k * math.pi)
+        sgn = torch.where(k.remainder(2) == 0, 1.0, -1.0).to(b.dtype)
+        _push_to_next(L[l + 1], sgn, L[l].weight.dim() == 4)
+
+
+@torch.no_grad()
+def _softmax_canonicalize_(net):
+    """Softmax hidden layers: remove the shared affine shift (mean row / mean bias
+    over the layer's units) and the next layer's per-row constant (row mean of
+    W_{l+1} moved into b_{l+1}; valid because the softmax outputs sum to 1).
+    Function-preserving; no-op for other activations."""
+    if not isinstance(net.act, torch.nn.Softmax):
+        return
+    L = net.layers
+    for l in range(len(L) - 1):
+        W, b = L[l].weight, L[l].bias
+        W.sub_(W.mean(0, keepdim=True)); b.sub_(b.mean())
+        nxt = L[l + 1]
+        u = nxt.weight.mean(1)
+        nxt.weight.sub_(u[:, None]); nxt.bias.add_(u)
+
+
+@torch.no_grad()
+def _prelu_canonicalize_(net):
+    """PReLU (one shared slope a): if |a| > 1 apply the global flip -- negate every
+    hidden row and bias, multiply every next-layer column by -a, set a <- 1/a --
+    so the canonical slope satisfies |a| <= 1. Function-preserving; no-op otherwise."""
+    if not isinstance(net.act, torch.nn.PReLU):
+        return
+    a = net.act.weight
+    if a.numel() != 1:
+        raise ValueError("PReLU gauge: expected ONE shared slope (nn.PReLU())")
+    av = float(a.item())
+    if abs(av) <= 1.0 or av == 0.0:
+        return
+    L = net.layers
+    for l in range(len(L) - 1):
+        L[l].weight.mul_(-1.0); L[l].bias.mul_(-1.0)
+        L[l + 1].weight.mul_(-av)
+    a.fill_(1.0 / av)
+
+
+@torch.no_grad()
+def _pre_canonicalize_(net):
+    """Layer-level gauges that must be fixed BEFORE the per-neuron scale/sign rules
+    and before activation pairing: the softmax shifts, the PReLU global flip.
+    Function-preserving; no-op for other activations."""
+    _softmax_canonicalize_(net)
+    _prelu_canonicalize_(net)
+
+
+def _needs_pre_canon(net):
+    return isinstance(net.act, (torch.nn.Softmax, torch.nn.PReLU))
+
+
+def _act_param_pairs(t, r):
+    """(teacher, recon) pairs of ACTIVATION parameters (PReLU slope); empty otherwise."""
+    return list(zip(t.act.parameters(), r.act.parameters()))
+
+
+@torch.no_grad()
+def _layer_canonicalize_(net):
+    """Layer-level (not per-neuron sign/scale) parts of the canonical form that
+    come AFTER the sign rule: the periodic bias reduction of sine.
+    Function-preserving; no-op for activations without such a gauge."""
+    _periodic_reduce_(net)
+
+
+def _is_gated(net):
+    return isinstance(net.act, GatedUnit)
+
+
+def _unit_rows(net, l):
+    """(W, b) rows owned by the hidden UNITS of layer l for the per-unit gauge: the
+    whole layer for ordinary activations, the VALUE half (first w rows) for gated
+    units. Views: in-place ops write through."""
+    W, b = net.layers[l].weight, net.layers[l].bias
+    if _is_gated(net):
+        w = W.shape[0] // 2
+        return W[:w], b[:w]
+    return W, b
 
 
 def _flip_next_(nxt, flip, s, absorb):
@@ -78,18 +225,20 @@ def sign_canonicalize_(net, absorb=True):
     tanh needs no such term); then negate that column (tanh, sigmoid) or
     leave the next layer untouched (square: even activation).
     Function-preserving and exact; in-place."""
+    use_bias = not isinstance(net.act, Sine)          # sine: the bias is only defined mod pi -> key on the row
     for l in range(len(net.layers) - 1):
-        W = net.layers[l].weight  # (out_l, in_l)
-        b = net.layers[l].bias
-        Wb = torch.cat([W, b[:, None]], 1)
+        W, b = _unit_rows(net, l)                      # (w, in_l): value rows for gated units
+        Wb = torch.cat([W, b[:, None]], 1) if use_bias else W
         s = torch.sign(Wb.gather(1, Wb.abs().argmax(1, keepdim=True)).squeeze(1))
         s[s == 0] = 1.0
         flip = s < 0
         if not flip.any():
+            _periodic_reduce_(net, [l])
             continue
         _flip_next_(net.layers[l + 1], flip, s, absorb)
         W.mul_(s.unsqueeze(1))
         b.mul_(s)
+        _periodic_reduce_(net, [l])                   # sine: reduce b_l (negates columns of l+1) BEFORE l+1's sign rule
 
 
 @torch.no_grad()
@@ -108,6 +257,7 @@ def sign_align_clone(net, Zref, X, odd=None):
     the pairing is (|corr| ~ 1). Leaky-ReLU has no polarity gauge: no flips, plain corr."""
     from head_refine import _act_perm
     mc = net.clone()
+    _pre_canonicalize_(mc); _layer_canonicalize_(mc)
     absorb = _sign_gauge(mc)
     if odd is None:
         odd = absorb is not None
@@ -156,11 +306,11 @@ def scale_normalize_(net):
     Either way, functionally equivalent nets emerge with identical parameters
     up to neuron permutation, so downstream matching / clustering / averaging
     operate on comparable raw weights."""
+    _pre_canonicalize_(net)                            # softmax shifts (layer-level, before per-neuron rules)
     p = _scale_power(net)
     if p is not None:
         for l in range(len(net.layers) - 1):
-            W = net.layers[l].weight  # (out_l, in_l)
-            b = net.layers[l].bias
+            W, b = _unit_rows(net, l)                  # (w, in_l): value rows for gated units
             norms = W.norm(dim=1).clamp_min(1e-12)  # per hidden neuron
             W.div_(norms.unsqueeze(1))
             b.div_(norms)
@@ -168,13 +318,18 @@ def scale_normalize_(net):
     absorb = _sign_gauge(net)
     if absorb is not None:
         sign_canonicalize_(net, absorb=absorb)
+    _layer_canonicalize_(net)                          # sine: bias mod pi (after the sign rule)
 
 
 @torch.no_grad()
 def _match_features(net, l):
-    """Feature vector per hidden neuron of layer l for matching."""
+    """Feature vector per hidden neuron of layer l for matching (gated units:
+    [value row | value bias | gate row | gate bias])."""
     W = net.layers[l].weight
     b = net.layers[l].bias.unsqueeze(1)
+    if _is_gated(net):
+        w = W.shape[0] // 2
+        return torch.cat([W[:w], b[:w], W[w:], b[w:]], dim=1)
     return torch.cat([W, b], dim=1)
 
 
@@ -222,19 +377,24 @@ def flip_neurons_(net, l, flip, absorb):
         return
     s = torch.where(flip, -1.0, 1.0).to(net.layers[l].weight.dtype)
     _flip_next_(net.layers[l + 1], flip, s, absorb)
-    net.layers[l].weight.mul_(s.unsqueeze(1))
-    net.layers[l].bias.mul_(s)
+    W, b = _unit_rows(net, l)                          # value rows only for gated units
+    W.mul_(s.unsqueeze(1))
+    b.mul_(s)
+    _periodic_reduce_(net, [l])                        # sine: -b may leave [-pi/2, pi/2) at the boundary
 
 
 def _sign_gauge(net):
     """None for (leaky)ReLU (no polarity gauge; its scale gauge is handled by
     scale_normalize_); else the absorb flag for the activation's polarity
-    gauge: True (sigmoid), False (tanh), "even" (square: next layer untouched)."""
+    gauge: True (sigmoid), False (tanh), "even" (square: next layer untouched).
+    None also for the permutation-only activations (ELU, ...)."""
     if isinstance(net.act, torch.nn.Sigmoid):
         return True
-    if isinstance(net.act, torch.nn.Tanh):
+    if isinstance(net.act, (torch.nn.Tanh, torch.nn.Softsign, Sine, GatedUnit)):   # odd / linear value half: negate the next column
         return False
-    if isinstance(net.act, Square):
+    if isinstance(net.act, Power):
+        return False if net.act.k % 2 else "even"
+    if isinstance(net.act, (Square, Abs)):
         return "even"
     return None
 
@@ -263,10 +423,13 @@ def permute_layer_(net, l, perm):
     """Apply neuron permutation to hidden layer l of net (in-place).
     perm[i] = old index that now sits at position i."""
     idx = torch.tensor(perm, device=net.layers[l].weight.device)
+    if _is_gated(net):                                 # permute value AND gate rows together
+        w = net.layers[l].weight.shape[0] // 2
+        idx = torch.cat([idx, idx + w])
     net.layers[l].weight.copy_(net.layers[l].weight[idx])
     net.layers[l].bias.copy_(net.layers[l].bias[idx])
     W_next = net.layers[l + 1].weight
-    W_next.copy_(W_next[:, idx])
+    W_next.copy_(W_next[:, idx[:len(perm)]])
 
 
 @torch.no_grad()
@@ -357,6 +520,8 @@ def param_errors(recon, teacher, hard=False):
             d = (pa - pb).abs()
             max_errs.append(d.max().item())
             mean_errs.append(d.mean().item())
+    for pa, pb in _act_param_pairs(t, r):              # PReLU slope
+        d = (pa - pb).abs(); max_errs.append(d.max().item()); mean_errs.append(d.mean().item())
     return {
         "max_eps": max(max_errs),
         "mean_eps_per_matrix": mean_errs,
@@ -385,27 +550,32 @@ def _push_to_next(nxt, factor, conv_prev):
 def cnn_canonicalize_(net):
     """In-place scale/sign canonicalization of every hidden (non-final) layer.
     ReLU: unit-L2 per out-unit; tanh: sign (odd flip); square: unit-L2 with the
-    squared norm pushed, then sign (even: nothing pushed). Function-preserving;
-    the factor is pushed into the next layer. The final Linear head is left
-    as-is (its outputs are the fixed logits -- no output gauge)."""
+    squared norm pushed, then sign (even: nothing pushed); permutation-only
+    activations (ELU, ...): nothing. Function-preserving; the factor is pushed
+    into the next layer. The final Linear head is left as-is (its outputs are
+    the fixed logits -- no output gauge)."""
     L = net.layers
-    relu = net.act_name in ("relu", "leaky_relu")
-    square = net.act_name == "square"
+    p, sg = _scale_power(net), _sign_gauge(net)        # same gauge table as the MLP path
+    if sg is True:
+        raise ValueError("cnn_canonicalize_: sigmoid (absorbing flip) is not supported for ConvNets")
+    if p is None and sg is None:
+        return                                          # permutation only: identity canonical form
     for i in range(len(L) - 1):
         W, b = L[i].weight, L[i].bias
         conv = W.dim() == 4
         Wb = torch.cat([W.view(W.shape[0], -1), b[:, None]], 1)
-        if relu or square:
+        if p is not None:
             f = Wb.norm(dim=1).clamp_min(1e-8)          # positive scale
             W.div_(f.view(-1, 1, 1, 1) if conv else f[:, None]); b.div_(f)
-            _push_to_next(L[i + 1], f ** 2 if square else f, conv)
-        if not relu:                                    # tanh / square: sign of max-|.| entry
-            Wb = torch.cat([W.view(W.shape[0], -1), b[:, None]], 1)
+            _push_to_next(L[i + 1], f ** p, conv)
+        if sg is not None:                              # sign of max-|.| entry (row only for sine)
+            Wb = torch.cat([W.view(W.shape[0], -1), b[:, None]], 1) if not isinstance(net.act, Sine) else W.view(W.shape[0], -1)
             s = torch.sign(Wb.gather(1, Wb.abs().argmax(1, keepdim=True)).squeeze(1))
             s[s == 0] = 1.0
             W.mul_(s.view(-1, 1, 1, 1) if conv else s[:, None]); b.mul_(s)
-            if not square:                              # even activation: next layer unchanged
+            if sg is False:                             # odd: negate the next column; even: nothing
                 _push_to_next(L[i + 1], s, conv)
+        _periodic_reduce_(net, [i])                     # sine: bias mod pi, before layer i+1's sign rule
 
 
 @torch.no_grad()
@@ -459,13 +629,18 @@ def cnn_param_errors(recon, teacher, hard=False):
 # ------------------------------------------------ activation-matched eps --
 @torch.no_grad()
 def _preacts(net, X):
-    """Hidden-layer pre-activations [(n, w_l)] of an MLP on probe X."""
+    """Hidden-layer pre-activations [(n, w_l)] of an MLP on probe X. Activations with a
+    layer-level shift gauge (softmax) are read in their canonical gauge (clone), so the
+    unit correlations of two equivalent nets agree."""
+    if _needs_pre_canon(net):
+        net = net.clone(); _pre_canonicalize_(net)
+    gated = _is_gated(net)
     zs = []
     h = X
     for layer in net.layers[:-1]:
         z = layer(h)
-        zs.append(z)
         h = net.act(z)
+        zs.append(h if gated else z)                   # gated: one feature per UNIT (a*gate(g); sign/scale follow the value row)
     return zs
 
 
@@ -541,6 +716,7 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
             d = (pa - pb).abs()
             max_errs.append(d.max().item())
             mean_errs.append(d.mean().item())
+    act_errs = [((pa - pb).abs().max().item(), (pa - pb).abs().mean().item()) for pa, pb in _act_param_pairs(t, r)]
     out = {
         "max_eps": max(max_errs),
         "mean_eps_per_matrix": mean_errs,
@@ -588,6 +764,9 @@ def param_errors_actmatch(recon, teacher, probe=None, n_probe=4096, seed=0,
         max_errs[-1], mean_errs[-1] = out["head_opt"]["max_eps_b"], out["head_opt"]["mean_eps_b"]
         out["max_eps"] = max(max_errs)
         out["align"] = "actmatch+headopt"
+    if act_errs:                                       # PReLU slope, appended after the head
+        max_errs.extend(e[0] for e in act_errs); mean_errs.extend(e[1] for e in act_errs)
+        out["max_eps"] = max(max_errs)
     if return_match:
         out["perms"] = perms
     return out

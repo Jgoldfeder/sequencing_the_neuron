@@ -1787,7 +1787,7 @@ def build_consensus(pop, dims, losses=None, eps=0.02,
     import math
     if len(pop) < 2 or len(dims) < 3:
         return None
-    if len(dims) > 3:                                # >1 hidden layer
+    if len(dims) > 3 or getattr(pop[0], "gated", False):   # >1 hidden layer (or gated units: rows != units -> shape-driven path)
         return _build_consensus_deep(pop, dims, losses, eps, quorum_ratio, gate_kappa)
     P, H = len(pop), dims[1]
     quorum = math.ceil(quorum_ratio * P)          # ratio of the FULL committee
@@ -2344,6 +2344,34 @@ def merge_ensemble(pop, dims, act_name, X, Y, device, frozen=None,
             return torch.tanh(z)
         if act_name == "square":
             return z * z
+        if act_name == "elu":
+            return F.elu(z)
+        if act_name == "gelu":
+            return F.gelu(z)
+        if act_name == "silu":
+            return F.silu(z)
+        if act_name == "mish":
+            return F.mish(z)
+        if act_name == "softplus":
+            return F.softplus(z)
+        if act_name == "softsign":
+            return F.softsign(z)
+        if act_name == "celu":
+            return F.celu(z)
+        if act_name == "selu":
+            return F.selu(z)
+        if act_name == "hardswish":
+            return F.hardswish(z)
+        if act_name == "squareplus":
+            return 0.5 * (z + torch.sqrt(z * z + 4.0))
+        if act_name.startswith("pow") and act_name[3:].isdigit():
+            return z ** int(act_name[3:])
+        if act_name == "abs":
+            return z.abs()
+        if act_name == "softmax":
+            return torch.softmax(z, -1)
+        if act_name == "sine":
+            return torch.sin(z)
         return F.leaky_relu(z, 0.01)
 
     # --- pinned rows {layer: (W, b, mask)} merged from peel frozen + partial ---

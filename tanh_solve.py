@@ -97,7 +97,65 @@ def _act_and_deriv(z, act):
         return a, a * (1.0 - a)
     if act == "square":
         return z * z, 2.0 * z
-    raise ValueError(f"tanh_solve supports smooth activations only (tanh / sigmoid / square), got {act!r}")
+    if act == "elu":                                      # alpha = 1: elu' = 1 (z>0) else elu + 1
+        a = F.elu(z)
+        return a, torch.where(z > 0, torch.ones_like(z), a + 1.0)
+    if act == "gelu":
+        Phi = 0.5 * (1.0 + torch.erf(z / math.sqrt(2.0)))          # exact (erf) GELU, as nn.GELU()
+        return z * Phi, Phi + z * torch.exp(-0.5 * z * z) / math.sqrt(2.0 * math.pi)
+    if act == "silu":
+        s = torch.sigmoid(z)                                       # SiLU = z*sigmoid(z) (Swish-1)
+        return z * s, s * (1.0 + z * (1.0 - s))
+    if act == "mish":
+        tsp = torch.tanh(F.softplus(z))                            # Mish = z*tanh(softplus(z))
+        return z * tsp, tsp + z * torch.sigmoid(z) * (1.0 - tsp * tsp)
+    if act == "softplus":
+        return F.softplus(z), torch.where(z > 20.0, torch.ones_like(z), torch.sigmoid(z))   # nn.Softplus: identity above threshold 20
+    if act == "softsign":
+        d = 1.0 + z.abs()                                          # softsign = z/(1+|z|), ODD (tanh-style sign gauge)
+        return z / d, 1.0 / (d * d)
+    if act == "celu":
+        return F.celu(z), torch.where(z > 0, torch.ones_like(z), torch.exp(z))     # alpha = 1 (== ELU)
+    if act == "selu":
+        lam, al = 1.0507009873554805, 1.6732632423543772
+        return F.selu(z), lam * torch.where(z > 0, torch.ones_like(z), al * torch.exp(z))
+    if act == "hardswish":
+        return F.hardswish(z), torch.where(z <= -3, torch.zeros_like(z), torch.where(z >= 3, torch.ones_like(z), (2.0 * z + 3.0) / 6.0))
+    if act == "squareplus":
+        r = torch.sqrt(z * z + 4.0)                                 # squareplus, b = 4 (nets.Squareplus)
+        return 0.5 * (z + r), 0.5 * (1.0 + z / r)
+    if act.startswith("pow") and act[3:].isdigit():
+        k = int(act[3:])
+        return z ** k, k * z ** (k - 1)
+    if act == "softmax":
+        return torch.softmax(z, -1), None                        # not elementwise: Jacobian in _act_jvp
+    if act in ("glu", "swiglu"):
+        a, g = z.chunk(2, dim=-1)
+        return a * (torch.sigmoid(g) if act == "glu" else F.silu(g)), None   # Jacobian in _act_jvp
+    if act == "prelu":
+        raise ValueError("tanh_solve: PReLU's slope lives outside the layer parameters; not supported")
+    if act == "abs":
+        return z.abs(), torch.sign(z)                                # |z|: piecewise linear, Jacobian a.e.
+    if act == "sine":
+        return torch.sin(z), torch.cos(z)                            # SIREN sine (omega = 1)
+    raise ValueError(f"tanh_solve supports smooth activations only (tanh / sigmoid / square / elu / gelu / silu / mish / softplus / softsign / celu / selu / hardswish / squareplus / abs / pow<k> / sine / softmax / glu / swiglu), got {act!r}")
+
+
+def _act_jvp(z, G, act):
+    """(activation(z), J_act(z) G) for the jet accumulation. Elementwise activations use
+    the derivative from _act_and_deriv; softmax uses J = diag(a) - a a^T."""
+    a, D = _act_and_deriv(z, act)
+    if act == "softmax":
+        aG = a[:, :, None] * G
+        return a, aG - a[:, :, None] * aG.sum(1, keepdim=True)
+    if act in ("glu", "swiglu"):                                 # h = v * s(g): dh = s(g) dv + v s'(g) dg
+        v, g = z.chunk(2, dim=-1); Gv, Gg = G.chunk(2, dim=1)
+        if act == "glu":
+            sg = torch.sigmoid(g); dsg = sg * (1.0 - sg)
+        else:
+            sg = F.silu(g); sig = torch.sigmoid(g); dsg = sig * (1.0 + g * (1.0 - sig))
+        return a, sg[:, :, None] * Gv + (v * dsg)[:, :, None] * Gg
+    return a, D[:, :, None] * G
 
 
 def model_jets(params, X, U, act, n_layers):
@@ -114,8 +172,7 @@ def model_jets(params, X, U, act, n_layers):
         if G.dim() == 2:
             G = G[None].expand(len(X), -1, -1)
         if l < n_layers - 1:
-            a, D = _act_and_deriv(z, act)
-            G = D[:, :, None] * G
+            a, G = _act_jvp(z, G, act)
         else:
             a = z
     return a, G

@@ -9,10 +9,11 @@ fp32 rounding. The members' nn.Modules stay the public objects: `pull` copies
 them into the stack before an iteration's training, `push` copies the trained
 weights back so the sampler / consensus / snapshots see them unchanged.
 """
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nets import Square
+from nets import Square, Squareplus, Abs, Power, Sine
 
 
 def _adam_kernel(p, g, m, v, lr, step, b1, b2, eps):
@@ -182,12 +183,40 @@ class StackedTrainer:
                                torch.full((), a.negative_slope, dtype=z.dtype, device=z.device))
         if isinstance(a, nn.ReLU):
             return (z > 0).to(z.dtype)
+        if isinstance(a, nn.PReLU):
+            return torch.where(z > 0, torch.ones((), dtype=z.dtype, device=z.device), a.weight.reshape(()).to(z.dtype))
         if isinstance(a, nn.Tanh):
             return 1 - torch.tanh(z) ** 2
         if isinstance(a, nn.Sigmoid):
             s = torch.sigmoid(z); return s * (1 - s)
         if isinstance(a, Square):
             return 2 * z
+        if isinstance(a, nn.ELU):
+            return torch.where(z > 0, torch.ones((), dtype=z.dtype, device=z.device), a.alpha * torch.exp(z))
+        if isinstance(a, nn.GELU):
+            Phi = 0.5 * (1 + torch.erf(z / math.sqrt(2.0))); return Phi + z * torch.exp(-0.5 * z * z) / math.sqrt(2 * math.pi)
+        if isinstance(a, nn.SiLU):
+            s = torch.sigmoid(z); return s * (1 + z * (1 - s))
+        if isinstance(a, nn.Mish):
+            tsp = torch.tanh(F.softplus(z)); return tsp + z * torch.sigmoid(z) * (1 - tsp * tsp)
+        if isinstance(a, nn.Softplus):
+            return torch.where(z * a.beta > a.threshold, torch.ones_like(z), torch.sigmoid(a.beta * z))
+        if isinstance(a, nn.Softsign):
+            return 1 / (1 + z.abs()) ** 2
+        if isinstance(a, nn.CELU):
+            return torch.where(z > 0, torch.ones_like(z), torch.exp(z / a.alpha))
+        if isinstance(a, nn.SELU):
+            return 1.0507009873554805 * torch.where(z > 0, torch.ones_like(z), 1.6732632423543772 * torch.exp(z))
+        if isinstance(a, nn.Hardswish):
+            return torch.where(z <= -3, torch.zeros_like(z), torch.where(z >= 3, torch.ones_like(z), (2 * z + 3) / 6))
+        if isinstance(a, Squareplus):
+            return 0.5 * (1 + z / torch.sqrt(z * z + a.b))
+        if isinstance(a, Power):
+            return a.k * z ** (a.k - 1)
+        if isinstance(a, Abs):
+            return torch.sign(z)
+        if isinstance(a, Sine):
+            return torch.cos(z)
         raise ValueError(f"stacked boundary loss: unsupported activation {type(a).__name__}")
 
     def boundary_loss(self, xb, yb, floor=1e-6):
