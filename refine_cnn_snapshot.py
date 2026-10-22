@@ -25,6 +25,7 @@ def main():
     ap.add_argument("--cg-tol", type=float, default=1e-4)
     ap.add_argument("--precond", default="kfac", help="kfac (default) | none")
     ap.add_argument("--x-std", type=float, default=0.5)
+    ap.add_argument("--x-scales", default="", help="comma list of point scales, points split evenly (e.g. 0.5,1,2); overrides --x-std")
     ap.add_argument("--out", default="")
     ap.add_argument("--device", default="cuda")
     a = ap.parse_args()
@@ -43,7 +44,11 @@ def main():
     score = lambda n: cnn_param_errors(copy.deepcopy(n).double(), t64)      # copies: Module.float()/.double() are in-place
     din = int(torch.tensor(shape).prod())
     g = torch.Generator(device=dev).manual_seed(0)
-    X = torch.randn(a.points, din, device=dev, dtype=torch.float64, generator=g) * a.x_std
+    if a.x_scales:
+        sc = [float(v) for v in a.x_scales.split(",")]
+        X = torch.cat([torch.randn(a.points // len(sc), din, device=dev, dtype=torch.float64, generator=g) * s_ for s_ in sc])
+    else:
+        X = torch.randn(a.points, din, device=dev, dtype=torch.float64, generator=g) * a.x_std
     net, info = refine_cnn(lambda x: t64(x), guess, X, dirs=a.dirs, iters=a.iters, cg_iters=a.cg_iters, cg_tol=a.cg_tol, score=score,
                            precond=(None if a.precond == 'none' else a.precond))
     print(f"[refine] {info['iters']} accepted iterations, loss {info['loss_init']:.3e} -> {info['loss_final']:.3e}, "
