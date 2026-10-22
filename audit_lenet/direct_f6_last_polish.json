@@ -1,0 +1,20 @@
+[
+  {
+    "source_index": 0,
+    "quality": false,
+    "quality_stats": {
+      "gap": 5.777693050803773e-07,
+      "uncertainty": 1.3344492772571074e-07,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 17248,
+    "score_only": {
+      "teacher_channel_in_record_order": 83,
+      "abs_cosine": 1.0,
+      "max_error_up_to_sign": 3.3569141355549448e-09,
+      "orientation_score_only": 1.0
+    }
+  }
+]

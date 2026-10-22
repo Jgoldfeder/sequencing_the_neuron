@@ -1,0 +1,6 @@
+{"seconds": 0.0, "event": "start", "pid": 2815408, "missing": [9, 13, 35, 36, 40, 41, 44, 47, 51, 68, 78, 79, 81, 86, 90, 97, 98]}
+{"seconds": 5.24, "event": "target_channel", "channel": 9, "target_mae": 2.6175643473677797e-07, "positive": 512, "negative": 512, "z_min": -0.5000003821656127, "z_max": 0.5000008677351918}
+{"seconds": 9.43, "event": "target_channel", "channel": 13, "target_mae": 3.2912301779590425e-07, "positive": 512, "negative": 512, "z_min": -0.500000325847301, "z_max": 0.500001110629118}
+{"seconds": 15.15, "event": "target_channel", "channel": 35, "target_mae": 2.2905657440810924e-07, "positive": 512, "negative": 512, "z_min": -0.5000003311134061, "z_max": 0.5000006517971001}
+{"seconds": 21.35, "event": "target_channel", "channel": 36, "target_mae": 2.5252653116714704e-07, "positive": 512, "negative": 512, "z_min": -0.5000002534257255, "z_max": 0.5000006893217596}
+{"seconds": 27.55, "event": "target_channel", "channel": 40, "target_mae": 2.129866028752203e-07, "positive": 512, "negative": 512, "z_min": -0.5000003476879267, "z_max": 0.5000006044091431}

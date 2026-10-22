@@ -140,6 +140,16 @@ class Cfg:
                                  #  via W1 inflation. A constant eta=0.0025 from it 1 was ~10x too slow (run dirlr).
     balance_dirlr_head: bool = False  # apply the directional-lr rule to the head too. Default off: the head has no gauge,
                                  #  lr ~ norm gave positive feedback (run dirlr2: head norm 336 -> 1065 -> 2071, lr 0.5 -> 2.3).
+    oracle_excite: bool = False  # DIAGNOSTIC PRINT ONLY (uses teacher internals): per iteration, how many teacher hidden units are silent on the freshly mined batch
+    residual_seeds: float = 0.0  # >0 (CNN, frozen prefix): this fraction of each iteration's queries = residual-Jacobian seeds (residual_seed.py; honest)
+    residual_smax: float = 12.0  # seed step along the residual span (h units)
+    solo_start: int = 9          # --solo-cands: first iteration (of the current stage) at which solo rows are refined
+    solo_every: int = 3          # ... and then every N iterations (a 17-row refine costs ~15 min / 14M queries)
+    solo_cands: bool = False     # CNN fast-peel-partial: also send the best member's non-consensus frontier rows to the refiner each pass
+    residual_reinit: float = 0.0 # >0: when the residual subspace is (re)computed, every member's unpinned frontier rows are re-drawn in its span with bias firing on this fraction of the seeds
+    residual_every: int = 3      # recompute the residual subspace every N iterations (or when the pinned count changes)
+    cheat_focus: bool = False    # ORACLE (CNN): sampler objective = ||teacher - teacher with unsolved frontier channels zeroed|| (oracle_focus.py)
+    keep_alive: float = 0.0      # >0 (CNN): unpinned units silent on the buffer are kept alive at the data boundary (bias reset so max pre-act = -keep_alive x layer RMS) before every sampler call; see cnn_balance.keep_alive_
     balance_refresh: int = 0     # rownorm: every N iterations re-canonicalise the pinned norms once (function-preserving, head
                                  #  compensated) and re-freeze -> resets the depth-wise RMS decay and the head scale. 0 = off.
     balance_rownorm: float = 0.0 # rownorm mode: >0 fixes every hidden (row,bias) norm to this value directly (sets the
@@ -5659,9 +5669,10 @@ def _repin_partial(pop, opts, partial_mask, partial_exact, frozen, partial_hooke
                 m_.layers[l].bias.register_hook(lambda g, k=live: g * (~k).to(g.dtype))
                 partial_hooked.add(key)
             live = partial_live[key]
-            # Restore MLP rows from the precise source frame, including its input
-            # scale, rather than trusting a rebuilt training copy.
-            if not hasattr(m_, 'n_conv'):
+            # A rebuilt leaky/ReLU CNN needs the recorded values as well as
+            # its mask. This transfer uses the positive-homogeneous scale gauge;
+            # leave other CNN activation paths outside this LeNet repair.
+            if not hasattr(m_, 'n_conv') or m_.act_name in ("relu", "leaky_relu", "nonleakyrelu"):
                 _cnn_transfer_rows_(m_, partial_exact, l, idx)
             live[idx] = True
             for p in (m_.layers[l].weight, m_.layers[l].bias):
@@ -5852,6 +5863,36 @@ def _cnn_solved_view(net, frozen, partial_exact=None, partial_mask=None):
             view.layers[l].weight[mm] = record.layers[l].weight.to(view.layers[l].weight)[mm]
             view.layers[l].bias[mm] = record.layers[l].bias.to(view.layers[l].bias)[mm]
     return view
+
+
+
+def _cnn_checkpoint_record(net, checkpoint):
+    """Combine both exact-row banks saved by the CNN snapshot writer.
+
+    Resumed rows may live exclusively in frozen, while newly solved rows live
+    in partial_state/partial_mask. Return their union in a canonical fp64 frame.
+    """
+    frozen = checkpoint.get("frozen") or {}
+    partial_mask = checkpoint.get("partial_mask") or {}
+    partial_state = checkpoint.get("partial_state")
+    masks = {}
+    for l, (_, _, mask) in frozen.items():
+        masks[l] = mask.detach().clone().bool()
+    for l, mask in partial_mask.items():
+        if bool(mask.any()) and partial_state is None:
+            raise ValueError("CNN snapshot has partial masks without their recorded coefficients")
+        m = mask.detach().clone().bool()
+        masks[l] = masks[l].to(m.device) | m if l in masks else m
+    masks = {l: mask for l, mask in masks.items() if bool(mask.any())}
+    if not masks:
+        return None
+    partial = None
+    if partial_state is not None:
+        partial = net.clone().double()
+        partial.load_state_dict(partial_state)
+    record = _cnn_solved_view(net, frozen, partial, partial_mask).clone().double()
+    return ({k: v.detach().cpu() for k, v in record.state_dict().items()},
+            {l: mask.cpu() for l, mask in masks.items()})
 
 
 def _scale_match_rows(layer, idx, uW, ub):
@@ -6677,9 +6718,21 @@ def _cnn_layer_mine(pop, teacher, frontier, cfg, device, gen, invert_steps=200):
                          device=device) * cfg.qg_init_std
     with torch.no_grad():
         H0 = _cnn_frontier_input(ref, X0, frontier)   # on-manifold init
-    tails = [lambda h, m=m: _cnn_tail_forward(m, h, frontier) for m in pop]
+    scales = [_cnn_input_scale_to_member(m, ref, frontier, H0.shape[1]) for m in pop]
+    tails = [lambda h, m=m, scale=scale: _cnn_tail_forward(m, h * scale, frontier)
+             for m, scale in zip(pop, scales)]
     if teacher is not None:
-        tails.append(lambda h: _cnn_tail_forward(teacher, h, frontier))
+        # A teacher prefix may differ by permutation as well as scale. This is
+        # already an oracle-only branch: align a copy before using its tail.
+        teacher_tail = teacher.clone()
+        for parameter in teacher_tail.parameters():
+            parameter.requires_grad_(False)
+        cnn_canonicalize_(teacher_tail)
+        ref_canonical = ref.clone()
+        cnn_canonicalize_(ref_canonical)
+        cnn_align_to_(teacher_tail, ref_canonical)
+        scale = _cnn_input_scale_to_member(teacher_tail, ref, frontier, H0.shape[1])
+        tails.append(lambda h, m=teacher_tail, scale=scale: _cnn_tail_forward(m, h * scale, frontier))
     if len(tails) < 2:
         return X0                                   # no pair to disagree
     # 1) disagreement ascent in frontier-input space (full-strength gradients)
@@ -6742,6 +6795,40 @@ def _cnn_layer_rand_init(pop, frontier, cfg, device, gen, probe_n=2048):
     return x.detach()
 
 
+@torch.no_grad()
+def _cnn_boundary_weight_in_ref(member, ref, frontier):
+    """Express a member's frontier covectors in ref's input-channel scale gauge.
+
+    Pinned prefixes can share exact hyperplanes while retaining different positive
+    channel scales. Boundary inversion uses ref's prefix, so raw member filters
+    cannot be applied to it directly. Channel order must already be aligned.
+    """
+    W = member.layers[frontier].weight.detach()
+    if frontier == 0 or member is ref or member.act_name not in ("relu", "leaky_relu", "nonleakyrelu"):
+        return W
+    src = _canon_in_factors(member, frontier)
+    dst = _canon_in_factors(ref, frontier)
+    scale = (src.double() / dst.double()).to(device=W.device, dtype=W.dtype)
+    if W.dim() == 4:
+        return W * scale.view(1, -1, 1, 1)
+    if member.layers[frontier - 1].weight.dim() == 4:
+        scale = scale.repeat_interleave(W.shape[1] // scale.numel())
+    return W * scale.view(1, -1)
+
+
+@torch.no_grad()
+def _cnn_input_scale_to_member(member, ref, frontier, dim):
+    """h_member = h_ref * scale for aligned, exact positive-homogeneous prefixes."""
+    parameter = next(member.parameters())
+    if frontier == 0 or member is ref or member.act_name not in ("relu", "leaky_relu", "nonleakyrelu"):
+        return torch.ones(dim, device=parameter.device, dtype=parameter.dtype)
+    scale = (_canon_in_factors(member, frontier).double() /
+             _canon_in_factors(ref, frontier).double())
+    if dim % scale.numel():
+        raise ValueError("frontier input does not match its prefix channel scales")
+    return scale.repeat_interleave(dim // scale.numel()).to(parameter)
+
+
 def _spatial_boundary_normals(ref, pop, frontier, input_shape, D, Cout, q, P,
                               device, gen):
     """Per-query input-space kink normals for a SPATIAL conv frontier. Each query is
@@ -6782,7 +6869,7 @@ def _spatial_boundary_normals(ref, pop, frontier, input_shape, D, Cout, q, P,
     pos = (idx // (Cout * P)) % npos                          # spread over positions
     r0 = r0g[pos]; c0 = c0g[pos]                              # (q,) receptive-field origin
 
-    Wall = torch.stack([m.layers[frontier].weight for m in pop])   # (P,Cout,Cin,k,k)
+    Wall = torch.stack([_cnn_boundary_weight_in_ref(m, ref, frontier) for m in pop])  # (P,Cout,Cin,k,k), ref gauge
     ball = torch.stack([m.layers[frontier].bias for m in pop])     # (P,Cout)
     filt = Wall[member, chan]                                 # (q,Cin,k,k) target filter
     bsel = ball[member, chan]                                 # (q,)
@@ -6838,7 +6925,7 @@ def _cnn_frontier_boundary_queries(pop, frontier, input_shape, cfg, device, gen,
             idx = torch.arange(q, device=device)
             neuron = idx % Cout           # round-robin over ALL neurons -> even coverage
             member = (idx // Cout) % P
-            Wall = torch.stack([m.layers[frontier].weight.reshape(Cout, -1) for m in pop])  # (P,Cout,D)
+            Wall = torch.stack([_cnn_boundary_weight_in_ref(m, ref, frontier).reshape(Cout, -1) for m in pop])  # (P,Cout,D), ref gauge
             ball = torch.stack([m.layers[frontier].bias for m in pop])                      # (P,Cout)
             Wsel = Wall[member, neuron]                            # (q, D) each query's target normal
             bsel = ball[member, neuron]                            # (q,)
@@ -6857,6 +6944,33 @@ def _cnn_frontier_boundary_queries(pop, frontier, input_shape, cfg, device, gen,
         if mse.item() < 1e-12:                                  # already on the kink -> stop
             break
     return x.detach()
+
+
+
+def _rs_hdim(net, fr):
+    """flat size of layer fr's input for a ConvNet."""
+    import residual_seed as _r
+    with torch.no_grad():
+        x = torch.zeros(1, int(torch.tensor(net.input_shape).prod()), device=next(net.parameters()).device, dtype=next(net.parameters()).dtype)
+        return _r.prefix(net, x, fr)[0].shape[1]
+
+
+def _cnn_residual_record_view(member, frozen, partial_exact, partial_mask, frontier,
+                              member_input_gauge=False):
+    """Use fp64 record coefficients for finite differences, not promoted fp32 copies.
+
+    The default view is canonical. Row redraws need each member's input scales;
+    restore those with function-preserving gauge moves on the exact record.
+    """
+    view = _cnn_solved_view(member, frozen, partial_exact, partial_mask).clone().double()
+    cnn_canonicalize_(view)
+    if member_input_gauge:
+        from cnn_balance import scale_channels_
+        for l in range(frontier):
+            scale_channels_(view, l, _canon_in_factors(member, l + 1))
+    for parameter in view.parameters():
+        parameter.requires_grad_(False)
+    return view
 
 
 def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
@@ -7211,13 +7325,79 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
             qg_pop = pop + [teacher] if cfg.cheat else pop
             if device.type == "cuda" if hasattr(device, "type") else str(device).startswith("cuda"):
                 torch.cuda.empty_cache()    # the pin/refine phases leave GB of cached blocks; the sampler's chunk OOMed a q 200k run (2026-10-18)
+            if cfg.keep_alive > 0 and len(X) > 0:
+                _ka_x = X[torch.randperm(len(X), generator=torch.Generator().manual_seed(t))[:8192]].to(device)
+                import cnn_balance as _cbk
+                try: _ka_pm = _bal_pinned()
+                except Exception: _ka_pm = None
+                _ka = [_cbk.keep_alive_(m_, _ka_x, _ka_pm, cfg.keep_alive) for m_ in pop]
+                print(f"  [keep-alive] it {t + 1}: silent unpinned units re-biased to the data boundary, per member/layer {_ka[0]} .. {_ka[-1]}", flush=True)
+            _rl = cfg.cheat and cfg.cheat_bb_ref
+            if cfg.cheat_focus and fr is not None and seed is None:
+                import oracle_focus as _of
+                try: _pmf = _bal_pinned().get(fr)          # union of partial / exact / frozen (resumed rows live in frozen)
+                except Exception: _pmf = partial_mask.get(fr)
+                if _pmf is None:
+                    _pmf = torch.zeros(pop[0].layers[fr].weight.shape[0], dtype=torch.bool)
+                qg_pop, _unsolved = _of.focus_pair(teacher, pop[0], fr, _pmf, seed=int(t))   # pinned rows are identical in all members
+                _rl = True
+            if t == 0 or (t + 1) % cfg.log_every == 0:
+                sampler_mode = ("layer-disagreement" if cfg.layer_mine else "boundary-only (no disagreement ascent)") if seed is not None else "image-disagreement"
+                print(f"  [sampler:cnn] it {t + 1}: frontier {None if fr is None else fr + 1}, "
+                      f"mode {sampler_mode}", flush=True)
             I = seed if seed is not None else gen_queries(
                 qg_pop, cfg, in_dim, device, gen, init_override=init,
-                ref_last=cfg.cheat and cfg.cheat_bb_ref)
+                ref_last=_rl)
+            if (cfg.residual_seeds > 0 and fr is not None and fr > 0
+                    and pop[0].layers[fr].weight[0].numel() == int(torch.tensor(_rs_hdim(pop[0], fr)))):   # rows must see the WHOLE frontier input (C5, F6); conv patches are solved by the committee anyway
+                import residual_seed as _rs
+                try: _pmr = _bal_pinned().get(fr)
+                except Exception: _pmr = partial_mask.get(fr)
+                if _pmr is not None and bool(_pmr.any()) and not bool(_pmr.all()):
+                    _st = _rs_state if '_rs_state' in dir() else None
+                    _key = (fr, int(_pmr.sum()))
+                    if _st is None or _st["key"] != _key or (t - _st["t"]) >= cfg.residual_every:
+                        _net64 = _cnn_residual_record_view(pop[0], frozen, partial_exact, partial_mask, fr)
+                        for _p in _net64.parameters():
+                            _p.requires_grad_(False)
+                        _bb = _rs_bb if '_rs_bb' in dir() else None
+                        if _bb is None:
+                            import copy as _cp_rs; _t64 = _cp_rs.deepcopy(teacher).double()
+                            for _p in _t64.parameters():
+                                _p.requires_grad_(False)
+                            _rs_bb = _bb = (lambda x, _m=_t64: _m(x))
+                        _V, _S, _nq = _rs.residual_subspace(_bb, _net64, fr, _pmr.cpu(), gen=gen)
+                        refinement_queries[0] += _nq
+                        _first_fr = _st is None or _st["key"][0] != fr
+                        _rs_state = _st = dict(key=_key, t=t, V=_V, net=_net64)
+                        if cfg.residual_reinit > 0 and _V.shape[0] > 0 and _first_fr:    # once per frontier: re-drawing again would wipe the learning
+                            _xr = _rs.seeds(_net64, fr, _V, 4096, s_max=cfg.residual_smax, gen=gen)
+                            _nr = 0
+                            for _m in pop:
+                                _mm = _cnn_residual_record_view(_m, frozen, partial_exact, partial_mask, fr,
+                                                                member_input_gauge=True)
+                                _Vm, _, _nqm = _rs.residual_subspace(_bb, _mm, fr, _pmr.cpu(), n_points=24, gen=gen, verbose=False)
+                                refinement_queries[0] += _nqm
+                                _nr = _rs.reinit_unpinned_(_m, fr, _Vm.to(next(_m.parameters()).dtype), _pmr, _xr.to(next(_m.parameters()).dtype), cfg.residual_reinit, gen=gen, net64=_mm.to(next(_m.parameters()).dtype))
+                            print(f"  [residual-seeds] it {t + 1}: re-drew {_nr} unpinned frontier rows per member inside each member's residual span (fire on {cfg.residual_reinit:g} of seeds)", flush=True)
+                    if _st["V"].shape[0] > 0:
+                        _n = int(cfg.residual_seeds * len(I))
+                        _xs = _rs.seeds(_st["net"], fr, _st["V"], _n, s_max=cfg.residual_smax, gen=gen)
+                        I = torch.cat([_xs.to(I.dtype), I[_n:]])
+                        print(f"  [residual-seeds] it {t + 1}: {_n} of {len(I)} queries seeded along the {_st['V'].shape[0]}-dim residual span (s_max {cfg.residual_smax:g})", flush=True)
         with torch.no_grad():
             T = torch.cat([teacher(I[i0:i0 + 65536]) for i0 in range(0, len(I), 65536)]) if len(I) > 65536 else teacher(I)
             if cfg.hard:                    # blackbox reveals ONLY the class index
                 T = T.argmax(1)
+        if getattr(cfg, "oracle_excite", False):
+            import cnn_balance as _cbo
+            with torch.no_grad():
+                _zs = _cbo.hidden_preacts(teacher, I[:20000])
+            _rep = []
+            for _l, _z in enumerate(_zs):
+                _pos = (_z.transpose(0, 1).reshape(_z.shape[1], -1) > 0).float().mean(1)
+                _rep.append(f"L{_l + 1} silent(<1e-3) {int((_pos < 1e-3).sum())}/{_z.shape[1]} (<1e-2 {int((_pos < 1e-2).sum())})")
+            print("  [oracle-excite] teacher units silent on this iteration's mined batch: " + "  ".join(_rep), flush=True)
         X = torch.cat([X, I.cpu()]); Y = torch.cat([Y, T.cpu()])
         qtot += cfg.q
         if cfg.window > 0:
@@ -7501,6 +7681,11 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             partial_exact.layers[l].weight.data[fm] = frozen[l][0].to(device)[fm].to(wdt)
                             partial_exact.layers[l].bias.data[fm] = frozen[l][1].to(device)[fm].to(wdt)
                     cand = (masks[pf].to(device) & ~_psolvedQ(pf)).nonzero(as_tuple=True)[0].tolist()
+                    _solo = []
+                    if cfg.solo_cands and pf > 0 and t + 1 >= cfg.solo_start and (t + 1 - cfg.solo_start) % max(1, cfg.solo_every) == 0:
+                        # --solo-cands: also refine the BEST member's unpinned rows that have no consensus (the refiner +
+                        # global kink certificate decide; failures are NOT rerolled, so learning rows keep training)
+                        _solo = [c for c in (~_psolvedQ(pf)).nonzero(as_tuple=True)[0].tolist() if c not in cand]
                     # --- guess-free fallback: frontier stalled -> recover unsolved channels from kinks, inject
                     if cfg.guessfree_after > 0:
                         _ns = int(_psolvedQ(pf).sum())
@@ -7535,10 +7720,15 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                                   f"({_nq:,} queries, {_info['wall']:.0f}s); injected {len(_take)} into channels "
                                   f"{[c for _, c in _take]} of all members -> refine", flush=True)
                     newly = []
-                    if cand:
+                    if cand or _solo:
                         # Consensus and the fp64 record can have different prefix scales.
-                        _cnn_transfer_rows_(partial_exact, cons, pf,
-                                            torch.tensor(cand, device=device))
+                        if cand:
+                            _cnn_transfer_rows_(partial_exact, cons, pf,
+                                                torch.tensor(cand, device=device))
+                        if _solo:
+                            _cnn_transfer_rows_(partial_exact, best, pf, torch.tensor(_solo, device=device))
+                            print(f"  [solo-cands] L{pf + 1}: + {len(_solo)} best-member rows without consensus sent to the refiner", flush=True)
+                        cand = sorted(set(cand) | set(_solo))
                         Wr, br, rmask = _refine_cnn(
                             teacher, partial_exact, pf, input_shape, device, cfg.act,
                             only_channels=cand)
@@ -7578,7 +7768,9 @@ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
                             if _rej:
                                 for _c in _rej:
                                     masks[pf][_c] = False
-                                _reroll_rows_(pop, opts, pf, _rej, device)
+                                _rej_rr = [c for c in _rej if c not in _solo]       # solo candidates keep training
+                                if _rej_rr:
+                                    _reroll_rows_(pop, opts, pf, _rej_rr, device)
                                 _rerolled_this_pass.add(pf)
                                 print(f"  [verify-cands] L{pf + 1}: {len(_rej)}/{len(newly)} refined rows FAILED the global kink test "
                                       f"(solved surface is not a kink surface elsewhere -> deeper-layer kink) -> rejected + rerolled: "

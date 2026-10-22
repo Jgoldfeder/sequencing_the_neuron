@@ -1,0 +1,77 @@
+{
+  "construction": "actual stalled attacker snapshot; positive mixing of its own negative unpinned rows; learned F6/head retained",
+  "probe_images": 40000,
+  "unpinned": [
+    9,
+    13,
+    35,
+    36,
+    40,
+    41,
+    44,
+    47,
+    51,
+    68,
+    78,
+    79,
+    81,
+    86,
+    90,
+    97,
+    98
+  ],
+  "student_positive_fractions": [
+    0.0,
+    0.480375,
+    0.0,
+    0.9989750000000001,
+    0.0,
+    0.6902,
+    0.9966250000000001,
+    0.0,
+    0.9992500000000001,
+    0.8633500000000001,
+    0.043750000000000004,
+    0.0,
+    0.99985,
+    0.9595750000000001,
+    0.9646250000000001,
+    0.9503750000000001,
+    0.9451750000000001
+  ],
+  "student_dead_unpinned": [
+    9,
+    35,
+    40,
+    47,
+    79
+  ],
+  "arms": [
+    {
+      "precision": "fp64",
+      "initial_disagreement": 5.501885038835771e-16,
+      "final_disagreement": 5.501885038835771e-16,
+      "max_abs_initial_sampling_gradient": 0.0,
+      "max_pixel_movement": 0.0,
+      "previously_dead_student_units_reached": 0,
+      "student_teacher_L1_on_mined": 0.027698166053828993
+    },
+    {
+      "precision": "fp32",
+      "initial_disagreement": 2.352194132981822e-05,
+      "final_disagreement": 7.730071956757456e-05,
+      "max_abs_initial_sampling_gradient": 7.761991582810879e-08,
+      "max_pixel_movement": 0.8265597820281982,
+      "previously_dead_student_units_reached": 0,
+      "student_teacher_L1_on_mined": 0.03223629066348523
+    }
+  ],
+  "alternative_vs_student_max_output_error": 1.0658141036401503e-14,
+  "student_teacher_L1_on_probe": 0.026046363153482636,
+  "student_only_frontier_disagreement": {
+    "previously_dead_student_units_reached": 5,
+    "mean_abs_pixel": 0.6793196201324463,
+    "output_disagreement_on_feature_mined": 0.49946732638208374
+  },
+  "seconds": 11.526355504989624
+}

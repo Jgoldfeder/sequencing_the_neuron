@@ -1,0 +1,33 @@
+--- run.py (before audit fixes)
++++ run.py (after audit fixes)
+@@ -15,8 +15,9 @@
+ 
+ from data import make_teacher, make_teacher_cnn, load_data
+ from method import (Cfg, reconstruct, reconstruct_cnn, build_consensus,
+-                    solver_polish_, polish_consensus, l1_on, agreement)
+-from nets import count_params, MLP
++                    solver_polish_, polish_consensus, l1_on, agreement,
++                    _cnn_checkpoint_record)
++from nets import count_params, MLP, ConvNet
+ from align import param_errors
+ 
+ RESULTS = os.path.join(os.path.dirname(__file__), "results")
+@@ -571,11 +572,13 @@
+         resume_state = rck.get("refined_state", rck.get("state_dict", rck))
+         print(f"[resume] loaded student from {args.resume}", flush=True)
+         if getattr(args, "resume_record", False):
+-            if rck.get("partial_state") is not None and rck.get("partial_mask"):
+-                resume_record = (rck["partial_state"], rck["partial_mask"])
+-                print(f"[resume] --resume-record: using the snapshot's fp64 record ({ {l: int(m.sum()) for l, m in rck['partial_mask'].items()} } pinned rows)", flush=True)
+-            else:
+-                print("[resume] --resume-record requested but the snapshot has no record; re-solving instead", flush=True)
++            record_net = ConvNet(input_shape, conv_cfgs, fc_dims, out_dim, act).to(device).double()
++            record_net.load_state_dict(rck.get("state_dict", resume_state))
++            resume_record = _cnn_checkpoint_record(record_net, rck)
++            if resume_record is None:
++                raise ValueError("--resume-record requested but the snapshot contains no recorded exact rows")
++            print(f"[resume] --resume-record: using combined frozen/partial fp64 record "
++                  f"({ {l: int(m.sum()) for l, m in resume_record[1].items()} } pinned rows)", flush=True)
+ 
+     best, log, final = reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim,
+                                        cfg, device, seed=args.seed, fc_dims=fc_dims,

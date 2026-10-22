@@ -105,8 +105,13 @@ for i, r in sorted(res.items()):
         if len(ests) >= 2 and purity is not None:
             break
     if ests and purity is None:
-        purity = -1.0                                        # no agreeing pair: fall back to the median
-        ests = [sorted(ests, key=lambda e: e[1])[len(ests) // 2]]
+        # no two lines agree: a single tail estimate is not trustworthy (11L demo: units 41/143, |w| 4.0, were 51-53%
+        # off this way) -> report it but mark the scale UNUSABLE; the assemble step then keeps the committee magnitude
+        # on the exact direction and the all-free final stage fits it
+        a_med = sorted(ests, key=lambda e: e[1])[len(ests) // 2][1]
+        out[i] = dict(scale=None, scale_unconfirmed=float(a_med), teacher_unit=j, sides=len(ests), lines_tried=tried, t=t, queries=bb.n - q0)
+        print(f"neuron {i:3d} (teacher unit {j}): |w| true {wn_true:.6f} | NO agreeing pair over {tried} lines (median single estimate {a_med:.6f}, rel err {abs(a_med/wn_true-1):.1e}) -> scale marked unusable | {bb.n - q0} q", flush=True)
+        continue
     if not ests:
         out[i] = dict(scale=None); print(f"neuron {i:3d}: no usable tail", flush=True); continue
     a_fit = float(np.mean([e[1] for e in ests])); a_lin = float(np.mean([e[2] for e in ests]))

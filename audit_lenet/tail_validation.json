@@ -1,0 +1,6 @@
+{
+  "cached_features_max_error": 0.0,
+  "full_convnet_vs_cached_tail_max_error": 3.814697265625e-06,
+  "saved_output_labels_max_error": 0.0,
+  "oracle_control_true_parameters_max_error": 1.9073486328125e-06
+}

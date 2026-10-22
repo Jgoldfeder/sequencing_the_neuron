@@ -1,0 +1,51 @@
+{
+  "signed_C5_rows": 120,
+  "prefix_canonical_max_errors": {
+    "0": 5.2388648974499574e-14,
+    "1": 5.877243136609422e-13,
+    "2": 3.104155404942688e-10
+  },
+  "new_17_rows_max_coefficient_error": 6.240038347149479e-11,
+  "new_slots": [
+    9,
+    13,
+    35,
+    36,
+    40,
+    41,
+    44,
+    47,
+    51,
+    68,
+    78,
+    79,
+    81,
+    86,
+    90,
+    97,
+    98
+  ],
+  "independent_kink_hits_out_of_32": [
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    31,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32,
+    32
+  ],
+  "max_C5_feature_error_on_1024_fresh_images": 9.02626862142597e-11,
+  "validation_output_queries": 2720,
+  "new_signs_from_teacher_weights": false,
+  "assumption": "fp64 black-box outputs, same as existing kink solver"
+}

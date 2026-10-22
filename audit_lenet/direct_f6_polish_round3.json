@@ -1,0 +1,200 @@
+[
+  {
+    "source_index": 0,
+    "quality": true,
+    "quality_stats": {
+      "gap": 3.495841393851991e-08,
+      "uncertainty": 2.1757464928366533e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 13616,
+    "score_only": {
+      "teacher_channel_in_record_order": 77,
+      "abs_cosine": 0.9999999999999994,
+      "max_error_up_to_sign": 1.001042720938372e-09,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 1,
+    "quality": true,
+    "quality_stats": {
+      "gap": 5.1200232775575014e-08,
+      "uncertainty": 3.1244846832407133e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 26296,
+    "score_only": {
+      "teacher_channel_in_record_order": 81,
+      "abs_cosine": 1.0000000000000002,
+      "max_error_up_to_sign": 5.903635739989976e-10,
+      "orientation_score_only": -1.0
+    }
+  },
+  {
+    "source_index": 2,
+    "quality": true,
+    "quality_stats": {
+      "gap": 1.895956168647194e-07,
+      "uncertainty": 5.376358176566524e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 37832,
+    "score_only": {
+      "teacher_channel_in_record_order": 71,
+      "abs_cosine": 1.0000000000000004,
+      "max_error_up_to_sign": 1.918384895382985e-09,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 3,
+    "quality": true,
+    "quality_stats": {
+      "gap": 4.431584222255525e-08,
+      "uncertainty": 1.9520471224062595e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 53280,
+    "score_only": {
+      "teacher_channel_in_record_order": 79,
+      "abs_cosine": 0.9999999999999998,
+      "max_error_up_to_sign": 9.334967382423898e-10,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 4,
+    "quality": true,
+    "quality_stats": {
+      "gap": 7.324764961568418e-08,
+      "uncertainty": 4.4412139692368856e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 68360,
+    "score_only": {
+      "teacher_channel_in_record_order": 75,
+      "abs_cosine": 0.9999999999999999,
+      "max_error_up_to_sign": 1.3937695338139822e-09,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 5,
+    "quality": true,
+    "quality_stats": {
+      "gap": 2.679949486837886e-08,
+      "uncertainty": 1.5450416303337784e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 84136,
+    "score_only": {
+      "teacher_channel_in_record_order": 82,
+      "abs_cosine": 1.0000000000000002,
+      "max_error_up_to_sign": 6.609458119699596e-10,
+      "orientation_score_only": -1.0
+    }
+  },
+  {
+    "source_index": 6,
+    "quality": false,
+    "quality_stats": {
+      "gap": 3.106667209320628e-07,
+      "uncertainty": 1.9758690202889592e-07,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 95312,
+    "score_only": {
+      "teacher_channel_in_record_order": 80,
+      "abs_cosine": 0.9999999999999993,
+      "max_error_up_to_sign": 3.4530220210937657e-09,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 7,
+    "quality": true,
+    "quality_stats": {
+      "gap": 2.971730601221524e-08,
+      "uncertainty": 1.7185405774412642e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 111568,
+    "score_only": {
+      "teacher_channel_in_record_order": 73,
+      "abs_cosine": 0.9999999999999998,
+      "max_error_up_to_sign": 7.315147515507547e-10,
+      "orientation_score_only": 1.0
+    }
+  },
+  {
+    "source_index": 8,
+    "quality": false,
+    "quality_stats": {
+      "gap": 2.6512483623461087e-07,
+      "uncertainty": 1.7128804038906265e-07,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 124296,
+    "score_only": {
+      "teacher_channel_in_record_order": 69,
+      "abs_cosine": 0.9999999999999996,
+      "max_error_up_to_sign": 5.302734112921925e-09,
+      "orientation_score_only": -1.0
+    }
+  },
+  {
+    "source_index": 9,
+    "quality": true,
+    "quality_stats": {
+      "gap": 3.8166332573054415e-08,
+      "uncertainty": 1.5217549881118826e-08,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 137264,
+    "score_only": {
+      "teacher_channel_in_record_order": 83,
+      "abs_cosine": 0.9999999999999999,
+      "max_error_up_to_sign": 1.0891151192710113e-09,
+      "orientation_score_only": -1.0
+    }
+  },
+  {
+    "source_index": 10,
+    "quality": true,
+    "quality_stats": {
+      "gap": 1.321836930344765e-08,
+      "uncertainty": 7.625945361917886e-09,
+      "validation": 1.0
+    },
+    "independent_kink_hits": 32,
+    "independent_kink_tests": 32,
+    "queries": 156544,
+    "score_only": {
+      "teacher_channel_in_record_order": 72,
+      "abs_cosine": 1.0000000000000002,
+      "max_error_up_to_sign": 3.3699340540316314e-10,
+      "orientation_score_only": 1.0
+    }
+  }
+]

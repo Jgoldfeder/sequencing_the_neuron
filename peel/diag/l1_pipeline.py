@@ -12,7 +12,17 @@ P = "/opt/miniconda3/bin/python"
 pop = torch.load(pop_path, map_location="cpu", weights_only=False); fin = torch.load(final_path, map_location="cpu", weights_only=False)
 dims = pop["dims"]; H = dims[1]
 guess = f"{R}/_guess__{tag}.pt"
-torch.save({"dims": dims, "act": "tanh", "teacher_state": pop["teacher_state"], "state_dict": fin["state_dict"], "note": f"best member of {final_path}"}, guess)
+# Solver starting net: the quorum-consensus net aligned to the best member (default; TRUNK=best opts out). A single
+# member can carry O(1)-wrong units the local solver never fixes (9L demo: W6-W8 at 0.45-0.72 vs 5e-3 in the quorum).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
+from consensus_guess import consensus_guess
+_cs = None
+if os.environ.get("TRUNK", "consensus") == "consensus":
+    _cs, _ = consensus_guess(pop, fin["state_dict"])
+torch.save({"dims": dims, "act": "tanh", "teacher_state": pop["teacher_state"],
+            "state_dict": _cs if _cs is not None else fin["state_dict"],
+            "note": ("aligned quorum consensus" if _cs is not None else "best member") + f" of {final_path}"}, guess)
+print(f"[pipeline] solver starting net = {'aligned quorum CONSENSUS net' if _cs is not None else 'best member'} -> {guess}", flush=True)
 members = [f"{R}/_guess_m{m}__{tag}.pt" for m in range(len(pop["pop_states"]))]
 for m, sd in enumerate(pop["pop_states"]):
     torch.save({"dims": dims, "act": "tanh", "teacher_state": pop["teacher_state"], "state_dict": sd}, members[m])

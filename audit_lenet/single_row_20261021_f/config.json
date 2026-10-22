@@ -1,0 +1,27 @@
+{
+  "data": "audit_lenet/boundary_test_20261021_e",
+  "out": "audit_lenet/single_row_20261021_f",
+  "device": "cuda:2",
+  "epochs": 3000,
+  "pid": 2815990,
+  "missing": [
+    9,
+    13,
+    35,
+    36,
+    40,
+    41,
+    44,
+    47,
+    51,
+    68,
+    78,
+    79,
+    81,
+    86,
+    90,
+    97,
+    98
+  ],
+  "oracle_control": "119 other C5 rows and complete suffix exact; 8 independent fits per missing row; no hidden-label loss"
+}

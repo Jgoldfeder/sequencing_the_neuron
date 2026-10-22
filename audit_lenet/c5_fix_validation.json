@@ -1,0 +1,24 @@
+{
+  "promoted_fp32": {
+    "used_rank": 0,
+    "threshold_rank": 65,
+    "queries": 6400,
+    "first_noise_singular_value": 0.00010569542207550281
+  },
+  "production_record_view": {
+    "used_rank": 16,
+    "threshold_rank": 16,
+    "queries": 6400,
+    "first_noise_singular_value": 3.971004916364003e-08
+  },
+  "member_gauge_exact_prefix_error": 2.220446049250313e-15,
+  "tail_coordinate_errors": {
+    "1": 8.881784197001252e-16,
+    "2": 8.881784197001252e-16,
+    "3": 1.609823385706477e-15
+  },
+  "boundary_covector_errors": {
+    "2": 1.3322676295501878e-15,
+    "spatial_conv2": 8.881784197001252e-16
+  }
+}

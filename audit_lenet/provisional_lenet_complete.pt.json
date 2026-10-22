@@ -1,0 +1,30 @@
+{
+  "provisional_f6": true,
+  "head_fit_label_queries": 4096,
+  "independent_validation_label_queries": 6144,
+  "design_rank": 85,
+  "design_condition": 62942.97152019605,
+  "canonical_max_coefficient_error_by_layer": {
+    "0": 5.2388648974499574e-14,
+    "1": 5.877243136609422e-13,
+    "2": 3.104155404942688e-10,
+    "3": 6.489769721618188e-09,
+    "4": 2.0250903078888882e-06
+  },
+  "independent_outputs": {
+    "0.5": {
+      "max_output_error": 6.762450377451046e-09,
+      "mean_output_error": 8.201430965293021e-10
+    },
+    "1.5": {
+      "max_output_error": 1.736857435652439e-08,
+      "mean_output_error": 2.2243994378320385e-09
+    },
+    "3.0": {
+      "max_output_error": 4.132657593913791e-08,
+      "mean_output_error": 4.46864123336211e-09
+    }
+  },
+  "teacher_parameters_used_for_fit": false,
+  "oracle_contract": "fp64 forward evaluations"
+}

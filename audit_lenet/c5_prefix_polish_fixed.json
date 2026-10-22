@@ -1,0 +1,972 @@
+{
+  "accepted": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119
+  ],
+  "details": [
+    {
+      "slot": 0,
+      "quality": true,
+      "gap": 2.430080335681632e-11,
+      "uncertainty": 8.05471742061599e-12,
+      "validation": 0.96875
+    },
+    {
+      "slot": 1,
+      "quality": true,
+      "gap": 1.466627941125842e-11,
+      "uncertainty": 5.288830030446165e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 2,
+      "quality": true,
+      "gap": 1.4744626275514388e-11,
+      "uncertainty": 5.500787244322064e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 3,
+      "quality": true,
+      "gap": 1.735375499045071e-11,
+      "uncertainty": 6.5556338987513614e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 4,
+      "quality": true,
+      "gap": 1.878271216049804e-11,
+      "uncertainty": 7.552156080566726e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 5,
+      "quality": true,
+      "gap": 1.9192690320407404e-11,
+      "uncertainty": 6.851034948328083e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 6,
+      "quality": true,
+      "gap": 1.7228776820736232e-11,
+      "uncertainty": 6.344714515224424e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 7,
+      "quality": true,
+      "gap": 1.7579989060209458e-11,
+      "uncertainty": 6.3469709254143905e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 8,
+      "quality": true,
+      "gap": 1.6241102518098282e-11,
+      "uncertainty": 5.7860037270710756e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 9,
+      "quality": true,
+      "gap": 5.53995079832921e-11,
+      "uncertainty": 2.0769093183405878e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 10,
+      "quality": true,
+      "gap": 1.9038510508643303e-11,
+      "uncertainty": 5.7718086745915774e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 11,
+      "quality": true,
+      "gap": 1.6212720406494665e-11,
+      "uncertainty": 5.8090782490316776e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 12,
+      "quality": true,
+      "gap": 2.0716680061197452e-11,
+      "uncertainty": 7.015307754879047e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 13,
+      "quality": true,
+      "gap": 3.461916286891932e-11,
+      "uncertainty": 1.1553360568004965e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 14,
+      "quality": true,
+      "gap": 2.0605596211191164e-11,
+      "uncertainty": 7.575332170445856e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 15,
+      "quality": true,
+      "gap": 1.7475178912438693e-11,
+      "uncertainty": 6.432917632722753e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 16,
+      "quality": true,
+      "gap": 1.5866174525394446e-11,
+      "uncertainty": 5.653168480504164e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 17,
+      "quality": true,
+      "gap": 1.762815141610793e-11,
+      "uncertainty": 6.111949309387833e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 18,
+      "quality": true,
+      "gap": 1.5955320396985213e-11,
+      "uncertainty": 5.815079864973155e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 19,
+      "quality": true,
+      "gap": 1.6123481745920365e-11,
+      "uncertainty": 5.934727321171896e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 20,
+      "quality": true,
+      "gap": 1.6136044626795136e-11,
+      "uncertainty": 5.4300663684388006e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 21,
+      "quality": true,
+      "gap": 1.8885927979919875e-11,
+      "uncertainty": 6.462469290552811e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 22,
+      "quality": true,
+      "gap": 2.2742429739603748e-11,
+      "uncertainty": 8.046552010035246e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 23,
+      "quality": true,
+      "gap": 2.5703299659544e-11,
+      "uncertainty": 9.372810527650376e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 24,
+      "quality": true,
+      "gap": 1.912308164272157e-11,
+      "uncertainty": 7.162321447612452e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 25,
+      "quality": true,
+      "gap": 2.170476642214538e-11,
+      "uncertainty": 6.891236899795612e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 26,
+      "quality": true,
+      "gap": 1.6032631963463445e-11,
+      "uncertainty": 5.484032764670852e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 27,
+      "quality": true,
+      "gap": 1.702437486186742e-11,
+      "uncertainty": 6.4606104123436525e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 28,
+      "quality": true,
+      "gap": 1.2708226407702784e-11,
+      "uncertainty": 4.706051919218612e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 29,
+      "quality": true,
+      "gap": 2.2543178060126143e-11,
+      "uncertainty": 8.817671834641859e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 30,
+      "quality": true,
+      "gap": 2.6267964038706318e-11,
+      "uncertainty": 7.447479236581957e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 31,
+      "quality": true,
+      "gap": 4.112433736324388e-11,
+      "uncertainty": 1.3642938386655799e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 32,
+      "quality": true,
+      "gap": 1.4607319432984663e-11,
+      "uncertainty": 4.947308561752432e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 33,
+      "quality": true,
+      "gap": 2.3865969694900826e-11,
+      "uncertainty": 7.89847063067988e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 34,
+      "quality": true,
+      "gap": 3.486297603306957e-11,
+      "uncertainty": 1.1182367105551739e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 35,
+      "quality": true,
+      "gap": 1.3896355706046705e-11,
+      "uncertainty": 3.93074370077949e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 36,
+      "quality": true,
+      "gap": 2.6832384413269146e-11,
+      "uncertainty": 9.607104770562374e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 37,
+      "quality": true,
+      "gap": 1.8223070549787534e-11,
+      "uncertainty": 6.185953405160253e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 38,
+      "quality": true,
+      "gap": 2.2206022536366477e-11,
+      "uncertainty": 7.552584999428128e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 39,
+      "quality": true,
+      "gap": 1.8028312928054845e-11,
+      "uncertainty": 6.143896851152588e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 40,
+      "quality": true,
+      "gap": 8.281240238210437e-11,
+      "uncertainty": 2.961498486546225e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 41,
+      "quality": true,
+      "gap": 8.411412193855151e-11,
+      "uncertainty": 3.0114759066143256e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 42,
+      "quality": true,
+      "gap": 1.717388775768227e-11,
+      "uncertainty": 6.2353914051626416e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 43,
+      "quality": true,
+      "gap": 1.9689535938140076e-11,
+      "uncertainty": 6.292090675027628e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 44,
+      "quality": true,
+      "gap": 3.1711689693833345e-11,
+      "uncertainty": 1.0769195095305696e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 45,
+      "quality": true,
+      "gap": 1.5097757904889173e-11,
+      "uncertainty": 4.898345793864027e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 46,
+      "quality": true,
+      "gap": 2.219249387123491e-11,
+      "uncertainty": 8.333041804411563e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 47,
+      "quality": true,
+      "gap": 2.7716397961885592e-11,
+      "uncertainty": 8.97622589654644e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 48,
+      "quality": true,
+      "gap": 1.9665709380866194e-11,
+      "uncertainty": 6.299495881132089e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 49,
+      "quality": true,
+      "gap": 1.094495373732242e-11,
+      "uncertainty": 3.3685042046875494e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 50,
+      "quality": true,
+      "gap": 1.859620793850328e-11,
+      "uncertainty": 6.736763548430878e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 51,
+      "quality": true,
+      "gap": 9.758617809525899e-11,
+      "uncertainty": 3.669539345250406e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 52,
+      "quality": true,
+      "gap": 1.6018379597225832e-11,
+      "uncertainty": 5.946680290829354e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 53,
+      "quality": true,
+      "gap": 2.1078985001752555e-11,
+      "uncertainty": 7.864386935280644e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 54,
+      "quality": true,
+      "gap": 1.9768080988977774e-11,
+      "uncertainty": 6.5417292993703e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 55,
+      "quality": true,
+      "gap": 2.3982106895174796e-11,
+      "uncertainty": 8.139462010658308e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 56,
+      "quality": true,
+      "gap": 2.6172655808910903e-11,
+      "uncertainty": 8.406613958984157e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 57,
+      "quality": true,
+      "gap": 1.829513273839446e-11,
+      "uncertainty": 6.036823592755023e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 58,
+      "quality": true,
+      "gap": 2.0407312041753644e-11,
+      "uncertainty": 6.8291183008678035e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 59,
+      "quality": true,
+      "gap": 1.8060967275188998e-11,
+      "uncertainty": 6.463264431917841e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 60,
+      "quality": true,
+      "gap": 1.9867767672248306e-11,
+      "uncertainty": 7.736843746065187e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 61,
+      "quality": true,
+      "gap": 1.531241050030927e-11,
+      "uncertainty": 5.558942606738762e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 62,
+      "quality": true,
+      "gap": 2.0313773135783273e-11,
+      "uncertainty": 6.48648348421173e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 63,
+      "quality": true,
+      "gap": 1.8678114411949746e-11,
+      "uncertainty": 6.772549974334358e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 64,
+      "quality": true,
+      "gap": 1.3126148192184727e-11,
+      "uncertainty": 4.4724354754084225e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 65,
+      "quality": true,
+      "gap": 1.8856536041251866e-11,
+      "uncertainty": 6.54985776927558e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 66,
+      "quality": true,
+      "gap": 2.162143136877986e-11,
+      "uncertainty": 7.64592398585558e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 67,
+      "quality": true,
+      "gap": 1.423501024582449e-11,
+      "uncertainty": 4.9997184921543466e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 68,
+      "quality": true,
+      "gap": 2.6745360212115923e-11,
+      "uncertainty": 1.0845275985787459e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 69,
+      "quality": true,
+      "gap": 1.4955394011654554e-11,
+      "uncertainty": 4.939455537753677e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 70,
+      "quality": true,
+      "gap": 1.901241539517648e-11,
+      "uncertainty": 6.0496832324687866e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 71,
+      "quality": true,
+      "gap": 1.5874569313575776e-11,
+      "uncertainty": 6.283506569769101e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 72,
+      "quality": true,
+      "gap": 7.398237107060929e-11,
+      "uncertainty": 2.7944237320577775e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 73,
+      "quality": true,
+      "gap": 4.425153993234573e-11,
+      "uncertainty": 1.560025206252717e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 74,
+      "quality": true,
+      "gap": 1.4820831434927635e-11,
+      "uncertainty": 4.792242106920642e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 75,
+      "quality": true,
+      "gap": 1.8145617740272532e-11,
+      "uncertainty": 6.2259556508263185e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 76,
+      "quality": true,
+      "gap": 2.0725475536167188e-11,
+      "uncertainty": 7.070062998506817e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 77,
+      "quality": true,
+      "gap": 3.0541706048564344e-11,
+      "uncertainty": 1.1004917787264664e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 78,
+      "quality": true,
+      "gap": 6.244298247507279e-11,
+      "uncertainty": 2.0758420053277414e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 79,
+      "quality": true,
+      "gap": 7.112864218834327e-11,
+      "uncertainty": 2.224743772450424e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 80,
+      "quality": true,
+      "gap": 1.7852003008672134e-11,
+      "uncertainty": 6.021799524930169e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 81,
+      "quality": true,
+      "gap": 9.024773745814584e-11,
+      "uncertainty": 3.403633161358622e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 82,
+      "quality": true,
+      "gap": 1.5391295719077945e-11,
+      "uncertainty": 5.542827129039706e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 83,
+      "quality": true,
+      "gap": 2.0735313024619434e-11,
+      "uncertainty": 7.244775615671848e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 84,
+      "quality": true,
+      "gap": 2.140757337781903e-11,
+      "uncertainty": 7.099315653857675e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 85,
+      "quality": true,
+      "gap": 1.6743111407236158e-11,
+      "uncertainty": 6.243718160182945e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 86,
+      "quality": true,
+      "gap": 2.2580836688038267e-11,
+      "uncertainty": 8.312082886701117e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 87,
+      "quality": true,
+      "gap": 1.4650275373404763e-11,
+      "uncertainty": 4.49675339321529e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 88,
+      "quality": true,
+      "gap": 2.5169406643955543e-11,
+      "uncertainty": 9.33394035080994e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 89,
+      "quality": true,
+      "gap": 2.095654932704739e-11,
+      "uncertainty": 7.927658599426432e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 90,
+      "quality": true,
+      "gap": 7.927701444255527e-11,
+      "uncertainty": 2.728325685568634e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 91,
+      "quality": true,
+      "gap": 1.669844989435813e-11,
+      "uncertainty": 4.999875494461969e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 92,
+      "quality": true,
+      "gap": 1.4264421447144478e-11,
+      "uncertainty": 5.575611335323676e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 93,
+      "quality": true,
+      "gap": 2.5680088141000013e-11,
+      "uncertainty": 8.966191240849724e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 94,
+      "quality": true,
+      "gap": 1.6496126754244325e-11,
+      "uncertainty": 5.310834219733136e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 95,
+      "quality": true,
+      "gap": 1.5856269168533047e-11,
+      "uncertainty": 5.304454673453058e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 96,
+      "quality": true,
+      "gap": 1.5234503871280907e-11,
+      "uncertainty": 5.467007817893896e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 97,
+      "quality": true,
+      "gap": 9.418326052682774e-11,
+      "uncertainty": 3.277973946605718e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 98,
+      "quality": true,
+      "gap": 5.090049342631848e-11,
+      "uncertainty": 1.7291965364917108e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 99,
+      "quality": true,
+      "gap": 1.2797500575268387e-11,
+      "uncertainty": 4.963977007197836e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 100,
+      "quality": true,
+      "gap": 2.1459393361150737e-11,
+      "uncertainty": 7.950350045171122e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 101,
+      "quality": true,
+      "gap": 2.5009985648516664e-11,
+      "uncertainty": 9.188300595342728e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 102,
+      "quality": true,
+      "gap": 1.7610335807947087e-11,
+      "uncertainty": 6.295302657273615e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 103,
+      "quality": true,
+      "gap": 2.335355016517526e-11,
+      "uncertainty": 8.83544935957155e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 104,
+      "quality": true,
+      "gap": 1.2545464721978364e-11,
+      "uncertainty": 4.5104430150445045e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 105,
+      "quality": true,
+      "gap": 1.9482237590543028e-11,
+      "uncertainty": 7.44223044886703e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 106,
+      "quality": true,
+      "gap": 1.8311015757830857e-11,
+      "uncertainty": 6.051091666116568e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 107,
+      "quality": true,
+      "gap": 2.433767440679106e-11,
+      "uncertainty": 8.335710288157552e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 108,
+      "quality": true,
+      "gap": 3.278531788411321e-11,
+      "uncertainty": 1.1766325055317414e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 109,
+      "quality": true,
+      "gap": 1.5192904765037e-11,
+      "uncertainty": 5.507137125356627e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 110,
+      "quality": true,
+      "gap": 1.7603657615597448e-11,
+      "uncertainty": 5.894160416080102e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 111,
+      "quality": true,
+      "gap": 4.253078468552746e-11,
+      "uncertainty": 1.5832644259350244e-11,
+      "validation": 1.0
+    },
+    {
+      "slot": 112,
+      "quality": true,
+      "gap": 2.3930453686587394e-11,
+      "uncertainty": 8.234852091069748e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 113,
+      "quality": true,
+      "gap": 1.4417285089424291e-11,
+      "uncertainty": 5.201438568218826e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 114,
+      "quality": true,
+      "gap": 1.75424727368866e-11,
+      "uncertainty": 6.193680134169297e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 115,
+      "quality": true,
+      "gap": 1.6528012111126432e-11,
+      "uncertainty": 6.6116215970071525e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 116,
+      "quality": true,
+      "gap": 2.3122887067407115e-11,
+      "uncertainty": 7.981067940187598e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 117,
+      "quality": true,
+      "gap": 1.778198798720027e-11,
+      "uncertainty": 6.183210358384813e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 118,
+      "quality": true,
+      "gap": 1.9985596052484876e-11,
+      "uncertainty": 6.69336327026654e-12,
+      "validation": 1.0
+    },
+    {
+      "slot": 119,
+      "quality": true,
+      "gap": 1.5406857071040814e-11,
+      "uncertainty": 5.554290976171167e-12,
+      "validation": 1.0
+    }
+  ],
+  "queries": 760416,
+  "prefix_errors_score_only": {
+    "0": 5.2388648974499574e-14,
+    "1": 5.877243136609422e-13,
+    "2": 1.6464253571601972e-11
+  }
+}

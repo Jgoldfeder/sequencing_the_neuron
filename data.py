@@ -186,11 +186,25 @@ def make_teacher_cnn(input_shape, conv_cfgs, fc_dims=(), out_dim=10, epochs=25,
     torch.manual_seed(seed)
     (xtr, ytr), (xte, yte) = load_data([in_dim, out_dim], device)
     net = ConvNet(input_shape, conv_cfgs, fc_dims, out_dim, act).to(device)
-    opt = torch.optim.Adam(net.parameters(), lr=lr)
+    if getattr(net, "rbf", False):
+        # LeNet-5 (1998): the RBF output parameters are FIXED +-1 codes (the paper used stylised 7x12 bitmaps of the
+        # characters; we use a fixed random +-1 code per class, seed-determined), not trained
+        _g = torch.Generator().manual_seed(1998 + seed)
+        with torch.no_grad():
+            net.layers[-1].weight.copy_((torch.randint(0, 2, net.layers[-1].weight.shape, generator=_g) * 2 - 1).float())
+        net.layers[-1].weight.requires_grad_(False)
+    opt = torch.optim.Adam([p_ for p_ in net.parameters() if p_.requires_grad], lr=lr)
     lossf = torch.nn.CrossEntropyLoss()
     # dataset smaller than the teacher's input (e.g. CIFAR 32x32 -> 224x224
     # AlexNet-exact geometry): bilinear-upsample per batch on the fly.
-    if xtr.shape[1] != in_dim:
+    if xtr.shape[1] != in_dim and input_shape[1:] == (32, 32) and xtr.shape[1] == 784:
+        # LeNet-5: MNIST 28x28 centred in a 32x32 field (as in the paper), padded with the background value
+        import torch.nn.functional as _F
+        _bg = float(xtr.min())
+
+        def _prep(xb):
+            return _F.pad(xb.view(-1, 1, 28, 28), (2, 2, 2, 2), value=_bg).reshape(xb.shape[0], -1)
+    elif xtr.shape[1] != in_dim:
         import torch.nn.functional as _F
         C, H, W = input_shape
         side = int(round((xtr.shape[1] // C) ** 0.5))

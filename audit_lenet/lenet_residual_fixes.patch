@@ -1,0 +1,29 @@
+--- residual_seed.py (before audit fixes)
++++ residual_seed.py (after audit fixes)
+@@ -3,9 +3,10 @@
+ Problem: frontier units the teacher never activates on the query distribution ("silent") give the committee no gradient
+ (only the 0.01 leak) and no disagreement, so no member learns them and the sampler never visits their kinks.
+ Teacher-side fix: with the prefix exact (pinned) and the frontier's pinned rows exact, the teacher's output Jacobian
+-w.r.t. the frontier input h, projected off the span of the pinned rows, is spanned EXACTLY by the unpinned rows
+-(leak slope 0.01 included) -> its numerical rank = #missing rows (a completeness certificate) and its right singular
+-vectors span the directions in which the missing units turn on.  Seeds: h0 = prefix(x0), target h0 + s v for random
++w.r.t. the frontier input h, projected off the span of the pinned rows, lies in the span of the PROJECTED unpinned
++rows (leak slope 0.01 included). With an exact full-rank prefix its rank is at most the missing width; equality also
++requires enough downstream observability. Its right singular vectors supply exploration directions, not a general
++completeness certificate.  Seeds: h0 = prefix(x0), target h0 + s v for random
+ unit v in that span, realised by attacker-side inversion through the (known) prefix.  The teacher labels the seeds like
+ any other query; the committee then sees the silent units active and learns / pins them through the normal pipeline.
+ 
+@@ -84,6 +85,12 @@
+         rows.append(J @ Pp)
+     R = torch.cat(rows); _, S, Vh = torch.linalg.svd(R, full_matrices=False)
+     r = int((S > rel_tol * S[0]).sum()) if S[0] > 0 else 0
++    missing = int((~pinned.to(dev).bool()).sum())
++    if r > missing:
++        if verbose:
++            print(f"  [residual-seeds] INVALID: residual rank {r} exceeds {missing} missing rows; "
++                  "check the fp64 prefix, finite-difference steps, and noise floor; skipping residual seeds", flush=True)
++        return Vh[:0], S, nq
+     if verbose:
+         print(f"  [residual-seeds] frontier L{fr + 1}: {int(pinned.sum())} pinned rows, {len(rows)} Jacobian points "
+               f"({skipped} skipped), residual rank {r} (sv {', '.join(f'{v:.1e}' for v in S[:min(len(S), r + 2)].tolist())}) | {nq:,} queries", flush=True)

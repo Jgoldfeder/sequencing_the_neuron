@@ -1,0 +1,16 @@
+import json,runpy
+from pathlib import Path
+root=Path(__file__).resolve().parent
+runpy.run_path(str(root/'summarize_committee_tests.py'))
+rows=json.loads((root/'committee_test_summary.json').read_text())
+selected=[]
+for run,arm in [('h','gaussian_fixedtail'),('e','boundary_fixedtail'),('e','boundary_free'),('g','boundary_rownorm')]:
+ r=next(r for r in rows if r['run']==f'boundary_test_20261021_{run}' and r['arm']==arm)
+ assert r['complete'],f'{run}/{arm} is still running'
+ selected.append(r)
+lines=['## Final comparison on the stronger dataset','', '| Queries | F6/head | Row-norm projection | Epochs | Missing rows accurate in ≥5/8 members | Best training L1 |','|---|---|---|---:|---:|---:|']
+for r in selected:
+ lines.append(f"| {'Gaussian' if r['arm'].startswith('gaussian') else 'Targeted, full-rank positive examples'} | {r['F6_head']} | {'Yes' if r['arm'].endswith('rownorm') else 'No'} | {r['epoch']} | {r['missing_with_5_accurate_inf02']}/17 | {r['best_training_L1']:.3g} |")
+lines += ['', 'The targeted-data, exact-suffix and free-suffix arms within run `e` share their initial C5 population and query dataset. Their difference is whether the suffix is supplied exactly and frozen or initialized randomly and trained. Supplying that suffix changes the outcome from zero to all 17 accurate rows under this test. The separate balancing run does not close that gap.', '', 'The Gaussian/exact-suffix control fits its outputs more closely than the successful targeted-data control, while recovering far fewer missing rows. Low output loss on a biased query distribution is therefore inadequate evidence of parameter recovery.', '', '**Corrected interpretation:** these results show that this fixed-dataset training setup benefits from an exact oracle suffix. They do not establish that the committee method needs known downstream layers, or that downstream fitting explains the original C5 stall. The successful MLP experiments and LeNet L1/L2 recovery already demonstrate recovery with unknown downstream weights. This experiment did not reproduce those successes as positive controls, replaced adaptive disagreement sampling with a fixed oracle-targeted dataset, and changed the training implementation. Its negative arms therefore do not diagnose the production algorithm. Full rank of positive feature samples also does not certify that these finite output-only samples identify every internal row. The historical C5 failure remains unexplained beyond the separately reproduced residual-sampler numerical bug.', '', 'The appropriate next audit is to reproduce a known successful MLP run and LeNet L1/L2 with the unchanged adaptive committee pipeline and unknown suffix, then trace C5 against those positive controls. A direct 400→120→84→10 MLP representation of the same LeNet tail can help separate prefix/query geometry from CNN-specific training, alignment, and pinning behavior. No requirement for a known suffix follows from the experiments above. Existing recovery code and records remain untouched.']
+p=root/'COMMITTEE_TEST_2026-10-21.md';s=p.read_text();s=s.split('\n## Final comparison on the stronger dataset')[0];p.write_text(s+'\n'+'\n'.join(lines)+'\n')
+print('Final comparison saved; all selected runs completed.')

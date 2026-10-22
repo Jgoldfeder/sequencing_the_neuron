@@ -41,6 +41,8 @@ def hidden_preacts(net, xb):
     nets.ConvNet and nets.MLP (no conv stack)."""
     x = xb
     out = []
+    if hasattr(net, "forward_preacts"):                   # ConvNet's own forward (LeNet-5 subsampling + C3 mask included)
+        return net.forward_preacts(x)
     if not hasattr(net, "n_conv"):                        # MLP
         for layer in net.layers[:-1]:
             z = layer(x); out.append(z); x = net.act(z)
@@ -197,3 +199,26 @@ def layer_stats(net, xb):
                      row_norm=float(row_norms(net.layers[-1]).median()), dead=0, always_on=0,
                      n=int(net.layers[-1].weight.shape[0])))
     return rows
+
+
+@torch.no_grad()
+def keep_alive_(net, xb, pinned, margin_frac=0.05, dead_frac=1e-3):
+    """An unpinned hidden unit that is silent on the data (positive on < dead_frac of the batch x positions) is NOT
+    allowed to die: its bias is reset so that its maximum pre-activation on the batch is -margin, i.e. its kink sits
+    just outside the data (margin = margin_frac x the layer's pre-activation RMS).  Direction untouched.  Returns the
+    number of units touched per hidden layer.  Rationale: a dead unit is a collapsed posterior ("this channel does
+    nothing") that makes all members agree where nothing is known; alive-at-the-boundary units disagree exactly where
+    an unlearned teacher unit could still turn on, which is where the disagreement sampler should go."""
+    zs = hidden_preacts(net, xb); touched = []
+    for l, z in enumerate(zs):
+        zc = z.transpose(0, 1).reshape(z.shape[1], -1)        # (C, N*positions)
+        pos = (zc > 0).float().mean(1); zmax = zc.amax(1)
+        rms = z.pow(2).mean().sqrt().clamp_min(1e-6); margin = margin_frac * rms
+        dead = pos < dead_frac
+        if pinned is not None and pinned.get(l) is not None:
+            dead = dead & ~pinned[l].to(dead.device)
+        idx = dead.nonzero().flatten()
+        if len(idx):
+            net.layers[l].bias.data[idx] += (-margin - zmax[idx]).to(net.layers[l].bias.dtype)
+        touched.append(int(len(idx)))
+    return touched

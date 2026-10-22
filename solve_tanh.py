@@ -31,6 +31,8 @@ ap.add_argument("--refine-cg", type=int, default=2000); ap.add_argument("--refin
 ap.add_argument("--polish-cg", type=int, default=4000); ap.add_argument("--polish-iters", type=int, default=12)
 ap.add_argument("--final-cg", type=int, default=4000); ap.add_argument("--final-iters", type=int, default=6)
 ap.add_argument("--points", type=int, default=512); ap.add_argument("--dirs", type=int, default=64)
+ap.add_argument("--keep-ring", action="store_true", help="keep the --disk replay ring after the committee (default: delete it, it is not used by the later stages)")
+ap.add_argument("--trunk", choices=["consensus", "best"], default="consensus", help="solver starting net: aligned quorum-consensus net (default) or the best member")
 args = ap.parse_args()
 dims = [int(x) for x in args.arch.split(",")]; arch = "x".join(map(str, dims))
 gpus = args.gpus.split(","); g0 = gpus[0]
@@ -85,6 +87,9 @@ if not args.skip_committee:
     cmd += f" {args.extra}"
     sh(cmd, f"{L}/committee__{args.tag}.log")
 res = json.load(open(f"results/{name}.json"))
+if args.disk and not args.keep_ring and os.path.isdir(args.disk) and os.path.abspath(args.disk).startswith(os.path.abspath("rings")):
+    import shutil; shutil.rmtree(args.disk, ignore_errors=True)     # the replay ring is not used after the committee
+    say(f"freed replay ring {args.disk} (committee done; --keep-ring to keep it)")
 w1_max = max(res["final_max_eps_per_matrix"][:2])
 record("1 committee", res["final_max_eps"], res["final_mean_eps"], int(res["queries"]),
        f"certified {res['log'][-1].get('n_consensus')}/{res['log'][-1].get('n_total')} | W1 max {w1_max:.2e} | per-matrix max {' '.join(f'{x:.1e}' for x in res['final_max_eps_per_matrix'])}")
@@ -96,10 +101,16 @@ if shallow:
     say(f"layer 1 already at {w1_max:.1e} < {args.l1_threshold:.0e}: shallow path, skipping isolation/scales")
     guess = f"{R}/_guess__{args.tag}.pt"
     pop = torch.load(pop_path, map_location="cpu", weights_only=False); fin = torch.load(final_path, map_location="cpu", weights_only=False)
-    torch.save({"dims": dims, "act": "tanh", "teacher_state": pop["teacher_state"], "state_dict": fin["state_dict"]}, guess)
+    _cs = None
+    if args.trunk == "consensus":
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "peel", "diag"))
+        from consensus_guess import consensus_guess
+        _cs, _ = consensus_guess(pop, fin["state_dict"])
+    say(f"solver starting net = {'aligned quorum CONSENSUS net' if _cs is not None else 'best member'}")
+    torch.save({"dims": dims, "act": "tanh", "teacher_state": pop["teacher_state"], "state_dict": _cs if _cs is not None else fin["state_dict"]}, guess)
     base = guess
 else:
-    sh(f"{P} peel/diag/l1_pipeline.py {args.tag} {pop_path} {final_path} {args.gpus} {args.refine_cg} {args.refine_iters}", f"{L}/l1_pipeline__{args.tag}.log")
+    sh(f"TRUNK={args.trunk} {P} peel/diag/l1_pipeline.py {args.tag} {pop_path} {final_path} {args.gpus} {args.refine_cg} {args.refine_iters}", f"{L}/l1_pipeline__{args.tag}.log")
     guess = f"{R}/_guess__{args.tag}.pt"
     q_iso = sum(queries_in(f"{L}/{f}", r"total queries (\d+)") for f in os.listdir(L) if f.startswith(f"iso_l1_{args.tag}") or f.startswith(f"iso_l1_orphan"))
     q_sc = sum(queries_in(f"{L}/{f}", r"\| (\d+) q\b") for f in os.listdir(L) if f.startswith(f"scale_l1_{args.tag}"))

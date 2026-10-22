@@ -1,0 +1,192 @@
+{
+  "queries": 1664471,
+  "seconds": 231.29303216934204,
+  "found": 8,
+  "accepted": 0,
+  "stats": [
+    {
+      "line": 0,
+      "unexplained": 20,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 96481,
+      "seconds": 24.913617610931396
+    },
+    {
+      "line": 1,
+      "unexplained": 14,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 151218,
+      "seconds": 30.572665691375732
+    },
+    {
+      "line": 2,
+      "unexplained": 26,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 225443,
+      "seconds": 40.582340240478516
+    },
+    {
+      "line": 3,
+      "unexplained": 16,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 283428,
+      "seconds": 47.0286169052124
+    },
+    {
+      "line": 4,
+      "unexplained": 18,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 344661,
+      "seconds": 54.1819064617157
+    },
+    {
+      "line": 5,
+      "unexplained": 24,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 415638,
+      "seconds": 63.52849745750427
+    },
+    {
+      "line": 6,
+      "unexplained": 25,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 488239,
+      "seconds": 73.18645715713501
+    },
+    {
+      "line": 7,
+      "unexplained": 20,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 552720,
+      "seconds": 81.0400927066803
+    },
+    {
+      "line": 8,
+      "unexplained": 27,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 628569,
+      "seconds": 91.40943193435669
+    },
+    {
+      "line": 9,
+      "unexplained": 34,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 715786,
+      "seconds": 104.30136942863464
+    },
+    {
+      "line": 10,
+      "unexplained": 30,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 796507,
+      "seconds": 115.78438019752502
+    },
+    {
+      "line": 11,
+      "unexplained": 10,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 844748,
+      "seconds": 120.00874257087708
+    },
+    {
+      "line": 12,
+      "unexplained": 29,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 923845,
+      "seconds": 131.19616556167603
+    },
+    {
+      "line": 13,
+      "unexplained": 25,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 996446,
+      "seconds": 140.79625344276428
+    },
+    {
+      "line": 14,
+      "unexplained": 25,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1069047,
+      "seconds": 150.5155746936798
+    },
+    {
+      "line": 15,
+      "unexplained": 26,
+      "new_candidates": 1,
+      "accepted_total": 0,
+      "queries": 1143272,
+      "seconds": 160.54685068130493
+    },
+    {
+      "line": 16,
+      "unexplained": 28,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1220745,
+      "seconds": 171.27446460723877
+    },
+    {
+      "line": 17,
+      "unexplained": 21,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1286850,
+      "seconds": 179.52387309074402
+    },
+    {
+      "line": 18,
+      "unexplained": 29,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1365947,
+      "seconds": 190.60630702972412
+    },
+    {
+      "line": 19,
+      "unexplained": 27,
+      "new_candidates": 2,
+      "accepted_total": 0,
+      "queries": 1441796,
+      "seconds": 201.04714512825012
+    },
+    {
+      "line": 20,
+      "unexplained": 29,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1520893,
+      "seconds": 212.25266814231873
+    },
+    {
+      "line": 21,
+      "unexplained": 28,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1598366,
+      "seconds": 222.99421787261963
+    },
+    {
+      "line": 22,
+      "unexplained": 21,
+      "new_candidates": 0,
+      "accepted_total": 0,
+      "queries": 1664471,
+      "seconds": 231.29200839996338
+    }
+  ]
+}

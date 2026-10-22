@@ -15,8 +15,9 @@ import torch
 
 from data import make_teacher, make_teacher_cnn, load_data
 from method import (Cfg, reconstruct, reconstruct_cnn, build_consensus,
-                    solver_polish_, polish_consensus, l1_on, agreement)
-from nets import count_params, MLP
+                    solver_polish_, polish_consensus, l1_on, agreement,
+                    _cnn_checkpoint_record)
+from nets import count_params, MLP, ConvNet
 from align import param_errors
 
 RESULTS = os.path.join(os.path.dirname(__file__), "results")
@@ -223,7 +224,16 @@ def run_cnn(args):
     device = args.device
     torch.manual_seed(args.teacher_seed)
     out_dim = args.out_dim
-    if args.conv.strip().lower() == "lenet":       # LeNet-5 preset (MNIST 28x28)
+    if args.conv.strip().lower() == "lenet5":      # LeNet-5 as in LeCun et al. 1998 (MNIST padded to 32x32)
+        input_shape = (1, 32, 32)
+        conv_cfgs = [(1, 6, 5, 1, 0, 2),           # C1: 6@28x28, S2: 2x2 average pooling -> 6@14x14
+                     (6, 16, 5, 1, 0, 2),          # C3: 16@10x10 (LeCun connection table), S4: avg pool -> 16@5x5
+                     (16, 120, 5, 1, 0, 0)]        # C5: 120@1x1
+        fc_dims = (84,)                            # F6
+        args.cnn_act = "lenet5"                    # scaled tanh 1.7159 tanh(2a/3) + C3 table + RBF outputs
+        print("[lenet5] LeNet-5 (1998): 32x32 input, scaled tanh, avg-pool S2/S4, C3 table, RBF outputs (fixed +-1 codes in the teacher); "
+              f"conv {conv_cfgs} fc {fc_dims}", flush=True)
+    elif args.conv.strip().lower() == "lenet":     # LeNet-5 preset (MNIST 28x28)
         input_shape = (1, 28, 28)
         conv_cfgs = [(1, 6, 5, 1, 2, 2),           # C1+S2: ->6x28x28 ->pool 6x14x14
                      (6, 16, 5, 1, 0, 2),          # C3+S4: ->16x10x10 ->pool 16x5x5
@@ -386,6 +396,17 @@ def run_cnn(args):
         overrides["qg_tf32"] = True
     if args.qg_chunk_gb is not None:
         overrides["qg_chunk_gb"] = args.qg_chunk_gb
+    if args.keep_alive is not None:
+        overrides["keep_alive"] = args.keep_alive
+    if args.oracle_excite:
+        overrides["oracle_excite"] = True
+    if args.cheat_focus:
+        overrides["cheat_focus"] = True
+    if args.solo_cands:
+        overrides["solo_cands"] = True
+    for _k in ("residual_seeds", "residual_smax", "residual_every", "residual_reinit", "solo_start", "solo_every"):
+        if getattr(args, _k) is not None:
+            overrides[_k] = getattr(args, _k)
     if args.qg_block_gb is not None:
         overrides["qg_block_gb"] = args.qg_block_gb
     if args.qg_host_gb is not None:
@@ -551,11 +572,13 @@ def run_cnn(args):
         resume_state = rck.get("refined_state", rck.get("state_dict", rck))
         print(f"[resume] loaded student from {args.resume}", flush=True)
         if getattr(args, "resume_record", False):
-            if rck.get("partial_state") is not None and rck.get("partial_mask"):
-                resume_record = (rck["partial_state"], rck["partial_mask"])
-                print(f"[resume] --resume-record: using the snapshot's fp64 record ({ {l: int(m.sum()) for l, m in rck['partial_mask'].items()} } pinned rows)", flush=True)
-            else:
-                print("[resume] --resume-record requested but the snapshot has no record; re-solving instead", flush=True)
+            record_net = ConvNet(input_shape, conv_cfgs, fc_dims, out_dim, act).to(device).double()
+            record_net.load_state_dict(rck.get("state_dict", resume_state))
+            resume_record = _cnn_checkpoint_record(record_net, rck)
+            if resume_record is None:
+                raise ValueError("--resume-record requested but the snapshot contains no recorded exact rows")
+            print(f"[resume] --resume-record: using combined frozen/partial fp64 record "
+                  f"({ {l: int(m.sum()) for l, m in resume_record[1].items()} } pinned rows)", flush=True)
 
     best, log, final = reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim,
                                        cfg, device, seed=args.seed, fc_dims=fc_dims,
@@ -687,6 +710,18 @@ def main():
     ap.add_argument("--lr", type=float, default=None, help="surrogate training Adam lr (default 1e-3)")
     ap.add_argument("--epochs", type=int, default=None, help="training epochs per outer iteration (default 10)")
     ap.add_argument("--qg-tf32", action="store_true", help="query generation only: TF32 matmuls in the disagreement search (~1.4x faster sampler on Ampere; same disagreement reached, different individual points). Training stays fp32")
+    ap.add_argument("--residual-seeds", type=float, nargs="?", const=0.5, default=None, metavar="FRAC",
+                    help="CNN with a pinned prefix: FRAC of each iteration's queries are residual-Jacobian seeds (honest, black-box; residual_seed.py)")
+    ap.add_argument("--solo-start", type=int, default=None)
+    ap.add_argument("--solo-every", type=int, default=None)
+    ap.add_argument("--solo-cands", action="store_true", help="CNN: also refine the best member's non-consensus frontier rows each pin pass (certificate decides; no reroll on failure)")
+    ap.add_argument("--residual-smax", type=float, default=None)
+    ap.add_argument("--residual-reinit", type=float, nargs="?", const=0.1, default=None, metavar="FRAC")
+    ap.add_argument("--residual-every", type=int, default=None)
+    ap.add_argument("--cheat-focus", action="store_true", help="ORACLE (CNN, with a frozen prefix): sampler maximises ||teacher - teacher with the unsolved frontier channels zeroed|| (oracle_focus.py); use with --no-layer-space-init")
+    ap.add_argument("--oracle-excite", action="store_true", help="DIAGNOSTIC print (teacher internals): per iteration, teacher hidden units silent on the mined batch")
+    ap.add_argument("--keep-alive", type=float, nargs="?", const=0.05, default=None, metavar="M",
+                    help="CNN: never let an unpinned hidden unit die -- before each sampler call, units silent on the buffer get their bias reset so their max pre-activation on the data is -M x layer RMS (default M=0.05); members then disagree at the data boundary where unlearned teacher units may turn on")
     ap.add_argument("--qg-chunk-gb", type=float, default=None, help="query generation: GB budget of the automatic forward chunk (default 6; 1.5 was the old default)")
     ap.add_argument("--qg-host-gb", type=float, default=None, help="query generation: assemble the q x d query block on the host when it exceeds this many GB (default 8); needed when q x d x 4 bytes approaches the GPU memory")
     ap.add_argument("--qg-block-gb", type=float, default=None, help="query generation: GB of leaf+Adam state per outer block (default 2 = 40690 queries at d=3072)")
@@ -1553,6 +1588,17 @@ def main():
         overrides["qg_tf32"] = True
     if args.qg_chunk_gb is not None:
         overrides["qg_chunk_gb"] = args.qg_chunk_gb
+    if args.keep_alive is not None:
+        overrides["keep_alive"] = args.keep_alive
+    if args.oracle_excite:
+        overrides["oracle_excite"] = True
+    if args.cheat_focus:
+        overrides["cheat_focus"] = True
+    if args.solo_cands:
+        overrides["solo_cands"] = True
+    for _k in ("residual_seeds", "residual_smax", "residual_every", "residual_reinit", "solo_start", "solo_every"):
+        if getattr(args, _k) is not None:
+            overrides[_k] = getattr(args, _k)
     if args.qg_block_gb is not None:
         overrides["qg_block_gb"] = args.qg_block_gb
     if args.qg_host_gb is not None:

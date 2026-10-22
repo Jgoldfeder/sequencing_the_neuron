@@ -1,0 +1,36 @@
+[
+  {
+    "mode": "default_boundary",
+    "gen_queries_calls": 0,
+    "boundary_calls": 1,
+    "frontier": 2,
+    "known_row_targets": 824,
+    "unknown_row_targets": 136,
+    "total_targets": 960,
+    "boundary_returns_none": false,
+    "queries": 960
+  },
+  {
+    "mode": "disagreement",
+    "gen_queries_calls": 1,
+    "boundary_calls": 0,
+    "queries": 960
+  },
+  {
+    "mode": "l1_default",
+    "gen_queries_calls": 1,
+    "boundary_calls": 0,
+    "queries": 960
+  },
+  {
+    "mode": "l2_default",
+    "gen_queries_calls": 1,
+    "boundary_calls": 1,
+    "frontier": 1,
+    "known_row_targets": 0,
+    "unknown_row_targets": 960,
+    "total_targets": 960,
+    "boundary_returns_none": true,
+    "queries": 960
+  }
+]

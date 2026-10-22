@@ -1,0 +1,119 @@
+{
+  "entry_point": "lenet_hybrid.py",
+  "cpu_regression_tests": {
+    "passed": 5,
+    "command": "python tests/test_lenet_hybrid.py"
+  },
+  "completed_model_import_and_resume": {
+    "complete": true,
+    "counts": [
+      6,
+      16,
+      120,
+      84,
+      10
+    ],
+    "output_tests": {
+      "0.25": {
+        "max_output_error": 3.259209180317413e-09,
+        "mean_output_error": 6.324581773659103e-10
+      },
+      "0.5": {
+        "max_output_error": 8.559184694334476e-09,
+        "mean_output_error": 8.454340980806522e-10
+      },
+      "1.0": {
+        "max_output_error": 1.009615568925426e-08,
+        "mean_output_error": 1.4597077340460788e-09
+      },
+      "1.5": {
+        "max_output_error": 1.8752602803928653e-08,
+        "mean_output_error": 2.094735608268008e-09
+      },
+      "3.0": {
+        "max_output_error": 3.202509693545075e-08,
+        "mean_output_error": 4.504815081129066e-09
+      },
+      "6.0": {
+        "max_output_error": 4.787553464780103e-08,
+        "mean_output_error": 8.749990215266698e-09
+      }
+    },
+    "max_output_error": 4.787553464780103e-08,
+    "queries": 11264,
+    "oracle_contract": "fp64 outputs",
+    "teacher_parameters_used": false
+  },
+  "negative_checks": {
+    "insufficient_committee_budget": "correctly returned incomplete; no complete.pt",
+    "committee_only_resume": "resumed saved worker checkpoint; correctly returned incomplete at one-iteration budget",
+    "output_tolerance_1e_12": "correctly rejected validation; no complete.pt"
+  },
+  "original_103_row_integration": {
+    "status": "passed",
+    "directory": "/tmp/lenet_hybrid_full_check_01",
+    "input": "recon/_record_lenet_c1c2_c5_105.pt",
+    "historical_completed_model_or_audit_intermediates_loaded": false,
+    "real_interrupt_resume_tested": true,
+    "validation": {
+      "complete": true,
+      "counts": [
+        6,
+        16,
+        120,
+        84,
+        10
+      ],
+      "output_tests": {
+        "0.25": {
+          "max_output_error": 7.066568441516097e-10,
+          "mean_output_error": 6.303320275361541e-11
+        },
+        "0.5": {
+          "max_output_error": 7.969848669908686e-10,
+          "mean_output_error": 7.651574866515378e-11
+        },
+        "1.0": {
+          "max_output_error": 1.4739513637396229e-09,
+          "mean_output_error": 1.2293087008300805e-10
+        },
+        "1.5": {
+          "max_output_error": 1.961399043182155e-09,
+          "mean_output_error": 1.755132540338418e-10
+        },
+        "3.0": {
+          "max_output_error": 3.7154435084119086e-09,
+          "mean_output_error": 3.64266922977372e-10
+        },
+        "6.0": {
+          "max_output_error": 5.978556316676986e-09,
+          "mean_output_error": 7.323344046211467e-10
+        }
+      },
+      "max_output_error": 5.978556316676986e-09,
+      "queries": 8132292,
+      "oracle_contract": "fp64 outputs",
+      "teacher_parameters_used": false
+    },
+    "validation_inputs": 3072,
+    "head_fit_inputs": 4096,
+    "persistent_artifacts": "audit_lenet/hybrid_driver_20261021",
+    "log_segments": [
+      "lenet_hybrid_full_check_01.log",
+      "lenet_hybrid_full_check_01_resume.log",
+      "lenet_hybrid_full_check_01_final.log"
+    ]
+  },
+  "fresh_committee_convergence": "not demonstrated by this test; startup and resume smoke tested only",
+  "first_phase_recipe": {
+    "committee_seed": 0,
+    "members": 8,
+    "window": 60,
+    "peel_refresh": true,
+    "retries": 5,
+    "fresh_record": null,
+    "configuration_regression_test": "passed",
+    "launcher_smoke_test": "passed: initialized random committee and queried teacher; intentionally insufficient one-iteration budget returned incomplete",
+    "smoke_log": "/tmp/lenet_end_to_end_phase1_check_20261021/committee.log"
+  }
+}

@@ -89,7 +89,7 @@ from scipy.optimize import linear_sum_assignment
 
 import math
 
-from nets import Square, Abs, Power, Sine, GatedUnit
+from nets import Square, Abs, Power, Sine, GatedUnit, LeCunTanh, LENET5_C3
 
 
 def _scale_power(net):
@@ -393,7 +393,7 @@ def _sign_gauge(net):
     None also for the permutation-only activations (ELU, ...)."""
     if isinstance(net.act, torch.nn.Sigmoid):
         return True
-    if isinstance(net.act, (torch.nn.Tanh, torch.nn.Softsign, Sine, GatedUnit)):   # odd / linear value half: negate the next column
+    if isinstance(net.act, (torch.nn.Tanh, LeCunTanh, torch.nn.Softsign, Sine, GatedUnit)):   # odd / linear value half: negate the next column
         return False
     if isinstance(net.act, Power):
         return False if net.act.k % 2 else "even"
@@ -558,6 +558,8 @@ def cnn_canonicalize_(net):
     into the next layer. The final Linear head is left as-is (its outputs are
     the fixed logits -- no output gauge)."""
     L = net.layers
+    if getattr(net, "lenet5", False):
+        _lenet5_canonicalize_(net); return
     p, sg = _scale_power(net), _sign_gauge(net)        # same gauge table as the MLP path
     if sg is True:
         raise ValueError("cnn_canonicalize_: sigmoid (absorbing flip) is not supported for ConvNets")
@@ -581,6 +583,125 @@ def cnn_canonicalize_(net):
         _periodic_reduce_(net, [i])                     # sine: bias mod pi, before layer i+1's sign rule
 
 
+def _lenet5_flip_(net, i, k, s):
+    """multiply hidden unit k of weight layer i by s (+-1) in a function-preserving way for LeNet-5 (odd squashing):
+    row and bias of layer i; if a subsampling layer follows, its coefficient absorbs the flip (c -> s c) so nothing
+    else changes; otherwise the next layer's input column(s) for unit k are multiplied by s."""
+    L = net.layers; lay = L[i]
+    lay.weight[k].mul_(s); lay.bias[k].mul_(s)
+    if i in net.sub_of:
+        net.sub_w[net.sub_of[i]][k].mul_(s)
+        return
+    _push_unit_(net, i, k, s)
+
+
+def _push_unit_(net, i, k, s):
+    L = net.layers; nxt = L[i + 1]; conv = L[i].weight.dim() == 4
+    if conv and nxt.weight.dim() == 4:
+        nxt.weight[:, k].mul_(s)
+    elif conv and nxt.weight.dim() == 2:
+        C = L[i].weight.shape[0]; sec = nxt.weight.shape[1] // C
+        nxt.weight[:, k * sec:(k + 1) * sec].mul_(s)
+    else:
+        nxt.weight[:, k].mul_(s)
+
+
+@torch.no_grad()
+def _lenet5_canonicalize_(net):
+    """LeNet-5 gauges (odd squashing => sign flips only, no scale): every hidden unit's row gets the sign of its
+    max-|.| entry; a following subsampling unit absorbs it in its coefficient, and then the subsampling unit itself is
+    made positive (c > 0; its flip (c, b) -> (-c, -b) is pushed into the next layer's input column).  The RBF head
+    takes the push like a linear layer (||(-x) - (-w)|| = ||x - w||)."""
+    L = net.layers
+    for i in range(len(L) - 1):
+        W, b = L[i].weight, L[i].bias
+        Wb = torch.cat([W.reshape(W.shape[0], -1), b[:, None]], 1)
+        sg = torch.sign(Wb.gather(1, Wb.abs().argmax(1, keepdim=True)).squeeze(1)); sg[sg == 0] = 1.0
+        for k in (sg < 0).nonzero().flatten().tolist():
+            _lenet5_flip_(net, i, k, -1.0)
+        if i in net.sub_of:
+            j = net.sub_of[i]; c = net.sub_w[j]
+            s2 = torch.sign(c); s2[s2 == 0] = 1.0
+            for k in (s2 < 0).nonzero().flatten().tolist():
+                net.sub_w[j][k].mul_(-1.0); net.sub_b[j][k].mul_(-1.0)
+                _push_unit_(net, i, k, -1.0)
+
+
+_LENET5_AUTOS = None
+
+
+def lenet5_c3_automorphisms():
+    """(perm1, perm3) pairs: reorderings of the 6 C1/S2 maps and the 16 C3 maps that leave the C3 connection table
+    invariant (new C1 map a holds old map perm1[a]; new C3 map r holds old map perm3[r])."""
+    global _LENET5_AUTOS
+    if _LENET5_AUTOS is None:
+        import itertools
+        sets = [frozenset(c) for c in LENET5_C3]; out = []
+        for p1 in itertools.permutations(range(6)):
+            inv = {old: new for new, old in enumerate(p1)}
+            img = [frozenset(inv[c] for c in S) for S in sets]          # old C3 map r's inputs, in NEW C1 indices
+            if set(img) == set(sets):
+                p3 = [img.index(S) for S in sets]                      # new map r = old map p3[r]
+                out.append((list(p1), p3))
+        _LENET5_AUTOS = out
+    return _LENET5_AUTOS
+
+
+@torch.no_grad()
+def _permute_unit_block_(net, i, idx):
+    """reorder hidden units of weight layer i by idx (new u = old idx[u]); carries the subsampling params and the
+    next layer's input columns (the connection mask of the next layer is NOT permuted: callers must use idx that
+    preserve it, i.e. table automorphisms)."""
+    L = net.layers; W, b = L[i].weight, L[i].bias
+    W.copy_(W[idx]); b.copy_(b[idx])
+    if i in net.sub_of:
+        j = net.sub_of[i]; net.sub_w[j].copy_(net.sub_w[j][idx]); net.sub_b[j].copy_(net.sub_b[j][idx])
+    nxt = L[i + 1]; conv = W.dim() == 4
+    if conv and nxt.weight.dim() == 4:
+        nxt.weight.copy_(nxt.weight[:, idx])
+    elif conv and nxt.weight.dim() == 2:
+        k = W.shape[0]; m, n = nxt.weight.shape; sec = n // k
+        nxt.weight.copy_(nxt.weight.view(m, k, sec)[:, idx, :].reshape(m, n))
+    else:
+        nxt.weight.copy_(nxt.weight[:, idx])
+
+
+@torch.no_grad()
+def _lenet5_align_to_(net, ref):
+    """LeNet-5 alignment: C1 and C3 maps are pinned by the connection table up to its automorphisms -> pick the
+    automorphism with the closest C1 filters (|.|, sign-free); C5 and F6 are freely permutable -> Hungarian.  Then a
+    sign-aware pass flips any unit anti-aligned with the reference (the max-|entry| sign rule can tie on inexact
+    members).  Returns per-layer permutations like cnn_align_to_."""
+    L, R = net.layers, ref.layers
+    rf = R[0].weight.reshape(R[0].weight.shape[0], -1).abs(); sf = L[0].weight.reshape(L[0].weight.shape[0], -1).abs()
+    best = None
+    for p1, p3 in lenet5_c3_automorphisms():
+        c = float((rf - sf[p1]).abs().sum())
+        if best is None or c < best[0]:
+            best = (c, p1, p3)
+    _, p1, p3 = best
+    dev = L[0].weight.device
+    idx1 = torch.tensor(p1, device=dev); idx3 = torch.tensor(p3, device=dev)
+    _permute_unit_block_(net, 0, idx1)                      # C1 (+S2) rows; C3 input columns
+    _permute_unit_block_(net, 1, idx3)                      # C3 (+S4) rows; C5 input columns
+    perms = [idx1, idx3]
+    for i in range(2, len(L) - 1):                          # C5, F6: free permutations
+        W = L[i].weight
+        sf_ = W.reshape(W.shape[0], -1).abs(); rf_ = R[i].weight.reshape(R[i].weight.shape[0], -1).abs()
+        idx = torch.as_tensor(linear_sum_assignment(torch.cdist(rf_, sf_, p=1).cpu().numpy())[1], device=dev)
+        _permute_unit_block_(net, i, idx); perms.append(idx)
+    for i in range(len(L) - 1):                             # sign-aware correction
+        a = torch.cat([L[i].weight.reshape(L[i].weight.shape[0], -1), L[i].bias[:, None]], 1)
+        r_ = torch.cat([R[i].weight.reshape(R[i].weight.shape[0], -1), R[i].bias[:, None]], 1)
+        for k in ((a * r_).sum(1) < 0).nonzero().flatten().tolist():
+            _lenet5_flip_(net, i, k, -1.0)
+            if i in net.sub_of:                             # keep the subsampling coefficient positive (canonical)
+                j = net.sub_of[i]
+                if float(net.sub_w[j][k]) < 0:
+                    net.sub_w[j][k].mul_(-1.0); net.sub_b[j][k].mul_(-1.0); _push_unit_(net, i, k, -1.0)
+    return perms
+
+
 @torch.no_grad()
 def cnn_align_to_(net, ref):
     """Permute every hidden layer's out-channels/neurons of `net` to match `ref`
@@ -589,6 +710,8 @@ def cnn_align_to_(net, ref):
     permutations idx (layers 0..L-2): new position i holds old unit idx[i], so a
     per-unit mask in net's original frame maps to the aligned frame via mask[idx]."""
     L, R = net.layers, ref.layers
+    if getattr(net, "lenet5", False):
+        return _lenet5_align_to_(net, ref)
     perms = []
     for i in range(len(L) - 1):
         W, b = L[i].weight, L[i].bias
@@ -607,6 +730,12 @@ def cnn_align_to_(net, ref):
         else:                                           # linear -> *
             nxt.weight.copy_(nxt.weight[:, idx])
         perms.append(idx)
+    if _sign_gauge(net) is False:                       # odd activations (tanh family): sign-aware correction -- the
+        for i in range(len(L) - 1):                     # max-|entry| sign rule can tie on inexact members
+            a = torch.cat([L[i].weight.reshape(L[i].weight.shape[0], -1), L[i].bias[:, None]], 1)
+            r_ = torch.cat([R[i].weight.reshape(R[i].weight.shape[0], -1), R[i].bias[:, None]], 1)
+            for k in ((a * r_).sum(1) < 0).nonzero().flatten().tolist():
+                _lenet5_flip_(net, i, k, -1.0)
     return perms
 
 

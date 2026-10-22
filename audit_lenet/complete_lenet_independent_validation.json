@@ -1,0 +1,43 @@
+{
+  "checkpoint": "audit_lenet/record_lenet_complete_20261021.pt",
+  "sha256": "396a8ab276b3e34356baa99809d93696db5ac0f6289a29a648b515b9d3fdddca",
+  "recovered_rows_by_layer": {
+    "0": 6,
+    "1": 16,
+    "2": 120,
+    "3": 84,
+    "4": 10
+  },
+  "canonical_max_coefficient_error_by_layer": {
+    "0": 5.2388648974499574e-14,
+    "1": 5.877243136609422e-13,
+    "2": 1.6464260510495876e-11,
+    "3": 6.489769735495976e-09,
+    "4": 2.0250079297845502e-06
+  },
+  "independent_output_tests": {
+    "0.25": {
+      "max_output_error": 3.0946198936732117e-09,
+      "mean_output_error": 5.648141325788811e-10
+    },
+    "0.5": {
+      "max_output_error": 6.843794642108492e-09,
+      "mean_output_error": 8.186122435476192e-10
+    },
+    "1.0": {
+      "max_output_error": 1.1089759333060556e-08,
+      "mean_output_error": 1.474171205144259e-09
+    },
+    "3.0": {
+      "max_output_error": 3.13610470925596e-08,
+      "mean_output_error": 4.459436792694793e-09
+    },
+    "6.0": {
+      "max_output_error": 6.131783614193864e-08,
+      "mean_output_error": 8.820051109400891e-09
+    }
+  },
+  "independent_output_queries": 5120,
+  "oracle_contract": "fp64 teacher outputs",
+  "provisional": false
+}

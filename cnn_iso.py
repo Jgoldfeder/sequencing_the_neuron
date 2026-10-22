@@ -21,6 +21,8 @@ from align import cnn_canonicalize_
 @torch.no_grad()
 def _preacts(net, x):
     """per hidden layer: pre-activation per channel, flattened over (batch, positions) -> (N, C)"""
+    if hasattr(net, "forward_preacts"):                 # the net's own forward (LeNet-5 subsampling + C3 mask included)
+        return [z.permute(0, 2, 3, 1).reshape(-1, z.shape[1]) if z.dim() == 4 else z for z in net.forward_preacts(x)]
     h = x.view(x.shape[0], *net.input_shape); zs = []
     for i, lay in enumerate(net.layers[:-1]):
         if lay.weight.dim() == 4:
@@ -34,11 +36,13 @@ def _preacts(net, x):
     return zs
 
 
-def _pair(Zr, Z):
+def _pair(Zr, Z, odd=False):
+    """odd activations (tanh family): a unit and its negation are the same unit -> pair on |corr|; returns the
+    signed correlation so the caller can flip anti-correlated units into the reference's sign."""
     A = Zr - Zr.mean(0); B = Z - Z.mean(0)
     A = A / A.norm(dim=0, keepdim=True).clamp_min(1e-12); B = B / B.norm(dim=0, keepdim=True).clamp_min(1e-12)
     C = (A.T @ B).float()
-    r, c = linear_sum_assignment((-C).cpu().numpy())
+    r, c = linear_sum_assignment((-(C.abs() if odd else C)).cpu().numpy())
     perm = torch.tensor(c, device=Z.device); return perm, C[r, c]
 
 
@@ -86,11 +90,16 @@ def cnn_two_sided(pop, X, ref_idx, eps, quorum, corr_thr=0.99):
     ref = mems[ref_idx]
     Zr = _preacts(ref, X)
     nh = len(ref.layers) - 1
+    from align import _sign_gauge, _lenet5_flip_
+    odd = _sign_gauge(ref) is False
     perms = []; corrs = []
     for m in mems:
         Z = _preacts(m, X); ps = []; cs = []
         for l in range(nh):
-            p, c = _pair(Zr[l], Z[l]); ps.append(p); cs.append(c)
+            p, c = _pair(Zr[l], Z[l], odd); ps.append(p); cs.append(c.abs() if odd else c)
+            if odd:                                      # flip anti-correlated member units into the reference's sign
+                for u in (c < 0).nonzero().flatten().tolist():
+                    _lenet5_flip_(m, l, int(p[u]), -1.0)
         perms.append(ps); corrs.append(cs)
     rep = {}
     ident = []

@@ -1,0 +1,15 @@
+{
+  "pid": 2849251,
+  "gpu": 0,
+  "output": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/runs/lenet_end_to_end_fresh_20261021_170456",
+  "log": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/pool_logs/lenet_end_to_end_fresh_20261021_170456.log",
+  "command": [
+    "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/run_lenet_end_to_end.sh",
+    "--device",
+    "cuda:0",
+    "--output",
+    "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/runs/lenet_end_to_end_fresh_20261021_170456"
+  ],
+  "started": "2026-10-21T17:04:56.494415",
+  "start": "fresh random committee; no record"
+}

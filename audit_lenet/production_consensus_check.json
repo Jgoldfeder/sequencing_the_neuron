@@ -1,0 +1,26 @@
+{
+  "epoch": 2525,
+  "reference_member": 6,
+  "eps": 0.02,
+  "quorum": 5,
+  "C5_consensus_total": 120,
+  "missing_C5_in_consensus": 17,
+  "hidden_layer_counts": [
+    [
+      6,
+      6
+    ],
+    [
+      16,
+      16
+    ],
+    [
+      120,
+      120
+    ],
+    [
+      84,
+      84
+    ]
+  ]
+}

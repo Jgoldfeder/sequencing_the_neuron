@@ -17,14 +17,20 @@ net = MLP(dims, act="tanh").to(dev); net.load_state_dict(g["state_dict"]); net =
 iso = torch.load(iso_path, map_location="cpu", weights_only=False)["results"]
 sc = torch.load(scale_path, map_location="cpu", weights_only=False)["results"]
 with torch.no_grad():
-    W = net.layers[0].weight; n_set = 0
+    W = net.layers[0].weight; n_set = 0; n_dir = 0
     for i in range(dims[1]):
         if i in iso and i in sc and sc[i].get("scale"):
             u = iso[i]["direction"].to(dev).double(); u = u / u.norm()
             if float(u @ W[i]) < 0: u = -u                       # keep the guess's sign convention
             net.layers[0].bias[i] *= sc[i]["scale"] / float(W[i].norm())   # the member fit b to its own row scale: keep the hyperplane -b/|w|
             W[i] = u * sc[i]["scale"]; n_set += 1
-print(f"layer-1 rows replaced: {n_set}/{dims[1]} (direction from isolation x scale from tail decay); biases rescaled with the rows; deeper layers from the committee guess", flush=True)
+        elif i in iso:
+            # exact direction but no confirmed scale: keep the committee's magnitude on the exact direction (the
+            # all-free final stage fits the magnitude); better than a committee row or an unconfirmed tail estimate
+            u = iso[i]["direction"].to(dev).double(); u = u / u.norm()
+            if float(u @ W[i]) < 0: u = -u
+            W[i] = u * float(W[i].norm()); n_dir += 1
+print(f"layer-1 rows replaced: {n_set}/{dims[1]} (direction from isolation x scale from tail decay) + {n_dir} direction-only (committee magnitude kept); biases rescaled with the rows; deeper layers from the committee guess", flush=True)
 pe = param_errors(net, t64); print("assembled net vs black box: max_eps", f"{pe['max_eps']:.2e}", "| max per matrix", [f"{x:.1e}" for x in pe["max_eps_per_matrix"]], "| mean per matrix", [f"{x:.1e}" for x in pe["mean_eps_per_matrix"]], flush=True)
 Xq = ts.sample_points(P_, dims[0], scales=(0.5, 1.0, 2.0), seed=0, device=dev).double()
 t0 = time.time()

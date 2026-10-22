@@ -1,0 +1,191 @@
+--- method.py (before audit fixes)
++++ method.py (after audit fixes)
+@@ -5669,9 +5669,10 @@
+                 m_.layers[l].bias.register_hook(lambda g, k=live: g * (~k).to(g.dtype))
+                 partial_hooked.add(key)
+             live = partial_live[key]
+-            # Restore MLP rows from the precise source frame, including its input
+-            # scale, rather than trusting a rebuilt training copy.
+-            if not hasattr(m_, 'n_conv'):
++            # A rebuilt leaky/ReLU CNN needs the recorded values as well as
++            # its mask. This transfer uses the positive-homogeneous scale gauge;
++            # leave other CNN activation paths outside this LeNet repair.
++            if not hasattr(m_, 'n_conv') or m_.act_name in ("relu", "leaky_relu", "nonleakyrelu"):
+                 _cnn_transfer_rows_(m_, partial_exact, l, idx)
+             live[idx] = True
+             for p in (m_.layers[l].weight, m_.layers[l].bias):
+@@ -5862,6 +5863,36 @@
+             view.layers[l].weight[mm] = record.layers[l].weight.to(view.layers[l].weight)[mm]
+             view.layers[l].bias[mm] = record.layers[l].bias.to(view.layers[l].bias)[mm]
+     return view
++
++
++
++def _cnn_checkpoint_record(net, checkpoint):
++    """Combine both exact-row banks saved by the CNN snapshot writer.
++
++    Resumed rows may live exclusively in frozen, while newly solved rows live
++    in partial_state/partial_mask. Return their union in a canonical fp64 frame.
++    """
++    frozen = checkpoint.get("frozen") or {}
++    partial_mask = checkpoint.get("partial_mask") or {}
++    partial_state = checkpoint.get("partial_state")
++    masks = {}
++    for l, (_, _, mask) in frozen.items():
++        masks[l] = mask.detach().clone().bool()
++    for l, mask in partial_mask.items():
++        if bool(mask.any()) and partial_state is None:
++            raise ValueError("CNN snapshot has partial masks without their recorded coefficients")
++        m = mask.detach().clone().bool()
++        masks[l] = masks[l].to(m.device) | m if l in masks else m
++    masks = {l: mask for l, mask in masks.items() if bool(mask.any())}
++    if not masks:
++        return None
++    partial = None
++    if partial_state is not None:
++        partial = net.clone().double()
++        partial.load_state_dict(partial_state)
++    record = _cnn_solved_view(net, frozen, partial, partial_mask).clone().double()
++    return ({k: v.detach().cpu() for k, v in record.state_dict().items()},
++            {l: mask.cpu() for l, mask in masks.items()})
+ 
+ 
+ def _scale_match_rows(layer, idx, uW, ub):
+@@ -6687,9 +6718,21 @@
+                          device=device) * cfg.qg_init_std
+     with torch.no_grad():
+         H0 = _cnn_frontier_input(ref, X0, frontier)   # on-manifold init
+-    tails = [lambda h, m=m: _cnn_tail_forward(m, h, frontier) for m in pop]
++    scales = [_cnn_input_scale_to_member(m, ref, frontier, H0.shape[1]) for m in pop]
++    tails = [lambda h, m=m, scale=scale: _cnn_tail_forward(m, h * scale, frontier)
++             for m, scale in zip(pop, scales)]
+     if teacher is not None:
+-        tails.append(lambda h: _cnn_tail_forward(teacher, h, frontier))
++        # A teacher prefix may differ by permutation as well as scale. This is
++        # already an oracle-only branch: align a copy before using its tail.
++        teacher_tail = teacher.clone()
++        for parameter in teacher_tail.parameters():
++            parameter.requires_grad_(False)
++        cnn_canonicalize_(teacher_tail)
++        ref_canonical = ref.clone()
++        cnn_canonicalize_(ref_canonical)
++        cnn_align_to_(teacher_tail, ref_canonical)
++        scale = _cnn_input_scale_to_member(teacher_tail, ref, frontier, H0.shape[1])
++        tails.append(lambda h, m=teacher_tail, scale=scale: _cnn_tail_forward(m, h * scale, frontier))
+     if len(tails) < 2:
+         return X0                                   # no pair to disagree
+     # 1) disagreement ascent in frontier-input space (full-strength gradients)
+@@ -6750,6 +6793,40 @@
+         ((_cnn_frontier_input(ref, x, frontier) - tgt) ** 2).mean().backward()
+         opt.step()
+     return x.detach()
++
++
++@torch.no_grad()
++def _cnn_boundary_weight_in_ref(member, ref, frontier):
++    """Express a member's frontier covectors in ref's input-channel scale gauge.
++
++    Pinned prefixes can share exact hyperplanes while retaining different positive
++    channel scales. Boundary inversion uses ref's prefix, so raw member filters
++    cannot be applied to it directly. Channel order must already be aligned.
++    """
++    W = member.layers[frontier].weight.detach()
++    if frontier == 0 or member is ref or member.act_name not in ("relu", "leaky_relu", "nonleakyrelu"):
++        return W
++    src = _canon_in_factors(member, frontier)
++    dst = _canon_in_factors(ref, frontier)
++    scale = (src.double() / dst.double()).to(device=W.device, dtype=W.dtype)
++    if W.dim() == 4:
++        return W * scale.view(1, -1, 1, 1)
++    if member.layers[frontier - 1].weight.dim() == 4:
++        scale = scale.repeat_interleave(W.shape[1] // scale.numel())
++    return W * scale.view(1, -1)
++
++
++@torch.no_grad()
++def _cnn_input_scale_to_member(member, ref, frontier, dim):
++    """h_member = h_ref * scale for aligned, exact positive-homogeneous prefixes."""
++    parameter = next(member.parameters())
++    if frontier == 0 or member is ref or member.act_name not in ("relu", "leaky_relu", "nonleakyrelu"):
++        return torch.ones(dim, device=parameter.device, dtype=parameter.dtype)
++    scale = (_canon_in_factors(member, frontier).double() /
++             _canon_in_factors(ref, frontier).double())
++    if dim % scale.numel():
++        raise ValueError("frontier input does not match its prefix channel scales")
++    return scale.repeat_interleave(dim // scale.numel()).to(parameter)
+ 
+ 
+ def _spatial_boundary_normals(ref, pop, frontier, input_shape, D, Cout, q, P,
+@@ -6792,7 +6869,7 @@
+     pos = (idx // (Cout * P)) % npos                          # spread over positions
+     r0 = r0g[pos]; c0 = c0g[pos]                              # (q,) receptive-field origin
+ 
+-    Wall = torch.stack([m.layers[frontier].weight for m in pop])   # (P,Cout,Cin,k,k)
++    Wall = torch.stack([_cnn_boundary_weight_in_ref(m, ref, frontier) for m in pop])  # (P,Cout,Cin,k,k), ref gauge
+     ball = torch.stack([m.layers[frontier].bias for m in pop])     # (P,Cout)
+     filt = Wall[member, chan]                                 # (q,Cin,k,k) target filter
+     bsel = ball[member, chan]                                 # (q,)
+@@ -6848,7 +6925,7 @@
+             idx = torch.arange(q, device=device)
+             neuron = idx % Cout           # round-robin over ALL neurons -> even coverage
+             member = (idx // Cout) % P
+-            Wall = torch.stack([m.layers[frontier].weight.reshape(Cout, -1) for m in pop])  # (P,Cout,D)
++            Wall = torch.stack([_cnn_boundary_weight_in_ref(m, ref, frontier).reshape(Cout, -1) for m in pop])  # (P,Cout,D), ref gauge
+             ball = torch.stack([m.layers[frontier].bias for m in pop])                      # (P,Cout)
+             Wsel = Wall[member, neuron]                            # (q, D) each query's target normal
+             bsel = ball[member, neuron]                            # (q,)
+@@ -6876,6 +6953,24 @@
+     with torch.no_grad():
+         x = torch.zeros(1, int(torch.tensor(net.input_shape).prod()), device=next(net.parameters()).device, dtype=next(net.parameters()).dtype)
+         return _r.prefix(net, x, fr)[0].shape[1]
++
++
++def _cnn_residual_record_view(member, frozen, partial_exact, partial_mask, frontier,
++                              member_input_gauge=False):
++    """Use fp64 record coefficients for finite differences, not promoted fp32 copies.
++
++    The default view is canonical. Row redraws need each member's input scales;
++    restore those with function-preserving gauge moves on the exact record.
++    """
++    view = _cnn_solved_view(member, frozen, partial_exact, partial_mask).clone().double()
++    cnn_canonicalize_(view)
++    if member_input_gauge:
++        from cnn_balance import scale_channels_
++        for l in range(frontier):
++            scale_channels_(view, l, _canon_in_factors(member, l + 1))
++    for parameter in view.parameters():
++        parameter.requires_grad_(False)
++    return view
+ 
+ 
+ def reconstruct_cnn(teacher, input_shape, conv_cfgs, out_dim, cfg, device,
+@@ -7246,6 +7341,10 @@
+                     _pmf = torch.zeros(pop[0].layers[fr].weight.shape[0], dtype=torch.bool)
+                 qg_pop, _unsolved = _of.focus_pair(teacher, pop[0], fr, _pmf, seed=int(t))   # pinned rows are identical in all members
+                 _rl = True
++            if t == 0 or (t + 1) % cfg.log_every == 0:
++                sampler_mode = ("layer-disagreement" if cfg.layer_mine else "boundary-only (no disagreement ascent)") if seed is not None else "image-disagreement"
++                print(f"  [sampler:cnn] it {t + 1}: frontier {None if fr is None else fr + 1}, "
++                      f"mode {sampler_mode}", flush=True)
+             I = seed if seed is not None else gen_queries(
+                 qg_pop, cfg, in_dim, device, gen, init_override=init,
+                 ref_last=_rl)
+@@ -7258,7 +7357,7 @@
+                     _st = _rs_state if '_rs_state' in dir() else None
+                     _key = (fr, int(_pmr.sum()))
+                     if _st is None or _st["key"] != _key or (t - _st["t"]) >= cfg.residual_every:
+-                        _net64 = pop[0].clone().double()
++                        _net64 = _cnn_residual_record_view(pop[0], frozen, partial_exact, partial_mask, fr)
+                         for _p in _net64.parameters():
+                             _p.requires_grad_(False)
+                         _bb = _rs_bb if '_rs_bb' in dir() else None
+@@ -7275,7 +7374,8 @@
+                             _xr = _rs.seeds(_net64, fr, _V, 4096, s_max=cfg.residual_smax, gen=gen)
+                             _nr = 0
+                             for _m in pop:
+-                                _mm = _m.clone().double()
++                                _mm = _cnn_residual_record_view(_m, frozen, partial_exact, partial_mask, fr,
++                                                                member_input_gauge=True)
+                                 _Vm, _, _nqm = _rs.residual_subspace(_bb, _mm, fr, _pmr.cpu(), n_points=24, gen=gen, verbose=False)
+                                 refinement_queries[0] += _nqm
+                                 _nr = _rs.reinit_unpinned_(_m, fr, _Vm.to(next(_m.parameters()).dtype), _pmr, _xr.to(next(_m.parameters()).dtype), cfg.residual_reinit, gen=gen, net64=_mm.to(next(_m.parameters()).dtype))

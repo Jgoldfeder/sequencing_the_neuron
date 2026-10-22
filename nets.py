@@ -88,6 +88,28 @@ class Squareplus(nn.Module):
 PERMUTATION_ONLY_ACTS = ("elu", "gelu", "silu", "mish", "softplus", "celu", "selu", "hardswish", "squareplus",)
 
 
+class LeCunTanh(nn.Module):
+    """LeNet-5 (LeCun et al. 1998, appendix A) squashing function f(a) = A tanh(S a), A = 1.7159, S = 2/3. Odd."""
+    A, S = 1.7159, 2.0 / 3.0
+
+    def forward(self, x):
+        return self.A * torch.tanh(self.S * x)
+
+
+# LeNet-5 C3 connection table (LeCun et al. 1998, Table I): LENET5_C3[r] = S2 maps feeding C3 map r
+LENET5_C3 = [(0, 1, 2), (1, 2, 3), (2, 3, 4), (3, 4, 5), (0, 4, 5), (0, 1, 5),
+             (0, 1, 2, 3), (1, 2, 3, 4), (2, 3, 4, 5), (0, 3, 4, 5), (0, 1, 4, 5), (0, 1, 2, 5),
+             (0, 1, 3, 4), (1, 2, 4, 5), (0, 2, 3, 5),
+             (0, 1, 2, 3, 4, 5)]
+
+
+def lenet5_c3_mask():
+    m = torch.zeros(16, 6)
+    for r, cols in enumerate(LENET5_C3):
+        m[r, list(cols)] = 1.0
+    return m
+
+
 def make_act(act, negative_slope=0.01):
     """Hidden activation module by name (shared by MLP and ConvNet)."""
     if act == "leaky_relu":
@@ -98,6 +120,8 @@ def make_act(act, negative_slope=0.01):
         return nn.Sigmoid()
     if act == "tanh":
         return nn.Tanh()
+    if act in ("lecun_tanh", "lenet5", "lenet5lin"):
+        return LeCunTanh()
     if act == "square":
         return Square()
     if act == "elu":
@@ -221,6 +245,25 @@ class ConvNet(nn.Module):
             fan_in = l.weight.shape[1] if l.weight.dim() == 2 else l.weight[0].numel()
             nn.init.normal_(l.weight, 0.0, math.sqrt(2.0 / (fan_in + l.weight.shape[0])))
             nn.init.zeros_(l.bias)
+        # ---- LeNet-5 after LeCun et al. 1998 (act="lenet5"): scaled tanh everywhere, the C3 partial-connection table,
+        #      and Euclidean RBF output units (output = -||x - w_i||^2, so argmax / cross-entropy conventions hold).
+        #      S2/S4 are PLAIN 2x2 average pooling (the paper's trainable subsampling coefficient/bias + second squashing
+        #      is deliberately not used; sub_of stays empty, the gauge code keeps supporting it).
+        self.lenet5 = act in ("lenet5", "lenet5lin")
+        self.rbf = (act == "lenet5")                 # "lenet5lin": same net with a plain linear output layer
+        self.sub_of = {}
+        self.masked = []
+        if self.lenet5:
+            for i, (ic, oc, k, s_, pad, pool) in enumerate(self.conv_cfgs):
+                if ic == 6 and oc == 16:
+                    self.register_buffer(f"conn_mask{i}", lenet5_c3_mask()[:, :, None, None])
+                    self.masked.append(i)
+                    with torch.no_grad():
+                        self.layers[i].weight.mul_(getattr(self, f"conn_mask{i}"))
+            if self.rbf:
+                with torch.no_grad():
+                    self.layers[-1].bias.zero_()
+                self.layers[-1].bias.requires_grad_(False)      # RBF units have no bias
 
     @staticmethod
     def _norm_cfg(c):
@@ -236,17 +279,53 @@ class ConvNet(nn.Module):
         _, h, w = shape
         return oc, (h - k + 2 * p) // s + 1, (w - k + 2 * p) // s + 1
 
+    def conv_weight(self, i):
+        """effective weight of conv layer i (connection-table mask applied for LeNet-5 C3)"""
+        w = self.layers[i].weight
+        return w * getattr(self, f"conn_mask{i}").to(w.dtype) if i in self.masked else w
+
+    def _conv(self, i, x):
+        lay = self.layers[i]
+        if i in self.masked:
+            return F.conv2d(x, self.conv_weight(i), lay.bias, lay.stride, lay.padding)
+        return lay(x)
+
+    def _sub(self, i, x):
+        """pooling after conv i (+ the LeNet-5 trainable subsampling affine and squashing)"""
+        if self.pools[i] > 0:
+            x = F.avg_pool2d(x, self.pools[i])
+            if i in self.sub_of:
+                j = self.sub_of[i]
+                x = self.act(x * self.sub_w[j].view(1, -1, 1, 1) + self.sub_b[j].view(1, -1, 1, 1))
+        return x
+
+    def head(self, x):
+        if getattr(self, "rbf", False):             # Euclidean RBF output units, sign-flipped: -||x - w_i||^2
+            W = self.layers[-1].weight
+            return -((x * x).sum(1, keepdim=True) - 2 * x @ W.T + (W * W).sum(1)[None, :])
+        return self.layers[-1](x)
+
     def forward(self, x):
         if x.dim() == 2:                            # flat -> image
             x = x.view(x.shape[0], *self.input_shape)
         for i in range(self.n_conv):
-            x = self.act(self.layers[i](x))
-            if self.pools[i] > 0:
-                x = F.avg_pool2d(x, self.pools[i])
+            x = self._sub(i, self.act(self._conv(i, x)))
         x = torch.flatten(x, 1)
         for j in range(self.n_conv, len(self.layers) - 1):   # hidden FC
             x = self.act(self.layers[j](x))
-        return self.layers[-1](x)
+        return self.head(x)
+
+    def forward_preacts(self, x):
+        """pre-activations of every hidden weight layer (conv: (N, C, H, W), fc: (N, C)), in layer order"""
+        if x.dim() == 2:
+            x = x.view(x.shape[0], *self.input_shape)
+        out = []
+        for i in range(self.n_conv):
+            z = self._conv(i, x); out.append(z); x = self._sub(i, self.act(z))
+        x = torch.flatten(x, 1)
+        for j in range(self.n_conv, len(self.layers) - 1):
+            z = self.layers[j](x); out.append(z); x = self.act(z)
+        return out
 
     def clone(self):
         new = ConvNet(self.input_shape, self.conv_cfgs, self.fc_dims,
