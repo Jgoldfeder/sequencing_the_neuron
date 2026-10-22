@@ -23,6 +23,7 @@ def main():
     ap.add_argument("--iters", type=int, default=30)
     ap.add_argument("--cg-iters", type=int, default=150)
     ap.add_argument("--cg-tol", type=float, default=1e-4)
+    ap.add_argument("--precond", default="kfac", help="kfac (default) | none")
     ap.add_argument("--x-std", type=float, default=0.5)
     ap.add_argument("--out", default="")
     ap.add_argument("--device", default="cuda")
@@ -43,7 +44,8 @@ def main():
     din = int(torch.tensor(shape).prod())
     g = torch.Generator(device=dev).manual_seed(0)
     X = torch.randn(a.points, din, device=dev, dtype=torch.float64, generator=g) * a.x_std
-    net, info = refine_cnn(lambda x: t64(x), guess, X, dirs=a.dirs, iters=a.iters, cg_iters=a.cg_iters, cg_tol=a.cg_tol, score=score)
+    net, info = refine_cnn(lambda x: t64(x), guess, X, dirs=a.dirs, iters=a.iters, cg_iters=a.cg_iters, cg_tol=a.cg_tol, score=score,
+                           precond=(None if a.precond == 'none' else a.precond))
     print(f"[refine] {info['iters']} accepted iterations, loss {info['loss_init']:.3e} -> {info['loss_final']:.3e}, "
           f"{info['queries']:,} queries, {info['wall_s']}s", flush=True)
     e64 = cnn_param_errors(copy.deepcopy(net).double(), t64)

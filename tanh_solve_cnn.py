@@ -23,8 +23,79 @@ from torch.func import functional_call, jvp, vjp
 from tanh_solve import Oracle, measure_jets, _cg
 
 
+def _kfac_cnn(net, theta, keys, X, lam, n_sub=1000):
+    """K-FAC / KFC block preconditioner for the CNN Gauss-Newton matrix (the conv extension of tanh_solve._kfac_precond).
+    Per weight layer l:  H_l ~ G_l (x) A_l,  G_l = sum over outputs and positions of g g^T / N with g = d y_o / d z_l,
+    A_l = mean over samples and positions of the layer-input patch [patch | 1] outer products (unfold for conv).
+    Factored Tikhonov damping as in the MLP solver.  Returns v -> M^-1 v on the flat free-parameter vector."""
+    import torch.nn.functional as F
+    m = net
+    with torch.no_grad():
+        for k in keys:
+            dict(m.named_parameters())[k].copy_(theta[k])
+    Xs = X[:n_sub]; N = len(Xs)
+    store = {}
+    hooks = []
+    for l, lay in enumerate(m.layers):
+        def hk(mod, inp, out, l=l):
+            out.retain_grad(); store[l] = (inp[0].detach(), out)
+        hooks.append(lay.register_forward_hook(hk))
+    try:
+        with torch.enable_grad():
+            y = m(Xs)
+            G = {}
+            for o in range(y.shape[1]):
+                for l in store:
+                    if store[l][1].grad is not None:
+                        store[l][1].grad = None
+                y[:, o].sum().backward(retain_graph=True)
+                for l, (_, z) in store.items():
+                    g = z.grad
+                    gm = g.permute(0, 2, 3, 1).reshape(-1, g.shape[1]) if g.dim() == 4 else g
+                    G[l] = G.get(l, 0) + gm.T @ gm / N
+    finally:
+        for h in hooks:
+            h.remove()
+    facs = {}
+    for l, lay in enumerate(m.layers):
+        inp = store[l][0]
+        if lay.weight.dim() == 4:
+            P = F.unfold(inp, lay.kernel_size, padding=lay.padding, stride=lay.stride)       # (N, Cin*k*k, L)
+            P = P.transpose(1, 2).reshape(-1, P.shape[1])
+        else:
+            P = inp.reshape(inp.shape[0], -1)
+        P = torch.cat([P, torch.ones(P.shape[0], 1, dtype=P.dtype, device=P.device)], 1)
+        A = P.T @ P / P.shape[0]
+        Gl = G[l]
+        pi = math.sqrt((float(A.trace()) / A.shape[0]) / max(float(Gl.trace()) / Gl.shape[0], 1e-300))
+        Ainv = torch.linalg.inv(A + math.sqrt(lam) * pi * torch.eye(A.shape[0], dtype=A.dtype, device=A.device))
+        Ginv = torch.linalg.inv(Gl + math.sqrt(lam) / pi * torch.eye(Gl.shape[0], dtype=Gl.dtype, device=Gl.device))
+        facs[l] = (Ginv, Ainv)
+    sizes = [(k, theta[k].numel(), theta[k].shape) for k in keys]
+
+    def apply(v):
+        parts, i = {}, 0
+        for k, n, shp in sizes:
+            parts[k] = v[i:i + n].view(shp); i += n
+        out = {}
+        for l in facs:
+            kw, kb = f"layers.{l}.weight", f"layers.{l}.bias"
+            Ginv, Ainv = facs[l]
+            if kw in parts:
+                W = parts[kw].reshape(parts[kw].shape[0], -1)
+                b = parts[kb][:, None] if kb in parts else torch.zeros(W.shape[0], 1, dtype=W.dtype, device=W.device)
+                R = Ginv @ torch.cat([W, b], 1) @ Ainv
+                out[kw] = R[:, :-1].reshape(parts[kw].shape)
+                if kb in parts:
+                    out[kb] = R[:, -1]
+            elif kb in parts:
+                out[kb] = Ginv @ parts[kb]
+        return torch.cat([out[k].reshape(-1) for k, _, _ in sizes])
+    return apply
+
+
 def refine_cnn(bb, guess, X, dirs=8, iters=30, cg_iters=150, h=1e-3, jac_weight=1.0, seed=0, score=None,
-               verbose=True, tag="[tanhsolver-cnn]", cg_tol=1e-4, chunk=None):
+               verbose=True, tag="[tanhsolver-cnn]", cg_tol=1e-4, chunk=None, precond=None):
     t0 = time.time()
     dev = X.device
     X = X.double(); N, d = X.shape
@@ -94,9 +165,14 @@ def refine_cnn(bb, guess, X, dirs=8, iters=30, cg_iters=150, h=1e-3, jac_weight=
         if lam is None:
             v = torch.randn(numel, generator=gen, dtype=torch.float64).to(dev)
             lam = 1e-3 * float(v @ JtJ(v)) / numel
+        Minv = None
+        if precond == "kfac":
+            Minv = _kfac_cnn(net, theta, keys, X, lam)
+            if verbose and it == 0:
+                print(f"{tag} K-FAC/KFC block preconditioner (per-layer Kronecker factors, conv patches, factored damping)", flush=True)
         accepted = False
         for _try in range(12):
-            delta, ncg = _cg(lambda v: JtJ(v) + lam * v, -g, cg_iters, cg_tol)
+            delta, ncg = _cg(lambda v: JtJ(v) + lam * v, -g, cg_iters, cg_tol, Minv)
             cand = {k: theta[k] + dk for k, dk in unflat(delta).items()}
             new_loss = loss_of(cand)
             pred = float(-2.0 * (g @ delta) - (delta @ JtJ(delta)))
