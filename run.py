@@ -616,6 +616,50 @@ def run_cnn(args):
           f"wall={final['wall_s']}s", flush=True)
 
 
+def run_rnn(args):
+    """RNN extraction (rnn.py): Elman tanh RNN on row-sequential MNIST, population +
+    disagreement (shared sampler) + RNN gauge alignment and consensus."""
+    from rnn import make_teacher_rnn, reconstruct_rnn
+    device = args.device
+    hidden = [int(h) for h in args.rnn.split(",")]
+    print(f"[setup] RNN teacher T={args.seq_len} d={784 // args.seq_len} hidden {hidden} "
+          f"out={args.out_dim} epochs={args.teacher_epochs} device={device}", flush=True)
+    teacher = make_teacher_rnn(hidden, args.seq_len, args.out_dim, epochs=args.teacher_epochs,
+                               seed=args.teacher_seed, device=device)
+    for p_ in teacher.parameters():
+        p_.requires_grad_(False)
+    overrides = dict(VARIANTS[args.variant])
+    overrides["act"] = "tanh"
+    for k in ("window", "qg_lr", "qg_steps", "batch", "lr", "epochs"):
+        if getattr(args, k, None) is not None:
+            overrides[k] = getattr(args, k)
+    cfg = Cfg(p=args.p, q=args.q, outer=args.outer, **overrides)
+    gen = torch.Generator(device=device).manual_seed(10_000 + args.seed)
+    eval_pts = (torch.rand(2000, 784, generator=gen, device=device) * 2 - 1) * cfg.qg_range
+    print(f"[run] {args.variant} RNN seed={args.seed} params={count_params(teacher)} "
+          f"budget={cfg.outer * cfg.q} queries", flush=True)
+    best, pop, log, final = reconstruct_rnn(teacher, cfg, device, eval_pts, seed=args.seed,
+                                            cons_eps=args.rnn_cons_eps)
+    tag = f"_{args.tag}" if args.tag else ""
+    stub = f"{args.variant}_rnn{tag}__T{args.seq_len}__h{'-'.join(map(str, hidden))}__s{args.seed}"
+    recon_dir = os.path.join(os.path.dirname(__file__), "recon")
+    os.makedirs(recon_dir, exist_ok=True)
+    out_path = os.path.join(recon_dir, stub + "_final.pt")
+    if os.path.exists(out_path):
+        os.replace(out_path, out_path + ".bak")
+    torch.save({"hidden": hidden, "seq_len": args.seq_len, "out_dim": args.out_dim,
+                "state_dict": {k: v.detach().cpu() for k, v in best.state_dict().items()},
+                "pop_state_dicts": [{k: v.detach().cpu() for k, v in m.state_dict().items()} for m in pop],
+                **final}, out_path)
+    os.makedirs(RESULTS, exist_ok=True)
+    with open(os.path.join(RESULTS, stub + ".json"), "w") as f:
+        json.dump({"variant": args.variant, "model": "rnn", "hidden": hidden,
+                   "seq_len": args.seq_len, "out_dim": args.out_dim, "seed": args.seed,
+                   "log": log, **final}, f, indent=1)
+    print(f"[done] {stub} | final_max_eps={final['final_max_eps']:.3e} "
+          f"wall={final['wall_s']}s", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", required=True, choices=sorted(VARIANTS))
@@ -1290,6 +1334,15 @@ def main():
                          "A Linear head is appended. "
                          "Uses the population+consensus pipeline with conv channel "
                          "alignment (no peel/rank-cert/fast/expand).")
+    ap.add_argument("--rnn", default="",
+                    help="RNN mode (rnn.py): comma-separated hidden widths of a stacked Elman "
+                         "tanh RNN black box on row-sequential MNIST, e.g. '32' or '16,16'. "
+                         "Linear head on the last step. Population + disagreement + RNN "
+                         "gauge alignment/consensus (no peel/refiners).")
+    ap.add_argument("--seq-len", type=int, default=28,
+                    help="RNN sequence length; must divide 784 (28 = one image row per step).")
+    ap.add_argument("--rnn-cons-eps", type=float, default=0.02,
+                    help="RNN consensus ball radius (inf-norm on [W_ih|b|W_hh] rows).")
     ap.add_argument("--fc", default="",
                     help="CNN hidden FC widths between conv stack and output head, "
                          "comma-separated e.g. '84' (LeNet's F6). Empty = none.")
@@ -1386,6 +1439,10 @@ def main():
         if args.conv and (args.peel or args.freeze_reinit or args.resume):
             ap.error("--hard: the CNN peel/--resume path refines layers with "
                      "the kink prober (real-valued outputs)")
+    if args.rnn:
+        if args.conv:
+            ap.error("--rnn and --conv are exclusive")
+        return run_rnn(args)
     if args.conv:
         return run_cnn(args)
     smooth = args.sigmoid or args.tanh or args.square or bool(args.act)
