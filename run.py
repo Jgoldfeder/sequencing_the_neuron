@@ -680,6 +680,14 @@ def main():
                     help="with --teacher-full: number of leading layers to remove.")
     ap.add_argument("--teacher-seed", type=int, default=0)
     ap.add_argument("--teacher-epochs", type=int, default=25)
+    ap.add_argument("--teacher-l1", type=float, default=0.0,
+                    help="(MLP) train the blackbox with an L1 weight penalty: loss += "
+                         "teacher_l1 * sum_l sum|W_l| (weights only). Cached as its own "
+                         "teacher file (_l1<val>) and appended to --tag.")
+    ap.add_argument("--teacher-l1-prox", action="store_true",
+                    help="apply --teacher-l1 as a proximal soft-threshold after every Adam "
+                         "step (w <- sign(w) max(|w| - lr*l1, 0)) -> EXACT zeros. l1 >~ 1 "
+                         "needed (an Adam step is ~lr). Teacher/tag suffix l1p<val>.")
     ap.add_argument("--device", default="mps" if torch.backends.mps.is_available() else "cpu")
     ap.add_argument("--outer", type=int, default=40)
     ap.add_argument("--q", type=int, default=1500)
@@ -861,6 +869,9 @@ def main():
     ap.add_argument("--qg_lr", type=float, default=None,
                     help="override the query-generator Adam lr on top of the "
                          "variant (Cfg.qg_lr, e.g. 0.1)")
+    ap.add_argument("--gn-polish", type=int, nargs="?", const=10, default=0, metavar="ITERS",
+                    help="--fast: after the MSE->MAE polish, damped Gauss-Newton least squares in fp64 on the SAME stored queries "
+                         "(no new black-box queries), up to ITERS steps (default 10)")
     ap.add_argument("--fast", action="store_true",
                     help="stop training the first iter a consensus forms, then "
                          "staged MSE->MAE solve it, and emit the solved "
@@ -1453,6 +1464,8 @@ def main():
     dims = [int(x) for x in args.arch.split(",")]
     device = args.device
     torch.manual_seed(args.teacher_seed)
+    if args.teacher_l1 > 0:
+        args.tag = "_".join(t for t in (args.tag, f"l1{'p' if args.teacher_l1_prox else ''}{args.teacher_l1:g}") if t)
 
     act = ("sigmoid" if args.sigmoid else "tanh" if args.tanh
            else "square" if args.square else args.act if args.act else "leaky_relu")
@@ -1469,7 +1482,7 @@ def main():
               f"removed -> sub-net {sub_dims}; act={act} device={device}", flush=True)
         full_teacher = make_teacher(full_dims, epochs=args.teacher_epochs,
                                     seed=args.teacher_seed, device=device,
-                                    verbose=smooth, act=act)
+                                    verbose=smooth or args.teacher_l1 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox)
         teacher = MLP(sub_dims, act=act).to(device)
         with torch.no_grad():
             for j in range(len(sub_dims) - 1):
@@ -1487,7 +1500,7 @@ def main():
               f"act={act} device={device}", flush=True)
         teacher = make_teacher(dims, epochs=args.teacher_epochs,
                                seed=args.teacher_seed, device=device,
-                               verbose=smooth, act=act)
+                               verbose=smooth or args.teacher_l1 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox)
         (_, _), (xte, _) = load_data(dims, device)
         if xte.shape[1] != dims[0]:
             # no dataset matches this input width (e.g. a truncated network queried at an inner
@@ -1976,6 +1989,14 @@ def main():
                 solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,
                                verbose=False, tag=" fast")
                 _phase("MSE->MAE polish", cons)
+                if args.gn_polish:
+                    # Gauss-Newton least squares on the SAME stored queries (no new black-box queries)
+                    from gn_polish import gn_polish as _gnp
+                    import copy as _cpy
+                    _t64 = _cpy.deepcopy(teacher).double()
+                    cons, _gi = _gnp(cons, Xf, Yf, iters=args.gn_polish, device=device,
+                                     score=lambda n_: param_errors(n_, _t64))
+                    _phase("GN polish (stored queries)", cons)
             if (args.design_refine or args.loc_refine) and not args.hard:
                 # --design-refine / --loc-refine under --fast: the whole-net
                 # consensus is a ~1e-2 guess of every layer. Refine the hidden
@@ -2067,6 +2088,7 @@ def main():
         "n_params": count_params(teacher),
         "seed": args.seed,
         "teacher_seed": args.teacher_seed,
+        "teacher_l1": args.teacher_l1,
         "device": device,
         "log": log,
         "phases": [{"phase": n, "mean_eps": me, "max_eps": mx, "wall_s": ws}
