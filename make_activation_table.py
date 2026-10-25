@@ -24,7 +24,7 @@ args = ap.parse_args()
 
 pat = re.compile(r"mergedbest_(?:[a-z0-9_]+_)?act_(?P<act>[a-z0-9_]+?)_q(?P<q>\d+)__" + re.escape(args.arch) + rf"__s{args.seed}\.json$")
 runs = {}
-for path in glob.glob(os.path.join(args.results, "mergedbest_*_act_*_q*__*__s*.json")):
+for path in glob.glob(os.path.join(args.results, "mergedbest_*act_*_q*__*__s*.json")):
     m = pat.search(os.path.basename(path))
     if not m:
         continue
