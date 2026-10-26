@@ -121,18 +121,25 @@ def load_data(dims, device):
     return load_mnist(device)
 
 
-def teacher_path(dims, epochs, seed, act="leaky_relu"):
+def teacher_path(dims, epochs, seed, act="leaky_relu", l1=0.0, l1_prox=False):
     os.makedirs(TEACHER_DIR, exist_ok=True)
     tag = "x".join(map(str, dims))
     suffix = "" if act == "leaky_relu" else f"_{act}"
+    if l1 > 0:
+        suffix += f"_l1{'p' if l1_prox else ''}{l1:g}"
     return os.path.join(TEACHER_DIR,
                         f"teacher_{tag}_e{epochs}_s{seed}{suffix}.pt")
 
 
 def make_teacher(dims, epochs=25, seed=0, lr=1e-3, batch=256, device="cpu",
-                 verbose=True, act="leaky_relu"):
-    """Train (or load from cache) the blackbox network."""
-    path = teacher_path(dims, epochs, seed, act)
+                 verbose=True, act="leaky_relu", l1=0.0, l1_prox=False):
+    """Train (or load from cache) the blackbox network. l1 > 0 adds
+    l1 * sum_l sum|W_l| (weights only, not biases) to the training loss, i.e.
+    a per-weight pull of l1 toward zero. Adam then chatters around zero instead of
+    landing on it, so l1_prox=True instead applies the L1 as a proximal step after
+    every Adam step: w <- sign(w) max(|w| - lr*l1, 0) (exact zeros). An Adam step is
+    at most ~lr, so l1 >~ 1 keeps noise-driven weights pinned at exactly 0."""
+    path = teacher_path(dims, epochs, seed, act, l1, l1_prox)
     if os.path.exists(path):
         net = MLP(dims, act=act)
         net.load_state_dict(torch.load(path, map_location=device))
@@ -150,15 +157,40 @@ def make_teacher(dims, epochs=25, seed=0, lr=1e-3, batch=256, device="cpu",
         for xb, yb in loader:
             opt.zero_grad()
             loss = lossf(net(xb), yb)
+            if l1 > 0 and not l1_prox:
+                loss = loss + l1 * sum(L.weight.abs().sum() for L in net.layers)
             loss.backward()
             opt.step()
+            if l1 > 0 and l1_prox:
+                with torch.no_grad():
+                    for L in net.layers:
+                        w = L.weight
+                        w.copy_(w.sign() * (w.abs() - lr * l1).clamp_min(0))
         if verbose:
             net.eval()
             with torch.no_grad():
                 acc = (net(xte).argmax(1) == yte).float().mean().item()
             print(f"  teacher epoch {ep + 1}/{epochs}  test acc {acc:.4f}")
+    if verbose:
+        print_weight_sparsity(net)
     torch.save(net.state_dict(), path)
     return net
+
+
+@torch.no_grad()
+def print_weight_sparsity(net):
+    """Per weight matrix: mean|w| and the fraction of entries below 1e-2 / 1e-3
+    of that matrix's max|w| (Adam + an L1 penalty chatters near zero rather
+    than landing on exact zeros, so report relative thresholds)."""
+    for i, L in enumerate(net.layers):
+        a = L.weight.abs()
+        m = a.max()
+        print(f"  W{i + 1} {tuple(L.weight.shape)}: mean|w| {a.mean().item():.3e}  "
+              f"max|w| {m.item():.3e}  zero {(a == 0).float().mean().item():.4f}  "
+              f"<1e-2max {(a < 1e-2 * m).float().mean().item():.3f}  "
+              f"<1e-3max {(a < 1e-3 * m).float().mean().item():.3f}  "
+              f"zero rows {int((a.sum(1) == 0).sum())}/{a.shape[0]}  "
+              f"zero cols {int((a.sum(0) == 0).sum())}/{a.shape[1]}", flush=True)
 
 
 def teacher_path_cnn(input_shape, conv_cfgs, fc_dims, out_dim, epochs, seed, act):

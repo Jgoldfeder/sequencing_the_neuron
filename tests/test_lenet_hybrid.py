@@ -59,7 +59,8 @@ class HybridStateTests(unittest.TestCase):
     def test_fresh_committee_uses_first_phase_recipe_without_a_record(self):
         args=SimpleNamespace(teacher=self.root/'teacher.pt',device='cpu',
             committee_epochs=0,committee_q=128,committee_outer=1,
-            committee_retries=5,committee_resume=None,output=self.root,seed=0)
+            committee_retries=5,committee_resume=None,output=self.root,seed=0,
+            committee_recipe='historical',committee_stage='prefix')
         with patch.object(H,'load_teacher',return_value=self.model), \
              patch('method.reconstruct_cnn') as reconstruct, \
              patch.dict(H.os.environ,{}):
@@ -69,8 +70,36 @@ class HybridStateTests(unittest.TestCase):
         self.assertEqual(cfg.window,60)
         self.assertTrue(cfg.peel_refresh)
         self.assertEqual(cfg.retry,5)
+        self.assertEqual(cfg.balance_dirlr,.03)
+        self.assertEqual(cfg.balance_dirlr_decay,.85)
         self.assertIsNone(reconstruct.call_args.kwargs['resume_state'])
         self.assertIsNone(reconstruct.call_args.kwargs['resume_record'])
+
+    def test_below_target_attempts_direct_recovery_after_committee_exit(self):
+        path=self.record(self.model)
+        ck=torch.load(path,weights_only=False);ck['partial_mask'][2]=torch.arange(120)<75
+        snapshot=self.root/'committee_test_it001.pt';torch.save(ck,snapshot)
+        args=H.parser().parse_args(['--output',str(self.root),'--device','cpu'])
+        with patch.object(H.subprocess,'Popen') as launch:
+            launch.return_value.poll.return_value=0
+            launch.return_value.returncode=0
+            result=H.committee_phase(args)
+        self.assertEqual(result,snapshot)
+        self.assertTrue((self.root/'handoff.json').exists())
+        self.assertEqual(H.committee_snapshot_counts(result),(6,16,75))
+
+    def test_historical_c5_recipe_uses_recorded_teacher_disagreement(self):
+        args=H.parser().parse_args(['--committee-worker','--committee-stage','c5',
+                                 '--device','cpu','--output',str(self.root)])
+        with patch.object(H,'load_teacher',return_value=self.model), \
+             patch('method.reconstruct_cnn') as reconstruct, \
+             patch.dict(H.os.environ,{}):
+            H.committee_worker(args)
+        cfg=reconstruct.call_args.args[4]
+        self.assertTrue(cfg.cheat)
+        self.assertTrue(cfg.cheat_bb_ref)
+        self.assertFalse(cfg.layer_space_init)
+        self.assertEqual(cfg.p,8)
 
     def test_adaptive_locator_restores_global_function_on_error(self):
         before=H.K.locate_light

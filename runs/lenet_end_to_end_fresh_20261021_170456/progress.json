@@ -1,0 +1,5029 @@
+{
+  "stage": "validated",
+  "counts": {
+    "0": 6,
+    "1": 16,
+    "2": 120,
+    "3": 84
+  },
+  "queries": 9255522,
+  "events": [
+    {
+      "event": "round",
+      "queries": 0,
+      "elapsed_seconds": 0.164,
+      "layer": 3,
+      "round": 0,
+      "known": 75
+    },
+    {
+      "event": "candidate",
+      "queries": 65625,
+      "elapsed_seconds": 27.465,
+      "layer": 3,
+      "pending": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 70497,
+      "elapsed_seconds": 29.134,
+      "layer": 3,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 78617,
+      "elapsed_seconds": 31.736,
+      "layer": 3,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 89985,
+      "elapsed_seconds": 35.169,
+      "layer": 3,
+      "pending": 4
+    },
+    {
+      "event": "candidate",
+      "queries": 98105,
+      "elapsed_seconds": 38.019,
+      "layer": 3,
+      "pending": 5
+    },
+    {
+      "event": "candidate",
+      "queries": 102977,
+      "elapsed_seconds": 39.715,
+      "layer": 3,
+      "pending": 6
+    },
+    {
+      "event": "candidate",
+      "queries": 111097,
+      "elapsed_seconds": 42.578,
+      "layer": 3,
+      "pending": 7
+    },
+    {
+      "event": "scan",
+      "queries": 112721,
+      "elapsed_seconds": 43.151,
+      "layer": 3,
+      "line": 0,
+      "unexplained": 30
+    },
+    {
+      "event": "candidate",
+      "queries": 152842,
+      "elapsed_seconds": 46.88,
+      "layer": 3,
+      "pending": 8
+    },
+    {
+      "event": "candidate",
+      "queries": 169082,
+      "elapsed_seconds": 52.127,
+      "layer": 3,
+      "pending": 9
+    },
+    {
+      "event": "candidate",
+      "queries": 183698,
+      "elapsed_seconds": 57.038,
+      "layer": 3,
+      "pending": 10
+    },
+    {
+      "event": "candidate",
+      "queries": 191818,
+      "elapsed_seconds": 59.798,
+      "layer": 3,
+      "pending": 11
+    },
+    {
+      "event": "candidate",
+      "queries": 193442,
+      "elapsed_seconds": 60.372,
+      "layer": 3,
+      "pending": 12
+    },
+    {
+      "event": "candidate",
+      "queries": 204810,
+      "elapsed_seconds": 64.3,
+      "layer": 3,
+      "pending": 13
+    },
+    {
+      "event": "refine",
+      "queries": 239658,
+      "elapsed_seconds": 74.063,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.732139484357968e-10,
+        "uncertainty": 9.887718801152235e-11,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 239658,
+      "elapsed_seconds": 74.065,
+      "layer": 3,
+      "count": 76
+    },
+    {
+      "event": "refine",
+      "queries": 271690,
+      "elapsed_seconds": 82.807,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.8220981165636938e-10,
+        "uncertainty": 1.1464371929782996e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 271690,
+      "elapsed_seconds": 82.808,
+      "layer": 3,
+      "count": 77
+    },
+    {
+      "event": "refine",
+      "queries": 309354,
+      "elapsed_seconds": 93.086,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.519102969071732e-10,
+        "uncertainty": 8.879532507510586e-11,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 309354,
+      "elapsed_seconds": 93.087,
+      "layer": 3,
+      "count": 78
+    },
+    {
+      "event": "refine",
+      "queries": 344714,
+      "elapsed_seconds": 102.695,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.624852767528539e-10,
+        "uncertainty": 1.5260697765592702e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 344714,
+      "elapsed_seconds": 102.697,
+      "layer": 3,
+      "count": 79
+    },
+    {
+      "event": "refine",
+      "queries": 369706,
+      "elapsed_seconds": 109.552,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.0062034053965864e-10,
+        "uncertainty": 1.763093054405305e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 369706,
+      "elapsed_seconds": 109.553,
+      "layer": 3,
+      "count": 80
+    },
+    {
+      "event": "refine",
+      "queries": 390346,
+      "elapsed_seconds": 115.358,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.056155832116673e-10,
+        "uncertainty": 1.9526023714659515e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 390346,
+      "elapsed_seconds": 115.361,
+      "layer": 3,
+      "count": 81
+    },
+    {
+      "event": "refine",
+      "queries": 453866,
+      "elapsed_seconds": 131.955,
+      "layer": 3,
+      "quality": false,
+      "hits": 0,
+      "attempt": 0,
+      "stats": {
+        "gap": 0.941032396924448,
+        "uncertainty": 0.6061071796889431,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "refine",
+      "queries": 484618,
+      "elapsed_seconds": 140.106,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.8658013794570162e-10,
+        "uncertainty": 1.1057655987860937e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 484618,
+      "elapsed_seconds": 140.107,
+      "layer": 3,
+      "count": 82
+    },
+    {
+      "event": "refine",
+      "queries": 517034,
+      "elapsed_seconds": 148.913,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.8225981382948164e-10,
+        "uncertainty": 1.1196881008891231e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 517034,
+      "elapsed_seconds": 148.915,
+      "layer": 3,
+      "count": 83
+    },
+    {
+      "event": "refine",
+      "queries": 544330,
+      "elapsed_seconds": 156.217,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.5958893855761974e-10,
+        "uncertainty": 1.5760345223963945e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 544330,
+      "elapsed_seconds": 156.219,
+      "layer": 3,
+      "count": 84
+    },
+    {
+      "event": "refine",
+      "queries": 566634,
+      "elapsed_seconds": 162.506,
+      "layer": 3,
+      "quality": true,
+      "hits": 31,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.944227346557887e-10,
+        "uncertainty": 2.801160004762663e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 566634,
+      "elapsed_seconds": 162.508,
+      "layer": 3,
+      "count": 85
+    },
+    {
+      "event": "refine",
+      "queries": 587402,
+      "elapsed_seconds": 168.241,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.321994734031424e-10,
+        "uncertainty": 2.1129465390942454e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 587402,
+      "elapsed_seconds": 168.243,
+      "layer": 3,
+      "count": 86
+    },
+    {
+      "event": "refine",
+      "queries": 606122,
+      "elapsed_seconds": 173.51,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.875893945407759e-10,
+        "uncertainty": 4.625862949727738e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 606122,
+      "elapsed_seconds": 173.515,
+      "layer": 3,
+      "count": 87
+    },
+    {
+      "event": "refine",
+      "queries": 683082,
+      "elapsed_seconds": 193.96,
+      "layer": 3,
+      "quality": false,
+      "hits": 0,
+      "attempt": 1,
+      "stats": {
+        "gap": 0.94401755062897,
+        "uncertainty": 0.6003249361670033,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "round",
+      "queries": 683082,
+      "elapsed_seconds": 193.964,
+      "layer": 3,
+      "round": 1,
+      "known": 87
+    },
+    {
+      "event": "candidate",
+      "queries": 748707,
+      "elapsed_seconds": 220.759,
+      "layer": 3,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 766571,
+      "elapsed_seconds": 226.887,
+      "layer": 3,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 768195,
+      "elapsed_seconds": 227.453,
+      "layer": 3,
+      "pending": 4
+    },
+    {
+      "event": "candidate",
+      "queries": 769819,
+      "elapsed_seconds": 227.995,
+      "layer": 3,
+      "pending": 5
+    },
+    {
+      "event": "candidate",
+      "queries": 773067,
+      "elapsed_seconds": 228.95,
+      "layer": 3,
+      "pending": 6
+    },
+    {
+      "event": "scan",
+      "queries": 790931,
+      "elapsed_seconds": 234.584,
+      "layer": 3,
+      "line": 0,
+      "unexplained": 27
+    },
+    {
+      "event": "candidate",
+      "queries": 834300,
+      "elapsed_seconds": 239.08,
+      "layer": 3,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 835924,
+      "elapsed_seconds": 239.643,
+      "layer": 3,
+      "pending": 8
+    },
+    {
+      "event": "candidate",
+      "queries": 837548,
+      "elapsed_seconds": 240.216,
+      "layer": 3,
+      "pending": 9
+    },
+    {
+      "event": "refine",
+      "queries": 951860,
+      "elapsed_seconds": 272.946,
+      "layer": 3,
+      "quality": false,
+      "hits": 0,
+      "attempt": 2,
+      "stats": {
+        "gap": 0.987141571452259,
+        "uncertainty": 0.6761748255266966,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "refine",
+      "queries": 987988,
+      "elapsed_seconds": 282.735,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.559617597004175e-10,
+        "uncertainty": 1.001965733118786e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 987988,
+      "elapsed_seconds": 282.737,
+      "layer": 3,
+      "count": 88
+    },
+    {
+      "event": "refine",
+      "queries": 1013364,
+      "elapsed_seconds": 289.652,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.2456051070365473e-10,
+        "uncertainty": 1.3077699527974785e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1013364,
+      "elapsed_seconds": 289.654,
+      "layer": 3,
+      "count": 89
+    },
+    {
+      "event": "refine",
+      "queries": 1041940,
+      "elapsed_seconds": 297.384,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.635151102505883e-10,
+        "uncertainty": 9.43518097758181e-11,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1041940,
+      "elapsed_seconds": 297.386,
+      "layer": 3,
+      "count": 90
+    },
+    {
+      "event": "refine",
+      "queries": 1069876,
+      "elapsed_seconds": 305.183,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.5734070300463053e-10,
+        "uncertainty": 9.665018398005882e-11,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1069876,
+      "elapsed_seconds": 305.185,
+      "layer": 3,
+      "count": 91
+    },
+    {
+      "event": "refine",
+      "queries": 1098964,
+      "elapsed_seconds": 313.018,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.187913662505901e-10,
+        "uncertainty": 7.569856394574417e-11,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1098964,
+      "elapsed_seconds": 313.02,
+      "layer": 3,
+      "count": 92
+    },
+    {
+      "event": "refine",
+      "queries": 1135732,
+      "elapsed_seconds": 322.77,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.7259852731804023e-10,
+        "uncertainty": 1.0222799695247322e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1135732,
+      "elapsed_seconds": 322.771,
+      "layer": 3,
+      "count": 93
+    },
+    {
+      "event": "refine",
+      "queries": 1169428,
+      "elapsed_seconds": 331.857,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.380165641906066e-10,
+        "uncertainty": 1.4498286073644365e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1169428,
+      "elapsed_seconds": 331.859,
+      "layer": 3,
+      "count": 94
+    },
+    {
+      "event": "refine",
+      "queries": 1199796,
+      "elapsed_seconds": 340.08,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.9067612748217692e-10,
+        "uncertainty": 1.1711788525746073e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1199796,
+      "elapsed_seconds": 340.082,
+      "layer": 3,
+      "count": 95
+    },
+    {
+      "event": "refine",
+      "queries": 1276756,
+      "elapsed_seconds": 360.237,
+      "layer": 3,
+      "quality": false,
+      "hits": 3,
+      "attempt": 3,
+      "stats": {
+        "gap": 0.9746513725410184,
+        "uncertainty": 0.6337905997960994,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "round",
+      "queries": 1276756,
+      "elapsed_seconds": 360.243,
+      "layer": 3,
+      "round": 2,
+      "known": 95
+    },
+    {
+      "event": "candidate",
+      "queries": 1348877,
+      "elapsed_seconds": 388.939,
+      "layer": 3,
+      "pending": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 1365117,
+      "elapsed_seconds": 394.239,
+      "layer": 3,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 1379733,
+      "elapsed_seconds": 399.189,
+      "layer": 3,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 1389477,
+      "elapsed_seconds": 402.441,
+      "layer": 3,
+      "pending": 4
+    },
+    {
+      "event": "scan",
+      "queries": 1391101,
+      "elapsed_seconds": 403.0,
+      "layer": 3,
+      "line": 0,
+      "unexplained": 31
+    },
+    {
+      "event": "candidate",
+      "queries": 1449086,
+      "elapsed_seconds": 412.73,
+      "layer": 3,
+      "pending": 5
+    },
+    {
+      "event": "candidate",
+      "queries": 1458830,
+      "elapsed_seconds": 416.047,
+      "layer": 3,
+      "pending": 6
+    },
+    {
+      "event": "candidate",
+      "queries": 1460454,
+      "elapsed_seconds": 416.544,
+      "layer": 3,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 1528183,
+      "elapsed_seconds": 429.302,
+      "layer": 3,
+      "pending": 8
+    },
+    {
+      "event": "candidate",
+      "queries": 1536303,
+      "elapsed_seconds": 432.116,
+      "layer": 3,
+      "pending": 9
+    },
+    {
+      "event": "refine",
+      "queries": 1592975,
+      "elapsed_seconds": 448.382,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.9526113387514614e-10,
+        "uncertainty": 1.1236653936908112e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1592975,
+      "elapsed_seconds": 448.384,
+      "layer": 3,
+      "count": 96
+    },
+    {
+      "event": "refine",
+      "queries": 1627055,
+      "elapsed_seconds": 457.83,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.506890810302512e-10,
+        "uncertainty": 1.362310653291695e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1627055,
+      "elapsed_seconds": 457.83,
+      "layer": 3,
+      "count": 97
+    },
+    {
+      "event": "refine",
+      "queries": 1651407,
+      "elapsed_seconds": 464.206,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.8417603915149347e-10,
+        "uncertainty": 1.5897871790686828e-10,
+        "validation": 0.96875
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1651407,
+      "elapsed_seconds": 464.209,
+      "layer": 3,
+      "count": 98
+    },
+    {
+      "event": "refine",
+      "queries": 1672943,
+      "elapsed_seconds": 470.204,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.6650928531830854e-10,
+        "uncertainty": 2.1474117731366728e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1672943,
+      "elapsed_seconds": 470.206,
+      "layer": 3,
+      "count": 99
+    },
+    {
+      "event": "refine",
+      "queries": 1700751,
+      "elapsed_seconds": 477.827,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.7045352251698454e-10,
+        "uncertainty": 1.0539548803560504e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1700751,
+      "elapsed_seconds": 477.828,
+      "layer": 3,
+      "count": 100
+    },
+    {
+      "event": "refine",
+      "queries": 1732655,
+      "elapsed_seconds": 486.508,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.7487244612615912e-10,
+        "uncertainty": 1.0558317218507055e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1732655,
+      "elapsed_seconds": 486.51,
+      "layer": 3,
+      "count": 101
+    },
+    {
+      "event": "refine",
+      "queries": 1756751,
+      "elapsed_seconds": 493.157,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.870540374316855e-10,
+        "uncertainty": 1.0958986443249635e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1756751,
+      "elapsed_seconds": 493.159,
+      "layer": 3,
+      "count": 102
+    },
+    {
+      "event": "refine",
+      "queries": 1783151,
+      "elapsed_seconds": 500.426,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.0771531307673846e-10,
+        "uncertainty": 1.318983632807161e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1783151,
+      "elapsed_seconds": 500.427,
+      "layer": 3,
+      "count": 103
+    },
+    {
+      "event": "refine",
+      "queries": 1809679,
+      "elapsed_seconds": 508.212,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.436510287909461e-10,
+        "uncertainty": 2.008706422572765e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 1809679,
+      "elapsed_seconds": 508.214,
+      "layer": 3,
+      "count": 104
+    },
+    {
+      "event": "round",
+      "queries": 1809679,
+      "elapsed_seconds": 508.226,
+      "layer": 3,
+      "round": 3,
+      "known": 104
+    },
+    {
+      "event": "scan",
+      "queries": 1906160,
+      "elapsed_seconds": 544.841,
+      "layer": 3,
+      "line": 0,
+      "unexplained": 20
+    },
+    {
+      "event": "candidate",
+      "queries": 2028626,
+      "elapsed_seconds": 566.261,
+      "layer": 3,
+      "pending": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 2059482,
+      "elapsed_seconds": 575.849,
+      "layer": 3,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 2062730,
+      "elapsed_seconds": 576.73,
+      "layer": 3,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 2127211,
+      "elapsed_seconds": 586.792,
+      "layer": 3,
+      "pending": 4
+    },
+    {
+      "event": "scan",
+      "queries": 2198188,
+      "elapsed_seconds": 598.904,
+      "layer": 3,
+      "line": 4,
+      "unexplained": 20
+    },
+    {
+      "event": "candidate",
+      "queries": 2256173,
+      "elapsed_seconds": 607.374,
+      "layer": 3,
+      "pending": 5
+    },
+    {
+      "event": "scan",
+      "queries": 2477224,
+      "elapsed_seconds": 646.636,
+      "layer": 3,
+      "line": 8,
+      "unexplained": 32
+    },
+    {
+      "event": "candidate",
+      "queries": 2596442,
+      "elapsed_seconds": 674.255,
+      "layer": 3,
+      "pending": 6
+    },
+    {
+      "event": "scan",
+      "queries": 2780620,
+      "elapsed_seconds": 733.938,
+      "layer": 3,
+      "line": 12,
+      "unexplained": 28
+    },
+    {
+      "event": "candidate",
+      "queries": 2899838,
+      "elapsed_seconds": 762.665,
+      "layer": 3,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 2920950,
+      "elapsed_seconds": 772.703,
+      "layer": 3,
+      "pending": 8
+    },
+    {
+      "event": "refine",
+      "queries": 2947950,
+      "elapsed_seconds": 783.762,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.0388504606515712e-10,
+        "uncertainty": 1.1886859577107473e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 2947950,
+      "elapsed_seconds": 783.766,
+      "layer": 3,
+      "count": 105
+    },
+    {
+      "event": "refine",
+      "queries": 2972302,
+      "elapsed_seconds": 793.654,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.291482527929256e-10,
+        "uncertainty": 3.246986547050735e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 2972302,
+      "elapsed_seconds": 793.655,
+      "layer": 3,
+      "count": 106
+    },
+    {
+      "event": "refine",
+      "queries": 2995886,
+      "elapsed_seconds": 803.203,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.907047426400244e-10,
+        "uncertainty": 2.6594651561568814e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 2995886,
+      "elapsed_seconds": 803.212,
+      "layer": 3,
+      "count": 107
+    },
+    {
+      "event": "refine",
+      "queries": 3017678,
+      "elapsed_seconds": 812.104,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.075932263837707e-10,
+        "uncertainty": 1.9357510884689213e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 3017678,
+      "elapsed_seconds": 812.114,
+      "layer": 3,
+      "count": 108
+    },
+    {
+      "event": "refine",
+      "queries": 3037038,
+      "elapsed_seconds": 820.086,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.448469241810563e-10,
+        "uncertainty": 4.845385908376286e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 3037038,
+      "elapsed_seconds": 820.095,
+      "layer": 3,
+      "count": 109
+    },
+    {
+      "event": "refine",
+      "queries": 3068430,
+      "elapsed_seconds": 832.794,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.4532286586601796e-10,
+        "uncertainty": 1.468215267080905e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 3068430,
+      "elapsed_seconds": 832.803,
+      "layer": 3,
+      "count": 110
+    },
+    {
+      "event": "refine",
+      "queries": 3097006,
+      "elapsed_seconds": 844.322,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.154040936490546e-10,
+        "uncertainty": 1.910570146249076e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 3097006,
+      "elapsed_seconds": 844.33,
+      "layer": 3,
+      "count": 111
+    },
+    {
+      "event": "refine",
+      "queries": 3120078,
+      "elapsed_seconds": 853.855,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.1510447007395176e-10,
+        "uncertainty": 2.6949530174604804e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 3120078,
+      "elapsed_seconds": 853.865,
+      "layer": 3,
+      "count": 112
+    },
+    {
+      "event": "round",
+      "queries": 3120078,
+      "elapsed_seconds": 853.88,
+      "layer": 3,
+      "round": 4,
+      "known": 112
+    },
+    {
+      "event": "candidate",
+      "queries": 3208439,
+      "elapsed_seconds": 902.267,
+      "layer": 3,
+      "pending": 1
+    },
+    {
+      "event": "scan",
+      "queries": 3229551,
+      "elapsed_seconds": 912.125,
+      "layer": 3,
+      "line": 0,
+      "unexplained": 28
+    },
+    {
+      "event": "candidate",
+      "queries": 3277792,
+      "elapsed_seconds": 921.061,
+      "layer": 3,
+      "pending": 2
+    },
+    {
+      "event": "scan",
+      "queries": 3532893,
+      "elapsed_seconds": 999.217,
+      "layer": 3,
+      "line": 4,
+      "unexplained": 25
+    },
+    {
+      "event": "candidate",
+      "queries": 3656983,
+      "elapsed_seconds": 1030.442,
+      "layer": 3,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 3719840,
+      "elapsed_seconds": 1046.457,
+      "layer": 3,
+      "pending": 4
+    },
+    {
+      "event": "scan",
+      "queries": 3807057,
+      "elapsed_seconds": 1074.15,
+      "layer": 3,
+      "line": 8,
+      "unexplained": 25
+    },
+    {
+      "event": "scan",
+      "queries": 4103957,
+      "elapsed_seconds": 1159.325,
+      "layer": 3,
+      "line": 12,
+      "unexplained": 20
+    },
+    {
+      "event": "candidate",
+      "queries": 4326632,
+      "elapsed_seconds": 1223.005,
+      "layer": 3,
+      "pending": 5
+    },
+    {
+      "event": "scan",
+      "queries": 4404105,
+      "elapsed_seconds": 1246.001,
+      "layer": 3,
+      "line": 16,
+      "unexplained": 26
+    },
+    {
+      "event": "candidate",
+      "queries": 4453970,
+      "elapsed_seconds": 1252.804,
+      "layer": 3,
+      "pending": 6
+    },
+    {
+      "event": "scan",
+      "queries": 4701005,
+      "elapsed_seconds": 1304.925,
+      "layer": 3,
+      "line": 20,
+      "unexplained": 21
+    },
+    {
+      "event": "scan",
+      "queries": 4976793,
+      "elapsed_seconds": 1356.568,
+      "layer": 3,
+      "line": 24,
+      "unexplained": 29
+    },
+    {
+      "event": "candidate",
+      "queries": 5107379,
+      "elapsed_seconds": 1381.65,
+      "layer": 3,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 5263949,
+      "elapsed_seconds": 1413.584,
+      "layer": 3,
+      "pending": 8
+    },
+    {
+      "event": "scan",
+      "queries": 5275317,
+      "elapsed_seconds": 1417.544,
+      "layer": 3,
+      "line": 28,
+      "unexplained": 27
+    },
+    {
+      "event": "refine",
+      "queries": 5298517,
+      "elapsed_seconds": 1424.393,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.9144086456287296e-10,
+        "uncertainty": 1.2375408332211842e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5298517,
+      "elapsed_seconds": 1424.395,
+      "layer": 3,
+      "count": 113
+    },
+    {
+      "event": "refine",
+      "queries": 5326965,
+      "elapsed_seconds": 1432.374,
+      "layer": 3,
+      "quality": true,
+      "hits": 31,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.558821945777007e-10,
+        "uncertainty": 1.4119989175931544e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5326965,
+      "elapsed_seconds": 1432.376,
+      "layer": 3,
+      "count": 114
+    },
+    {
+      "event": "refine",
+      "queries": 5346453,
+      "elapsed_seconds": 1438.037,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.31935245515624e-10,
+        "uncertainty": 3.5134250578552994e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5346453,
+      "elapsed_seconds": 1438.038,
+      "layer": 3,
+      "count": 115
+    },
+    {
+      "event": "refine",
+      "queries": 5367221,
+      "elapsed_seconds": 1444.153,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.4492464678114545e-10,
+        "uncertainty": 1.48272409713726e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5367221,
+      "elapsed_seconds": 1444.154,
+      "layer": 3,
+      "count": 116
+    },
+    {
+      "event": "refine",
+      "queries": 5390805,
+      "elapsed_seconds": 1450.651,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.0967082985108635e-10,
+        "uncertainty": 1.8967752385753146e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5390805,
+      "elapsed_seconds": 1450.653,
+      "layer": 3,
+      "count": 117
+    },
+    {
+      "event": "refine",
+      "queries": 5434101,
+      "elapsed_seconds": 1462.478,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.1127734521038975e-10,
+        "uncertainty": 1.2389193579091659e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5434101,
+      "elapsed_seconds": 1462.479,
+      "layer": 3,
+      "count": 118
+    },
+    {
+      "event": "refine",
+      "queries": 5468181,
+      "elapsed_seconds": 1472.071,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.4745318829778643e-10,
+        "uncertainty": 1.4750656007203168e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5468181,
+      "elapsed_seconds": 1472.073,
+      "layer": 3,
+      "count": 119
+    },
+    {
+      "event": "refine",
+      "queries": 5489973,
+      "elapsed_seconds": 1478.32,
+      "layer": 3,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.746766711322592e-10,
+        "uncertainty": 2.655940986511041e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 5489973,
+      "elapsed_seconds": 1478.322,
+      "layer": 3,
+      "count": 120
+    },
+    {
+      "event": "oriented",
+      "queries": 5489977,
+      "elapsed_seconds": 1478.507,
+      "layer": 3,
+      "slot": 0,
+      "ratio": 100.00000003021952
+    },
+    {
+      "event": "oriented",
+      "queries": 5489981,
+      "elapsed_seconds": 1478.675,
+      "layer": 3,
+      "slot": 2,
+      "ratio": 100.00000001652269
+    },
+    {
+      "event": "oriented",
+      "queries": 5489985,
+      "elapsed_seconds": 1478.843,
+      "layer": 3,
+      "slot": 3,
+      "ratio": 100.0000001842586
+    },
+    {
+      "event": "oriented",
+      "queries": 5489989,
+      "elapsed_seconds": 1479.028,
+      "layer": 3,
+      "slot": 7,
+      "ratio": 0.010000000040784484
+    },
+    {
+      "event": "oriented",
+      "queries": 5489993,
+      "elapsed_seconds": 1479.206,
+      "layer": 3,
+      "slot": 9,
+      "ratio": 99.9999998401996
+    },
+    {
+      "event": "oriented",
+      "queries": 5489997,
+      "elapsed_seconds": 1479.383,
+      "layer": 3,
+      "slot": 12,
+      "ratio": 99.99999991054527
+    },
+    {
+      "event": "oriented",
+      "queries": 5490001,
+      "elapsed_seconds": 1479.563,
+      "layer": 3,
+      "slot": 14,
+      "ratio": 99.99999931682179
+    },
+    {
+      "event": "oriented",
+      "queries": 5490005,
+      "elapsed_seconds": 1479.739,
+      "layer": 3,
+      "slot": 17,
+      "ratio": 100.00000045422465
+    },
+    {
+      "event": "oriented",
+      "queries": 5490009,
+      "elapsed_seconds": 1479.919,
+      "layer": 3,
+      "slot": 18,
+      "ratio": 0.010000000010946874
+    },
+    {
+      "event": "oriented",
+      "queries": 5490013,
+      "elapsed_seconds": 1480.1,
+      "layer": 3,
+      "slot": 20,
+      "ratio": 100.00000006551721
+    },
+    {
+      "event": "oriented",
+      "queries": 5490017,
+      "elapsed_seconds": 1480.281,
+      "layer": 3,
+      "slot": 23,
+      "ratio": 100.00000001392937
+    },
+    {
+      "event": "oriented",
+      "queries": 5490021,
+      "elapsed_seconds": 1480.461,
+      "layer": 3,
+      "slot": 25,
+      "ratio": 0.010000000010977768
+    },
+    {
+      "event": "oriented",
+      "queries": 5490025,
+      "elapsed_seconds": 1480.638,
+      "layer": 3,
+      "slot": 28,
+      "ratio": 0.010000000034877925
+    },
+    {
+      "event": "oriented",
+      "queries": 5490029,
+      "elapsed_seconds": 1480.809,
+      "layer": 3,
+      "slot": 30,
+      "ratio": 99.99999833252792
+    },
+    {
+      "event": "oriented",
+      "queries": 5490033,
+      "elapsed_seconds": 1480.981,
+      "layer": 3,
+      "slot": 33,
+      "ratio": 100.00000095683389
+    },
+    {
+      "event": "oriented",
+      "queries": 5490037,
+      "elapsed_seconds": 1481.143,
+      "layer": 3,
+      "slot": 34,
+      "ratio": 0.009999999986231764
+    },
+    {
+      "event": "oriented",
+      "queries": 5490041,
+      "elapsed_seconds": 1481.31,
+      "layer": 3,
+      "slot": 40,
+      "ratio": 100.00000008127087
+    },
+    {
+      "event": "oriented",
+      "queries": 5490045,
+      "elapsed_seconds": 1481.486,
+      "layer": 3,
+      "slot": 41,
+      "ratio": 0.009999999973100892
+    },
+    {
+      "event": "oriented",
+      "queries": 5490049,
+      "elapsed_seconds": 1481.66,
+      "layer": 3,
+      "slot": 43,
+      "ratio": 0.00999999999752615
+    },
+    {
+      "event": "oriented",
+      "queries": 5490053,
+      "elapsed_seconds": 1481.838,
+      "layer": 3,
+      "slot": 44,
+      "ratio": 0.010000000037899418
+    },
+    {
+      "event": "oriented",
+      "queries": 5490057,
+      "elapsed_seconds": 1482.024,
+      "layer": 3,
+      "slot": 58,
+      "ratio": 99.99999956069894
+    },
+    {
+      "event": "oriented",
+      "queries": 5490061,
+      "elapsed_seconds": 1482.203,
+      "layer": 3,
+      "slot": 59,
+      "ratio": 99.99999995921202
+    },
+    {
+      "event": "oriented",
+      "queries": 5490065,
+      "elapsed_seconds": 1482.387,
+      "layer": 3,
+      "slot": 60,
+      "ratio": 99.99999968830224
+    },
+    {
+      "event": "oriented",
+      "queries": 5490069,
+      "elapsed_seconds": 1482.561,
+      "layer": 3,
+      "slot": 66,
+      "ratio": 99.99999979977518
+    },
+    {
+      "event": "oriented",
+      "queries": 5490073,
+      "elapsed_seconds": 1482.732,
+      "layer": 3,
+      "slot": 67,
+      "ratio": 0.00999999998013173
+    },
+    {
+      "event": "oriented",
+      "queries": 5490077,
+      "elapsed_seconds": 1482.903,
+      "layer": 3,
+      "slot": 68,
+      "ratio": 99.99999980003231
+    },
+    {
+      "event": "oriented",
+      "queries": 5490081,
+      "elapsed_seconds": 1483.089,
+      "layer": 3,
+      "slot": 70,
+      "ratio": 99.99999990942
+    },
+    {
+      "event": "oriented",
+      "queries": 5490085,
+      "elapsed_seconds": 1483.265,
+      "layer": 3,
+      "slot": 72,
+      "ratio": 0.009999999997632158
+    },
+    {
+      "event": "oriented",
+      "queries": 5490089,
+      "elapsed_seconds": 1483.451,
+      "layer": 3,
+      "slot": 76,
+      "ratio": 0.009999999986440014
+    },
+    {
+      "event": "oriented",
+      "queries": 5490093,
+      "elapsed_seconds": 1483.637,
+      "layer": 3,
+      "slot": 78,
+      "ratio": 0.01000000000068022
+    },
+    {
+      "event": "oriented",
+      "queries": 5490097,
+      "elapsed_seconds": 1483.813,
+      "layer": 3,
+      "slot": 85,
+      "ratio": 99.99999956701771
+    },
+    {
+      "event": "oriented",
+      "queries": 5490101,
+      "elapsed_seconds": 1483.978,
+      "layer": 3,
+      "slot": 87,
+      "ratio": 99.9999990022359
+    },
+    {
+      "event": "oriented",
+      "queries": 5490105,
+      "elapsed_seconds": 1484.149,
+      "layer": 3,
+      "slot": 89,
+      "ratio": 100.0000005071243
+    },
+    {
+      "event": "oriented",
+      "queries": 5490109,
+      "elapsed_seconds": 1484.329,
+      "layer": 3,
+      "slot": 90,
+      "ratio": 99.99999846349425
+    },
+    {
+      "event": "oriented",
+      "queries": 5490113,
+      "elapsed_seconds": 1484.507,
+      "layer": 3,
+      "slot": 94,
+      "ratio": 100.00000014289074
+    },
+    {
+      "event": "oriented",
+      "queries": 5490117,
+      "elapsed_seconds": 1484.69,
+      "layer": 3,
+      "slot": 95,
+      "ratio": 0.010000000004140133
+    },
+    {
+      "event": "oriented",
+      "queries": 5490121,
+      "elapsed_seconds": 1484.872,
+      "layer": 3,
+      "slot": 99,
+      "ratio": 0.01000000023232176
+    },
+    {
+      "event": "oriented",
+      "queries": 5490125,
+      "elapsed_seconds": 1485.055,
+      "layer": 3,
+      "slot": 100,
+      "ratio": 0.010000000024796795
+    },
+    {
+      "event": "oriented",
+      "queries": 5490129,
+      "elapsed_seconds": 1485.233,
+      "layer": 3,
+      "slot": 102,
+      "ratio": 100.00000033718364
+    },
+    {
+      "event": "oriented",
+      "queries": 5490133,
+      "elapsed_seconds": 1485.409,
+      "layer": 3,
+      "slot": 106,
+      "ratio": 99.99999678619488
+    },
+    {
+      "event": "oriented",
+      "queries": 5490137,
+      "elapsed_seconds": 1485.589,
+      "layer": 3,
+      "slot": 109,
+      "ratio": 100.00000005970543
+    },
+    {
+      "event": "oriented",
+      "queries": 5490141,
+      "elapsed_seconds": 1485.772,
+      "layer": 3,
+      "slot": 110,
+      "ratio": 99.99999803036562
+    },
+    {
+      "event": "oriented",
+      "queries": 5490145,
+      "elapsed_seconds": 1485.954,
+      "layer": 3,
+      "slot": 112,
+      "ratio": 99.99999993948288
+    },
+    {
+      "event": "oriented",
+      "queries": 5490149,
+      "elapsed_seconds": 1486.134,
+      "layer": 3,
+      "slot": 113,
+      "ratio": 0.01000000001168527
+    },
+    {
+      "event": "oriented",
+      "queries": 5490153,
+      "elapsed_seconds": 1486.315,
+      "layer": 3,
+      "slot": 119,
+      "ratio": 99.99999983561483
+    },
+    {
+      "event": "polished_C5",
+      "queries": 6250825,
+      "elapsed_seconds": 1678.524,
+      "count": 120
+    },
+    {
+      "event": "round",
+      "queries": 6250825,
+      "elapsed_seconds": 1678.532,
+      "layer": 4,
+      "round": 0,
+      "known": 0
+    },
+    {
+      "event": "candidate",
+      "queries": 6294050,
+      "elapsed_seconds": 1690.655,
+      "layer": 4,
+      "pending": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 6295674,
+      "elapsed_seconds": 1690.877,
+      "layer": 4,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 6297298,
+      "elapsed_seconds": 1691.103,
+      "layer": 4,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 6298922,
+      "elapsed_seconds": 1691.334,
+      "layer": 4,
+      "pending": 4
+    },
+    {
+      "event": "candidate",
+      "queries": 6300546,
+      "elapsed_seconds": 1691.565,
+      "layer": 4,
+      "pending": 5
+    },
+    {
+      "event": "candidate",
+      "queries": 6302170,
+      "elapsed_seconds": 1691.797,
+      "layer": 4,
+      "pending": 6
+    },
+    {
+      "event": "candidate",
+      "queries": 6303794,
+      "elapsed_seconds": 1692.031,
+      "layer": 4,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 6305418,
+      "elapsed_seconds": 1692.265,
+      "layer": 4,
+      "pending": 8
+    },
+    {
+      "event": "candidate",
+      "queries": 6307042,
+      "elapsed_seconds": 1692.501,
+      "layer": 4,
+      "pending": 9
+    },
+    {
+      "event": "candidate",
+      "queries": 6308666,
+      "elapsed_seconds": 1692.736,
+      "layer": 4,
+      "pending": 10
+    },
+    {
+      "event": "candidate",
+      "queries": 6310290,
+      "elapsed_seconds": 1692.969,
+      "layer": 4,
+      "pending": 11
+    },
+    {
+      "event": "candidate",
+      "queries": 6311914,
+      "elapsed_seconds": 1693.204,
+      "layer": 4,
+      "pending": 12
+    },
+    {
+      "event": "candidate",
+      "queries": 6313538,
+      "elapsed_seconds": 1693.442,
+      "layer": 4,
+      "pending": 13
+    },
+    {
+      "event": "candidate",
+      "queries": 6315162,
+      "elapsed_seconds": 1693.676,
+      "layer": 4,
+      "pending": 14
+    },
+    {
+      "event": "candidate",
+      "queries": 6320034,
+      "elapsed_seconds": 1694.347,
+      "layer": 4,
+      "pending": 15
+    },
+    {
+      "event": "candidate",
+      "queries": 6321658,
+      "elapsed_seconds": 1694.583,
+      "layer": 4,
+      "pending": 16
+    },
+    {
+      "event": "candidate",
+      "queries": 6323282,
+      "elapsed_seconds": 1694.82,
+      "layer": 4,
+      "pending": 17
+    },
+    {
+      "event": "candidate",
+      "queries": 6324906,
+      "elapsed_seconds": 1695.056,
+      "layer": 4,
+      "pending": 18
+    },
+    {
+      "event": "candidate",
+      "queries": 6326530,
+      "elapsed_seconds": 1695.299,
+      "layer": 4,
+      "pending": 19
+    },
+    {
+      "event": "candidate",
+      "queries": 6328154,
+      "elapsed_seconds": 1695.537,
+      "layer": 4,
+      "pending": 20
+    },
+    {
+      "event": "candidate",
+      "queries": 6331402,
+      "elapsed_seconds": 1696.003,
+      "layer": 4,
+      "pending": 21
+    },
+    {
+      "event": "candidate",
+      "queries": 6333026,
+      "elapsed_seconds": 1696.243,
+      "layer": 4,
+      "pending": 22
+    },
+    {
+      "event": "scan",
+      "queries": 6333026,
+      "elapsed_seconds": 1696.253,
+      "layer": 4,
+      "line": 0,
+      "unexplained": 25
+    },
+    {
+      "event": "candidate",
+      "queries": 6368275,
+      "elapsed_seconds": 1697.687,
+      "layer": 4,
+      "pending": 23
+    },
+    {
+      "event": "candidate",
+      "queries": 6371523,
+      "elapsed_seconds": 1698.156,
+      "layer": 4,
+      "pending": 24
+    },
+    {
+      "event": "candidate",
+      "queries": 6373147,
+      "elapsed_seconds": 1698.401,
+      "layer": 4,
+      "pending": 25
+    },
+    {
+      "event": "candidate",
+      "queries": 6374771,
+      "elapsed_seconds": 1698.639,
+      "layer": 4,
+      "pending": 26
+    },
+    {
+      "event": "candidate",
+      "queries": 6378019,
+      "elapsed_seconds": 1699.118,
+      "layer": 4,
+      "pending": 27
+    },
+    {
+      "event": "candidate",
+      "queries": 6384515,
+      "elapsed_seconds": 1700.032,
+      "layer": 4,
+      "pending": 28
+    },
+    {
+      "event": "candidate",
+      "queries": 6386139,
+      "elapsed_seconds": 1700.278,
+      "layer": 4,
+      "pending": 29
+    },
+    {
+      "event": "candidate",
+      "queries": 6387763,
+      "elapsed_seconds": 1700.511,
+      "layer": 4,
+      "pending": 30
+    },
+    {
+      "event": "candidate",
+      "queries": 6391011,
+      "elapsed_seconds": 1700.991,
+      "layer": 4,
+      "pending": 31
+    },
+    {
+      "event": "candidate",
+      "queries": 6394259,
+      "elapsed_seconds": 1701.467,
+      "layer": 4,
+      "pending": 32
+    },
+    {
+      "event": "candidate",
+      "queries": 6397507,
+      "elapsed_seconds": 1701.927,
+      "layer": 4,
+      "pending": 33
+    },
+    {
+      "event": "candidate",
+      "queries": 6399131,
+      "elapsed_seconds": 1702.16,
+      "layer": 4,
+      "pending": 34
+    },
+    {
+      "event": "candidate",
+      "queries": 6400755,
+      "elapsed_seconds": 1702.405,
+      "layer": 4,
+      "pending": 35
+    },
+    {
+      "event": "candidate",
+      "queries": 6402379,
+      "elapsed_seconds": 1702.641,
+      "layer": 4,
+      "pending": 36
+    },
+    {
+      "event": "candidate",
+      "queries": 6444124,
+      "elapsed_seconds": 1705.016,
+      "layer": 4,
+      "pending": 37
+    },
+    {
+      "event": "candidate",
+      "queries": 6447372,
+      "elapsed_seconds": 1705.495,
+      "layer": 4,
+      "pending": 38
+    },
+    {
+      "event": "candidate",
+      "queries": 6453868,
+      "elapsed_seconds": 1706.424,
+      "layer": 4,
+      "pending": 39
+    },
+    {
+      "event": "candidate",
+      "queries": 6458740,
+      "elapsed_seconds": 1707.121,
+      "layer": 4,
+      "pending": 40
+    },
+    {
+      "event": "candidate",
+      "queries": 6463612,
+      "elapsed_seconds": 1707.817,
+      "layer": 4,
+      "pending": 41
+    },
+    {
+      "event": "candidate",
+      "queries": 6465236,
+      "elapsed_seconds": 1708.07,
+      "layer": 4,
+      "pending": 42
+    },
+    {
+      "event": "candidate",
+      "queries": 6471732,
+      "elapsed_seconds": 1709.023,
+      "layer": 4,
+      "pending": 43
+    },
+    {
+      "event": "candidate",
+      "queries": 6474980,
+      "elapsed_seconds": 1709.497,
+      "layer": 4,
+      "pending": 44
+    },
+    {
+      "event": "candidate",
+      "queries": 6481476,
+      "elapsed_seconds": 1710.45,
+      "layer": 4,
+      "pending": 45
+    },
+    {
+      "event": "candidate",
+      "queries": 6483100,
+      "elapsed_seconds": 1710.707,
+      "layer": 4,
+      "pending": 46
+    },
+    {
+      "event": "candidate",
+      "queries": 6486348,
+      "elapsed_seconds": 1711.186,
+      "layer": 4,
+      "pending": 47
+    },
+    {
+      "event": "candidate",
+      "queries": 6487972,
+      "elapsed_seconds": 1711.443,
+      "layer": 4,
+      "pending": 48
+    },
+    {
+      "event": "candidate",
+      "queries": 6489596,
+      "elapsed_seconds": 1711.7,
+      "layer": 4,
+      "pending": 49
+    },
+    {
+      "event": "candidate",
+      "queries": 6529717,
+      "elapsed_seconds": 1713.875,
+      "layer": 4,
+      "pending": 50
+    },
+    {
+      "event": "candidate",
+      "queries": 6531341,
+      "elapsed_seconds": 1714.132,
+      "layer": 4,
+      "pending": 51
+    },
+    {
+      "event": "candidate",
+      "queries": 6545957,
+      "elapsed_seconds": 1716.157,
+      "layer": 4,
+      "pending": 52
+    },
+    {
+      "event": "candidate",
+      "queries": 6554077,
+      "elapsed_seconds": 1717.268,
+      "layer": 4,
+      "pending": 53
+    },
+    {
+      "event": "candidate",
+      "queries": 6563821,
+      "elapsed_seconds": 1718.66,
+      "layer": 4,
+      "pending": 54
+    },
+    {
+      "event": "candidate",
+      "queries": 6565445,
+      "elapsed_seconds": 1718.92,
+      "layer": 4,
+      "pending": 55
+    },
+    {
+      "event": "candidate",
+      "queries": 6567069,
+      "elapsed_seconds": 1719.186,
+      "layer": 4,
+      "pending": 56
+    },
+    {
+      "event": "candidate",
+      "queries": 6605566,
+      "elapsed_seconds": 1721.13,
+      "layer": 4,
+      "pending": 57
+    },
+    {
+      "event": "candidate",
+      "queries": 6621806,
+      "elapsed_seconds": 1723.446,
+      "layer": 4,
+      "pending": 58
+    },
+    {
+      "event": "scan",
+      "queries": 6651038,
+      "elapsed_seconds": 1727.659,
+      "layer": 4,
+      "line": 4,
+      "unexplained": 32
+    },
+    {
+      "event": "candidate",
+      "queries": 6686287,
+      "elapsed_seconds": 1729.118,
+      "layer": 4,
+      "pending": 59
+    },
+    {
+      "event": "candidate",
+      "queries": 6696031,
+      "elapsed_seconds": 1730.498,
+      "layer": 4,
+      "pending": 60
+    },
+    {
+      "event": "candidate",
+      "queries": 6717143,
+      "elapsed_seconds": 1733.51,
+      "layer": 4,
+      "pending": 61
+    },
+    {
+      "event": "candidate",
+      "queries": 6754016,
+      "elapsed_seconds": 1735.041,
+      "layer": 4,
+      "pending": 62
+    },
+    {
+      "event": "candidate",
+      "queries": 6821745,
+      "elapsed_seconds": 1740.784,
+      "layer": 4,
+      "pending": 63
+    },
+    {
+      "event": "candidate",
+      "queries": 6844481,
+      "elapsed_seconds": 1743.986,
+      "layer": 4,
+      "pending": 64
+    },
+    {
+      "event": "candidate",
+      "queries": 6873713,
+      "elapsed_seconds": 1748.145,
+      "layer": 4,
+      "pending": 65
+    },
+    {
+      "event": "candidate",
+      "queries": 6881833,
+      "elapsed_seconds": 1749.349,
+      "layer": 4,
+      "pending": 66
+    },
+    {
+      "event": "refine",
+      "queries": 6891209,
+      "elapsed_seconds": 1752.006,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.6654489184153656e-10,
+        "uncertainty": 2.2123166863654405e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6891209,
+      "elapsed_seconds": 1752.007,
+      "layer": 4,
+      "count": 1
+    },
+    {
+      "event": "refine",
+      "queries": 6898913,
+      "elapsed_seconds": 1754.306,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.164827486060163e-10,
+        "uncertainty": 1.9176775119307812e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6898913,
+      "elapsed_seconds": 1754.309,
+      "layer": 4,
+      "count": 2
+    },
+    {
+      "event": "refine",
+      "queries": 6906521,
+      "elapsed_seconds": 1756.572,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.6037608960293134e-10,
+        "uncertainty": 2.2149140419022048e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6906521,
+      "elapsed_seconds": 1756.574,
+      "layer": 4,
+      "count": 3
+    },
+    {
+      "event": "refine",
+      "queries": 6914497,
+      "elapsed_seconds": 1758.983,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.3593428971432726e-10,
+        "uncertainty": 2.0520264243992279e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6914497,
+      "elapsed_seconds": 1758.985,
+      "layer": 4,
+      "count": 4
+    },
+    {
+      "event": "refine",
+      "queries": 6922329,
+      "elapsed_seconds": 1761.369,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.141155293357208e-10,
+        "uncertainty": 2.5118449030685195e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6922329,
+      "elapsed_seconds": 1761.37,
+      "layer": 4,
+      "count": 5
+    },
+    {
+      "event": "refine",
+      "queries": 6930049,
+      "elapsed_seconds": 1763.714,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.4499485540396956e-10,
+        "uncertainty": 2.174874213309747e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6930049,
+      "elapsed_seconds": 1763.716,
+      "layer": 4,
+      "count": 6
+    },
+    {
+      "event": "refine",
+      "queries": 6937841,
+      "elapsed_seconds": 1766.149,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.333474526306065e-10,
+        "uncertainty": 2.032660431243678e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6937841,
+      "elapsed_seconds": 1766.15,
+      "layer": 4,
+      "count": 7
+    },
+    {
+      "event": "refine",
+      "queries": 6945905,
+      "elapsed_seconds": 1768.518,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.7173989568311434e-10,
+        "uncertainty": 2.2559568374985023e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6945905,
+      "elapsed_seconds": 1768.52,
+      "layer": 4,
+      "count": 8
+    },
+    {
+      "event": "refine",
+      "queries": 6954049,
+      "elapsed_seconds": 1770.833,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.040292450443651e-10,
+        "uncertainty": 1.8219416177458452e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6954049,
+      "elapsed_seconds": 1770.833,
+      "layer": 4,
+      "count": 9
+    },
+    {
+      "event": "refine",
+      "queries": 6962217,
+      "elapsed_seconds": 1773.293,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.606352095046148e-10,
+        "uncertainty": 2.875865184744979e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6962217,
+      "elapsed_seconds": 1773.295,
+      "layer": 4,
+      "count": 10
+    },
+    {
+      "event": "refine",
+      "queries": 6970289,
+      "elapsed_seconds": 1775.605,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.67666158379411e-10,
+        "uncertainty": 2.935205428003604e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6970289,
+      "elapsed_seconds": 1775.607,
+      "layer": 4,
+      "count": 11
+    },
+    {
+      "event": "refine",
+      "queries": 6978057,
+      "elapsed_seconds": 1777.991,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.349925800032834e-10,
+        "uncertainty": 3.1328157465633625e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6978057,
+      "elapsed_seconds": 1777.993,
+      "layer": 4,
+      "count": 12
+    },
+    {
+      "event": "refine",
+      "queries": 6985849,
+      "elapsed_seconds": 1780.442,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.129272377127812e-10,
+        "uncertainty": 3.1819880386812917e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6985849,
+      "elapsed_seconds": 1780.443,
+      "layer": 4,
+      "count": 13
+    },
+    {
+      "event": "refine",
+      "queries": 6993417,
+      "elapsed_seconds": 1782.808,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.170189231210161e-10,
+        "uncertainty": 3.888711716973046e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 6993417,
+      "elapsed_seconds": 1782.81,
+      "layer": 4,
+      "count": 14
+    },
+    {
+      "event": "refine",
+      "queries": 7000697,
+      "elapsed_seconds": 1784.971,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.792838029593692e-10,
+        "uncertainty": 4.1057672727314e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7000697,
+      "elapsed_seconds": 1784.972,
+      "layer": 4,
+      "count": 15
+    },
+    {
+      "event": "refine",
+      "queries": 7008241,
+      "elapsed_seconds": 1787.118,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.788545103088195e-10,
+        "uncertainty": 3.428513614662474e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7008241,
+      "elapsed_seconds": 1787.119,
+      "layer": 4,
+      "count": 16
+    },
+    {
+      "event": "refine",
+      "queries": 7016081,
+      "elapsed_seconds": 1789.509,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.769690483305024e-10,
+        "uncertainty": 3.564326203860464e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7016081,
+      "elapsed_seconds": 1789.511,
+      "layer": 4,
+      "count": 17
+    },
+    {
+      "event": "refine",
+      "queries": 7023713,
+      "elapsed_seconds": 1791.908,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.996296049904793e-10,
+        "uncertainty": 3.449712467654745e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7023713,
+      "elapsed_seconds": 1791.91,
+      "layer": 4,
+      "count": 18
+    },
+    {
+      "event": "refine",
+      "queries": 7030857,
+      "elapsed_seconds": 1794.079,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.58735477223499e-10,
+        "uncertainty": 3.936986412289572e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7030857,
+      "elapsed_seconds": 1794.082,
+      "layer": 4,
+      "count": 19
+    },
+    {
+      "event": "refine",
+      "queries": 7038641,
+      "elapsed_seconds": 1796.458,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.274168966367393e-10,
+        "uncertainty": 4.2643381439640024e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7038641,
+      "elapsed_seconds": 1796.46,
+      "layer": 4,
+      "count": 20
+    },
+    {
+      "event": "refine",
+      "queries": 7046393,
+      "elapsed_seconds": 1798.706,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.160939373738613e-10,
+        "uncertainty": 3.0769519113200516e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7046393,
+      "elapsed_seconds": 1798.706,
+      "layer": 4,
+      "count": 21
+    },
+    {
+      "event": "refine",
+      "queries": 7054649,
+      "elapsed_seconds": 1801.116,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.710534690718477e-10,
+        "uncertainty": 3.306483578125507e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7054649,
+      "elapsed_seconds": 1801.118,
+      "layer": 4,
+      "count": 22
+    },
+    {
+      "event": "refine",
+      "queries": 7062073,
+      "elapsed_seconds": 1803.347,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.860355306192942e-10,
+        "uncertainty": 2.2680269676682578e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7062073,
+      "elapsed_seconds": 1803.349,
+      "layer": 4,
+      "count": 23
+    },
+    {
+      "event": "refine",
+      "queries": 7069553,
+      "elapsed_seconds": 1805.702,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.9262621534186347e-10,
+        "uncertainty": 2.4482459551153763e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7069553,
+      "elapsed_seconds": 1805.704,
+      "layer": 4,
+      "count": 24
+    },
+    {
+      "event": "refine",
+      "queries": 7077081,
+      "elapsed_seconds": 1808.08,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.353173131721062e-10,
+        "uncertainty": 1.9815264097169274e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7077081,
+      "elapsed_seconds": 1808.082,
+      "layer": 4,
+      "count": 25
+    },
+    {
+      "event": "refine",
+      "queries": 7084761,
+      "elapsed_seconds": 1810.488,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.2800637003547877e-10,
+        "uncertainty": 2.7154203638854797e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7084761,
+      "elapsed_seconds": 1810.489,
+      "layer": 4,
+      "count": 26
+    },
+    {
+      "event": "refine",
+      "queries": 7092361,
+      "elapsed_seconds": 1812.741,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.8492897595319255e-10,
+        "uncertainty": 2.4751352158913614e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7092361,
+      "elapsed_seconds": 1812.742,
+      "layer": 4,
+      "count": 27
+    },
+    {
+      "event": "refine",
+      "queries": 7100113,
+      "elapsed_seconds": 1814.97,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.892585059112467e-10,
+        "uncertainty": 4.3912268694153367e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7100113,
+      "elapsed_seconds": 1814.971,
+      "layer": 4,
+      "count": 28
+    },
+    {
+      "event": "refine",
+      "queries": 7107769,
+      "elapsed_seconds": 1817.36,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.488795066949394e-10,
+        "uncertainty": 3.3504094169515567e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7107769,
+      "elapsed_seconds": 1817.362,
+      "layer": 4,
+      "count": 29
+    },
+    {
+      "event": "refine",
+      "queries": 7115681,
+      "elapsed_seconds": 1819.75,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.096340502912889e-10,
+        "uncertainty": 4.1277559543718756e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7115681,
+      "elapsed_seconds": 1819.752,
+      "layer": 4,
+      "count": 30
+    },
+    {
+      "event": "refine",
+      "queries": 7122873,
+      "elapsed_seconds": 1821.962,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.464249714262787e-10,
+        "uncertainty": 5.012521175884656e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7122873,
+      "elapsed_seconds": 1821.964,
+      "layer": 4,
+      "count": 31
+    },
+    {
+      "event": "refine",
+      "queries": 7130409,
+      "elapsed_seconds": 1824.222,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.575408318006512e-10,
+        "uncertainty": 4.855315232391462e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7130409,
+      "elapsed_seconds": 1824.224,
+      "layer": 4,
+      "count": 32
+    },
+    {
+      "event": "refine",
+      "queries": 7137825,
+      "elapsed_seconds": 1826.445,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.095385283883835e-10,
+        "uncertainty": 4.767831825357723e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7137825,
+      "elapsed_seconds": 1826.447,
+      "layer": 4,
+      "count": 33
+    },
+    {
+      "event": "refine",
+      "queries": 7145089,
+      "elapsed_seconds": 1828.811,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.0172410800244237e-09,
+        "uncertainty": 5.939492036828184e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7145089,
+      "elapsed_seconds": 1828.813,
+      "layer": 4,
+      "count": 34
+    },
+    {
+      "event": "refine",
+      "queries": 7152417,
+      "elapsed_seconds": 1831.204,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 9.235245966845669e-10,
+        "uncertainty": 6.176251280705551e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7152417,
+      "elapsed_seconds": 1831.205,
+      "layer": 4,
+      "count": 35
+    },
+    {
+      "event": "refine",
+      "queries": 7159769,
+      "elapsed_seconds": 1833.469,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.0967256644976936e-09,
+        "uncertainty": 6.680346543465634e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7159769,
+      "elapsed_seconds": 1833.471,
+      "layer": 4,
+      "count": 36
+    },
+    {
+      "event": "refine",
+      "queries": 7167537,
+      "elapsed_seconds": 1835.805,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.3320747351283033e-10,
+        "uncertainty": 2.097114015936469e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7167537,
+      "elapsed_seconds": 1835.806,
+      "layer": 4,
+      "count": 37
+    },
+    {
+      "event": "refine",
+      "queries": 7175193,
+      "elapsed_seconds": 1838.169,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.8124877761261587e-10,
+        "uncertainty": 2.2218888257315647e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7175193,
+      "elapsed_seconds": 1838.172,
+      "layer": 4,
+      "count": 38
+    },
+    {
+      "event": "refine",
+      "queries": 7182905,
+      "elapsed_seconds": 1840.607,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.226014754994663e-10,
+        "uncertainty": 3.131117945685707e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7182905,
+      "elapsed_seconds": 1840.609,
+      "layer": 4,
+      "count": 39
+    },
+    {
+      "event": "refine",
+      "queries": 7190969,
+      "elapsed_seconds": 1843.042,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.927167997663293e-10,
+        "uncertainty": 2.8839082467589696e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7190969,
+      "elapsed_seconds": 1843.044,
+      "layer": 4,
+      "count": 40
+    },
+    {
+      "event": "refine",
+      "queries": 7198561,
+      "elapsed_seconds": 1845.133,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.099611613618798e-10,
+        "uncertainty": 3.187529423252672e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7198561,
+      "elapsed_seconds": 1845.134,
+      "layer": 4,
+      "count": 41
+    },
+    {
+      "event": "refine",
+      "queries": 7206121,
+      "elapsed_seconds": 1847.535,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.577251883956928e-10,
+        "uncertainty": 3.3270104054980853e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7206121,
+      "elapsed_seconds": 1847.537,
+      "layer": 4,
+      "count": 42
+    },
+    {
+      "event": "refine",
+      "queries": 7213689,
+      "elapsed_seconds": 1849.909,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.815409632035764e-10,
+        "uncertainty": 4.408085464273765e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7213689,
+      "elapsed_seconds": 1849.911,
+      "layer": 4,
+      "count": 43
+    },
+    {
+      "event": "refine",
+      "queries": 7221193,
+      "elapsed_seconds": 1852.135,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.853330692860455e-10,
+        "uncertainty": 4.718833161732367e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7221193,
+      "elapsed_seconds": 1852.137,
+      "layer": 4,
+      "count": 44
+    },
+    {
+      "event": "refine",
+      "queries": 7228705,
+      "elapsed_seconds": 1854.444,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 9.910064976458584e-10,
+        "uncertainty": 5.824610932773173e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7228705,
+      "elapsed_seconds": 1854.444,
+      "layer": 4,
+      "count": 45
+    },
+    {
+      "event": "refine",
+      "queries": 7236233,
+      "elapsed_seconds": 1856.824,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.5318194321249428e-09,
+        "uncertainty": 9.010465170468209e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7236233,
+      "elapsed_seconds": 1856.827,
+      "layer": 4,
+      "count": 46
+    },
+    {
+      "event": "refine",
+      "queries": 7243425,
+      "elapsed_seconds": 1859.105,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.9729395113826718e-09,
+        "uncertainty": 1.2082006460534603e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7243425,
+      "elapsed_seconds": 1859.106,
+      "layer": 4,
+      "count": 47
+    },
+    {
+      "event": "refine",
+      "queries": 7250729,
+      "elapsed_seconds": 1861.49,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.406920770242186e-09,
+        "uncertainty": 1.2657254728031596e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7250729,
+      "elapsed_seconds": 1861.492,
+      "layer": 4,
+      "count": 48
+    },
+    {
+      "event": "refine",
+      "queries": 7258025,
+      "elapsed_seconds": 1863.862,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.543921113779919e-09,
+        "uncertainty": 2.1257719381978474e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7258025,
+      "elapsed_seconds": 1863.864,
+      "layer": 4,
+      "count": 49
+    },
+    {
+      "event": "refine",
+      "queries": 7265577,
+      "elapsed_seconds": 1866.173,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.3090451209428213e-10,
+        "uncertainty": 2.0610719364587607e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7265577,
+      "elapsed_seconds": 1866.175,
+      "layer": 4,
+      "count": 50
+    },
+    {
+      "event": "refine",
+      "queries": 7273313,
+      "elapsed_seconds": 1868.496,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.2276062222504985e-10,
+        "uncertainty": 2.446580273504667e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7273313,
+      "elapsed_seconds": 1868.498,
+      "layer": 4,
+      "count": 51
+    },
+    {
+      "event": "refine",
+      "queries": 7281385,
+      "elapsed_seconds": 1870.899,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.615869216626116e-10,
+        "uncertainty": 3.427012889336044e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7281385,
+      "elapsed_seconds": 1870.901,
+      "layer": 4,
+      "count": 52
+    },
+    {
+      "event": "refine",
+      "queries": 7289137,
+      "elapsed_seconds": 1873.364,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.5857717516430703e-10,
+        "uncertainty": 2.5588213910126306e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7289137,
+      "elapsed_seconds": 1873.365,
+      "layer": 4,
+      "count": 53
+    },
+    {
+      "event": "refine",
+      "queries": 7296569,
+      "elapsed_seconds": 1875.719,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.489567492947262e-10,
+        "uncertainty": 4.397992983709032e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7296569,
+      "elapsed_seconds": 1875.721,
+      "layer": 4,
+      "count": 54
+    },
+    {
+      "event": "refine",
+      "queries": 7304729,
+      "elapsed_seconds": 1878.176,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.692717097404104e-10,
+        "uncertainty": 4.096089698728614e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7304729,
+      "elapsed_seconds": 1878.178,
+      "layer": 4,
+      "count": 55
+    },
+    {
+      "event": "refine",
+      "queries": 7312177,
+      "elapsed_seconds": 1880.484,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.059644728826084e-10,
+        "uncertainty": 4.772852224545266e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7312177,
+      "elapsed_seconds": 1880.486,
+      "layer": 4,
+      "count": 56
+    },
+    {
+      "event": "refine",
+      "queries": 7320009,
+      "elapsed_seconds": 1882.853,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.313076869584066e-10,
+        "uncertainty": 1.885614429026616e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7320009,
+      "elapsed_seconds": 1882.854,
+      "layer": 4,
+      "count": 57
+    },
+    {
+      "event": "refine",
+      "queries": 7327633,
+      "elapsed_seconds": 1885.169,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.333912330154108e-10,
+        "uncertainty": 2.0799889111159227e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7327633,
+      "elapsed_seconds": 1885.172,
+      "layer": 4,
+      "count": 58
+    },
+    {
+      "event": "refine",
+      "queries": 7335385,
+      "elapsed_seconds": 1887.506,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.190283276679316e-10,
+        "uncertainty": 1.8424304529393392e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7335385,
+      "elapsed_seconds": 1887.509,
+      "layer": 4,
+      "count": 59
+    },
+    {
+      "event": "refine",
+      "queries": 7342937,
+      "elapsed_seconds": 1889.89,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.451948707469251e-10,
+        "uncertainty": 2.8199158693258374e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7342937,
+      "elapsed_seconds": 1889.892,
+      "layer": 4,
+      "count": 60
+    },
+    {
+      "event": "refine",
+      "queries": 7350385,
+      "elapsed_seconds": 1892.282,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.76275335251228e-09,
+        "uncertainty": 1.7118621317566873e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7350385,
+      "elapsed_seconds": 1892.284,
+      "layer": 4,
+      "count": 61
+    },
+    {
+      "event": "refine",
+      "queries": 7358185,
+      "elapsed_seconds": 1894.683,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.0315979975243865e-10,
+        "uncertainty": 1.9235490466384416e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7358185,
+      "elapsed_seconds": 1894.685,
+      "layer": 4,
+      "count": 62
+    },
+    {
+      "event": "refine",
+      "queries": 7365441,
+      "elapsed_seconds": 1896.901,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.397537841845889e-10,
+        "uncertainty": 2.1040665778304919e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7365441,
+      "elapsed_seconds": 1896.902,
+      "layer": 4,
+      "count": 63
+    },
+    {
+      "event": "refine",
+      "queries": 7373193,
+      "elapsed_seconds": 1899.301,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.623308732622596e-10,
+        "uncertainty": 2.774251139801016e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7373193,
+      "elapsed_seconds": 1899.302,
+      "layer": 4,
+      "count": 64
+    },
+    {
+      "event": "refine",
+      "queries": 7380777,
+      "elapsed_seconds": 1901.706,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.1457496410561818e-09,
+        "uncertainty": 6.303155218375219e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7380777,
+      "elapsed_seconds": 1901.708,
+      "layer": 4,
+      "count": 65
+    },
+    {
+      "event": "refine",
+      "queries": 7388057,
+      "elapsed_seconds": 1904.063,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.671719266242818e-09,
+        "uncertainty": 9.362404513317411e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 7388057,
+      "elapsed_seconds": 1904.065,
+      "layer": 4,
+      "count": 66
+    },
+    {
+      "event": "round",
+      "queries": 7388057,
+      "elapsed_seconds": 1904.098,
+      "layer": 4,
+      "round": 1,
+      "known": 66
+    },
+    {
+      "event": "candidate",
+      "queries": 7431282,
+      "elapsed_seconds": 1915.589,
+      "layer": 4,
+      "pending": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 7432906,
+      "elapsed_seconds": 1915.824,
+      "layer": 4,
+      "pending": 2
+    },
+    {
+      "event": "scan",
+      "queries": 7434530,
+      "elapsed_seconds": 1916.053,
+      "layer": 4,
+      "line": 0,
+      "unexplained": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 7468155,
+      "elapsed_seconds": 1917.197,
+      "layer": 4,
+      "pending": 3
+    },
+    {
+      "event": "candidate",
+      "queries": 7503404,
+      "elapsed_seconds": 1918.661,
+      "layer": 4,
+      "pending": 4
+    },
+    {
+      "event": "candidate",
+      "queries": 7506652,
+      "elapsed_seconds": 1919.065,
+      "layer": 4,
+      "pending": 5
+    },
+    {
+      "event": "candidate",
+      "queries": 7540277,
+      "elapsed_seconds": 1920.287,
+      "layer": 4,
+      "pending": 6
+    },
+    {
+      "event": "candidate",
+      "queries": 7546773,
+      "elapsed_seconds": 1921.19,
+      "layer": 4,
+      "pending": 7
+    },
+    {
+      "event": "candidate",
+      "queries": 7586894,
+      "elapsed_seconds": 1923.301,
+      "layer": 4,
+      "pending": 8
+    },
+    {
+      "event": "scan",
+      "queries": 7586894,
+      "elapsed_seconds": 1923.316,
+      "layer": 4,
+      "line": 4,
+      "unexplained": 4
+    },
+    {
+      "event": "candidate",
+      "queries": 7622143,
+      "elapsed_seconds": 1924.763,
+      "layer": 4,
+      "pending": 9
+    },
+    {
+      "event": "candidate",
+      "queries": 7691017,
+      "elapsed_seconds": 1927.466,
+      "layer": 4,
+      "pending": 10
+    },
+    {
+      "event": "candidate",
+      "queries": 7724642,
+      "elapsed_seconds": 1928.715,
+      "layer": 4,
+      "pending": 11
+    },
+    {
+      "event": "scan",
+      "queries": 7732762,
+      "elapsed_seconds": 1929.858,
+      "layer": 4,
+      "line": 8,
+      "unexplained": 6
+    },
+    {
+      "event": "scan",
+      "queries": 7873758,
+      "elapsed_seconds": 1935.642,
+      "layer": 4,
+      "line": 12,
+      "unexplained": 1
+    },
+    {
+      "event": "scan",
+      "queries": 8006634,
+      "elapsed_seconds": 1939.864,
+      "layer": 4,
+      "line": 16,
+      "unexplained": 0
+    },
+    {
+      "event": "candidate",
+      "queries": 8075508,
+      "elapsed_seconds": 1942.571,
+      "layer": 4,
+      "pending": 12
+    },
+    {
+      "event": "candidate",
+      "queries": 8077132,
+      "elapsed_seconds": 1942.814,
+      "layer": 4,
+      "pending": 13
+    },
+    {
+      "event": "scan",
+      "queries": 8150878,
+      "elapsed_seconds": 1945.888,
+      "layer": 4,
+      "line": 20,
+      "unexplained": 3
+    },
+    {
+      "event": "scan",
+      "queries": 8287002,
+      "elapsed_seconds": 1950.572,
+      "layer": 4,
+      "line": 24,
+      "unexplained": 2
+    },
+    {
+      "event": "scan",
+      "queries": 8427998,
+      "elapsed_seconds": 1956.326,
+      "layer": 4,
+      "line": 28,
+      "unexplained": 1
+    },
+    {
+      "event": "refine",
+      "queries": 8544761,
+      "elapsed_seconds": 1963.412,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.958083857323532e-10,
+        "uncertainty": 3.5264695943902086e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8544761,
+      "elapsed_seconds": 1963.414,
+      "layer": 4,
+      "count": 67
+    },
+    {
+      "event": "refine",
+      "queries": 8552329,
+      "elapsed_seconds": 1965.743,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 7.338062807937977e-10,
+        "uncertainty": 4.1188775808871587e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8552329,
+      "elapsed_seconds": 1965.745,
+      "layer": 4,
+      "count": 68
+    },
+    {
+      "event": "refine",
+      "queries": 8559713,
+      "elapsed_seconds": 1968.118,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.4332302454317384e-09,
+        "uncertainty": 4.3951648594427336e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8559713,
+      "elapsed_seconds": 1968.12,
+      "layer": 4,
+      "count": 69
+    },
+    {
+      "event": "refine",
+      "queries": 8567153,
+      "elapsed_seconds": 1970.465,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.56004380030838e-10,
+        "uncertainty": 3.3082059588535815e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8567153,
+      "elapsed_seconds": 1970.467,
+      "layer": 4,
+      "count": 70
+    },
+    {
+      "event": "refine",
+      "queries": 8574681,
+      "elapsed_seconds": 1972.663,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.0173752091349234e-09,
+        "uncertainty": 5.952127656449176e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8574681,
+      "elapsed_seconds": 1972.666,
+      "layer": 4,
+      "count": 71
+    },
+    {
+      "event": "refine",
+      "queries": 8582433,
+      "elapsed_seconds": 1975.112,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.157333108518306e-10,
+        "uncertainty": 1.887192270635975e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8582433,
+      "elapsed_seconds": 1975.114,
+      "layer": 4,
+      "count": 72
+    },
+    {
+      "event": "refine",
+      "queries": 8590193,
+      "elapsed_seconds": 1977.346,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.2783847969324255e-09,
+        "uncertainty": 7.956509503120219e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8590193,
+      "elapsed_seconds": 1977.348,
+      "layer": 4,
+      "count": 73
+    },
+    {
+      "event": "refine",
+      "queries": 8597769,
+      "elapsed_seconds": 1979.485,
+      "layer": 4,
+      "quality": true,
+      "hits": 31,
+      "attempt": 0,
+      "stats": {
+        "gap": 4.6123141749445104e-10,
+        "uncertainty": 2.7043933021304534e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8597769,
+      "elapsed_seconds": 1979.486,
+      "layer": 4,
+      "count": 74
+    },
+    {
+      "event": "refine",
+      "queries": 8604945,
+      "elapsed_seconds": 1981.748,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.7395552608227766e-09,
+        "uncertainty": 1.0726554044486268e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8604945,
+      "elapsed_seconds": 1981.749,
+      "layer": 4,
+      "count": 75
+    },
+    {
+      "event": "refine",
+      "queries": 8612681,
+      "elapsed_seconds": 1984.092,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 5.389979292733667e-10,
+        "uncertainty": 3.2542547199489087e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8612681,
+      "elapsed_seconds": 1984.094,
+      "layer": 4,
+      "count": 76
+    },
+    {
+      "event": "refine",
+      "queries": 8620553,
+      "elapsed_seconds": 1986.489,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.5846126120281103e-10,
+        "uncertainty": 2.075389911775267e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8620553,
+      "elapsed_seconds": 1986.491,
+      "layer": 4,
+      "count": 77
+    },
+    {
+      "event": "refine",
+      "queries": 8627929,
+      "elapsed_seconds": 1988.837,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.2924791760941718e-09,
+        "uncertainty": 7.37150268927973e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8627929,
+      "elapsed_seconds": 1988.838,
+      "layer": 4,
+      "count": 78
+    },
+    {
+      "event": "refine",
+      "queries": 8635537,
+      "elapsed_seconds": 1991.14,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 8.442573171175041e-10,
+        "uncertainty": 4.88232773758098e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 8635537,
+      "elapsed_seconds": 1991.142,
+      "layer": 4,
+      "count": 79
+    },
+    {
+      "event": "round",
+      "queries": 8635537,
+      "elapsed_seconds": 1991.179,
+      "layer": 4,
+      "round": 2,
+      "known": 79
+    },
+    {
+      "event": "candidate",
+      "queries": 8678762,
+      "elapsed_seconds": 2002.889,
+      "layer": 4,
+      "pending": 1
+    },
+    {
+      "event": "scan",
+      "queries": 8678762,
+      "elapsed_seconds": 2002.908,
+      "layer": 4,
+      "line": 0,
+      "unexplained": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 8744388,
+      "elapsed_seconds": 2005.123,
+      "layer": 4,
+      "pending": 2
+    },
+    {
+      "event": "candidate",
+      "queries": 8746012,
+      "elapsed_seconds": 2005.362,
+      "layer": 4,
+      "pending": 3
+    },
+    {
+      "event": "scan",
+      "queries": 8810014,
+      "elapsed_seconds": 2007.312,
+      "layer": 4,
+      "line": 4,
+      "unexplained": 0
+    },
+    {
+      "event": "candidate",
+      "queries": 8877264,
+      "elapsed_seconds": 2009.703,
+      "layer": 4,
+      "pending": 4
+    },
+    {
+      "event": "scan",
+      "queries": 8944514,
+      "elapsed_seconds": 2012.147,
+      "layer": 4,
+      "line": 8,
+      "unexplained": 1
+    },
+    {
+      "event": "scan",
+      "queries": 9074142,
+      "elapsed_seconds": 2016.384,
+      "layer": 4,
+      "line": 12,
+      "unexplained": 1
+    },
+    {
+      "event": "candidate",
+      "queries": 9207018,
+      "elapsed_seconds": 2020.317,
+      "layer": 4,
+      "pending": 5
+    },
+    {
+      "event": "scan",
+      "queries": 9207018,
+      "elapsed_seconds": 2020.335,
+      "layer": 4,
+      "line": 16,
+      "unexplained": 1
+    },
+    {
+      "event": "refine",
+      "queries": 9214634,
+      "elapsed_seconds": 2022.649,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.069101378226645e-10,
+        "uncertainty": 3.74410419477893e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 9214634,
+      "elapsed_seconds": 2022.651,
+      "layer": 4,
+      "count": 80
+    },
+    {
+      "event": "refine",
+      "queries": 9222018,
+      "elapsed_seconds": 2024.999,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 2.053899725468004e-09,
+        "uncertainty": 1.2726359155013303e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 9222018,
+      "elapsed_seconds": 2025.001,
+      "layer": 4,
+      "count": 81
+    },
+    {
+      "event": "refine",
+      "queries": 9229722,
+      "elapsed_seconds": 2027.352,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 3.8509878768792475e-09,
+        "uncertainty": 2.214614713164385e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 9229722,
+      "elapsed_seconds": 2027.354,
+      "layer": 4,
+      "count": 82
+    },
+    {
+      "event": "refine",
+      "queries": 9237274,
+      "elapsed_seconds": 2029.742,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 6.863323291705504e-10,
+        "uncertainty": 4.0020455779760217e-10,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 9237274,
+      "elapsed_seconds": 2029.744,
+      "layer": 4,
+      "count": 83
+    },
+    {
+      "event": "refine",
+      "queries": 9244946,
+      "elapsed_seconds": 2032.039,
+      "layer": 4,
+      "quality": true,
+      "hits": 32,
+      "attempt": 0,
+      "stats": {
+        "gap": 1.6406207600160179e-09,
+        "uncertainty": 1.0097651755361957e-09,
+        "validation": 1.0
+      }
+    },
+    {
+      "event": "accepted",
+      "queries": 9244946,
+      "elapsed_seconds": 2032.04,
+      "layer": 4,
+      "count": 84
+    },
+    {
+      "event": "oriented",
+      "queries": 9244950,
+      "elapsed_seconds": 2032.195,
+      "layer": 4,
+      "slot": 0,
+      "ratio": 100.00000143067388
+    },
+    {
+      "event": "oriented",
+      "queries": 9244954,
+      "elapsed_seconds": 2032.329,
+      "layer": 4,
+      "slot": 1,
+      "ratio": 0.009999998689668001
+    },
+    {
+      "event": "oriented",
+      "queries": 9244958,
+      "elapsed_seconds": 2032.463,
+      "layer": 4,
+      "slot": 2,
+      "ratio": 0.01000000036937763
+    },
+    {
+      "event": "oriented",
+      "queries": 9244962,
+      "elapsed_seconds": 2032.596,
+      "layer": 4,
+      "slot": 3,
+      "ratio": 0.010000000665067071
+    },
+    {
+      "event": "oriented",
+      "queries": 9244966,
+      "elapsed_seconds": 2032.732,
+      "layer": 4,
+      "slot": 4,
+      "ratio": 100.00000985891946
+    },
+    {
+      "event": "oriented",
+      "queries": 9244970,
+      "elapsed_seconds": 2032.866,
+      "layer": 4,
+      "slot": 5,
+      "ratio": 0.009999999760127344
+    },
+    {
+      "event": "oriented",
+      "queries": 9244974,
+      "elapsed_seconds": 2032.992,
+      "layer": 4,
+      "slot": 6,
+      "ratio": 100.0000069121236
+    },
+    {
+      "event": "oriented",
+      "queries": 9244978,
+      "elapsed_seconds": 2033.121,
+      "layer": 4,
+      "slot": 7,
+      "ratio": 0.010000005053909512
+    },
+    {
+      "event": "oriented",
+      "queries": 9244982,
+      "elapsed_seconds": 2033.27,
+      "layer": 4,
+      "slot": 8,
+      "ratio": 0.009999997509142275
+    },
+    {
+      "event": "oriented",
+      "queries": 9244986,
+      "elapsed_seconds": 2033.426,
+      "layer": 4,
+      "slot": 9,
+      "ratio": 100.0000274356535
+    },
+    {
+      "event": "oriented",
+      "queries": 9244990,
+      "elapsed_seconds": 2033.575,
+      "layer": 4,
+      "slot": 10,
+      "ratio": 99.99998931839878
+    },
+    {
+      "event": "oriented",
+      "queries": 9244994,
+      "elapsed_seconds": 2033.711,
+      "layer": 4,
+      "slot": 11,
+      "ratio": 0.009999999274647751
+    },
+    {
+      "event": "oriented",
+      "queries": 9244998,
+      "elapsed_seconds": 2033.856,
+      "layer": 4,
+      "slot": 12,
+      "ratio": 0.009999997691838713
+    },
+    {
+      "event": "oriented",
+      "queries": 9245002,
+      "elapsed_seconds": 2034.006,
+      "layer": 4,
+      "slot": 13,
+      "ratio": 0.01000000095901092
+    },
+    {
+      "event": "oriented",
+      "queries": 9245006,
+      "elapsed_seconds": 2034.146,
+      "layer": 4,
+      "slot": 14,
+      "ratio": 99.99999885808647
+    },
+    {
+      "event": "oriented",
+      "queries": 9245010,
+      "elapsed_seconds": 2034.285,
+      "layer": 4,
+      "slot": 15,
+      "ratio": 99.99999942890292
+    },
+    {
+      "event": "oriented",
+      "queries": 9245014,
+      "elapsed_seconds": 2034.438,
+      "layer": 4,
+      "slot": 16,
+      "ratio": 99.99999105177389
+    },
+    {
+      "event": "oriented",
+      "queries": 9245018,
+      "elapsed_seconds": 2034.578,
+      "layer": 4,
+      "slot": 17,
+      "ratio": 100.00000379632019
+    },
+    {
+      "event": "oriented",
+      "queries": 9245022,
+      "elapsed_seconds": 2034.723,
+      "layer": 4,
+      "slot": 18,
+      "ratio": 0.010000000396348026
+    },
+    {
+      "event": "oriented",
+      "queries": 9245026,
+      "elapsed_seconds": 2034.864,
+      "layer": 4,
+      "slot": 19,
+      "ratio": 0.009999999498363712
+    },
+    {
+      "event": "oriented",
+      "queries": 9245030,
+      "elapsed_seconds": 2034.998,
+      "layer": 4,
+      "slot": 20,
+      "ratio": 0.009999999958336617
+    },
+    {
+      "event": "oriented",
+      "queries": 9245034,
+      "elapsed_seconds": 2035.143,
+      "layer": 4,
+      "slot": 21,
+      "ratio": 100.0000016443739
+    },
+    {
+      "event": "oriented",
+      "queries": 9245038,
+      "elapsed_seconds": 2035.284,
+      "layer": 4,
+      "slot": 22,
+      "ratio": 0.01000000080200482
+    },
+    {
+      "event": "oriented",
+      "queries": 9245042,
+      "elapsed_seconds": 2035.412,
+      "layer": 4,
+      "slot": 23,
+      "ratio": 99.99999416202908
+    },
+    {
+      "event": "oriented",
+      "queries": 9245046,
+      "elapsed_seconds": 2035.552,
+      "layer": 4,
+      "slot": 24,
+      "ratio": 100.00004377305918
+    },
+    {
+      "event": "oriented",
+      "queries": 9245050,
+      "elapsed_seconds": 2035.684,
+      "layer": 4,
+      "slot": 25,
+      "ratio": 100.00005266855105
+    },
+    {
+      "event": "oriented",
+      "queries": 9245054,
+      "elapsed_seconds": 2035.814,
+      "layer": 4,
+      "slot": 26,
+      "ratio": 100.00000292550072
+    },
+    {
+      "event": "oriented",
+      "queries": 9245058,
+      "elapsed_seconds": 2035.94,
+      "layer": 4,
+      "slot": 27,
+      "ratio": 99.99992408064792
+    },
+    {
+      "event": "oriented",
+      "queries": 9245062,
+      "elapsed_seconds": 2036.065,
+      "layer": 4,
+      "slot": 28,
+      "ratio": 100.00000285165684
+    },
+    {
+      "event": "oriented",
+      "queries": 9245066,
+      "elapsed_seconds": 2036.189,
+      "layer": 4,
+      "slot": 29,
+      "ratio": 100.00002650854427
+    },
+    {
+      "event": "oriented",
+      "queries": 9245070,
+      "elapsed_seconds": 2036.316,
+      "layer": 4,
+      "slot": 30,
+      "ratio": 99.99999003182063
+    },
+    {
+      "event": "oriented",
+      "queries": 9245074,
+      "elapsed_seconds": 2036.461,
+      "layer": 4,
+      "slot": 31,
+      "ratio": 100.00000135301494
+    },
+    {
+      "event": "oriented",
+      "queries": 9245078,
+      "elapsed_seconds": 2036.606,
+      "layer": 4,
+      "slot": 32,
+      "ratio": 99.99999351463106
+    },
+    {
+      "event": "oriented",
+      "queries": 9245082,
+      "elapsed_seconds": 2036.744,
+      "layer": 4,
+      "slot": 33,
+      "ratio": 99.99998207777607
+    },
+    {
+      "event": "oriented",
+      "queries": 9245086,
+      "elapsed_seconds": 2036.877,
+      "layer": 4,
+      "slot": 34,
+      "ratio": 100.00000899654972
+    },
+    {
+      "event": "oriented",
+      "queries": 9245090,
+      "elapsed_seconds": 2037.021,
+      "layer": 4,
+      "slot": 35,
+      "ratio": 0.00999999975961556
+    },
+    {
+      "event": "oriented",
+      "queries": 9245094,
+      "elapsed_seconds": 2037.152,
+      "layer": 4,
+      "slot": 36,
+      "ratio": 99.99999660225028
+    },
+    {
+      "event": "oriented",
+      "queries": 9245098,
+      "elapsed_seconds": 2037.28,
+      "layer": 4,
+      "slot": 37,
+      "ratio": 100.00000008672497
+    },
+    {
+      "event": "oriented",
+      "queries": 9245102,
+      "elapsed_seconds": 2037.411,
+      "layer": 4,
+      "slot": 38,
+      "ratio": 99.99999673816596
+    },
+    {
+      "event": "oriented",
+      "queries": 9245106,
+      "elapsed_seconds": 2037.563,
+      "layer": 4,
+      "slot": 39,
+      "ratio": 0.01000000142405921
+    },
+    {
+      "event": "oriented",
+      "queries": 9245110,
+      "elapsed_seconds": 2037.712,
+      "layer": 4,
+      "slot": 40,
+      "ratio": 0.010000000034011507
+    },
+    {
+      "event": "oriented",
+      "queries": 9245114,
+      "elapsed_seconds": 2037.859,
+      "layer": 4,
+      "slot": 41,
+      "ratio": 100.00000320792394
+    },
+    {
+      "event": "oriented",
+      "queries": 9245118,
+      "elapsed_seconds": 2038.008,
+      "layer": 4,
+      "slot": 42,
+      "ratio": 0.010000000705304168
+    },
+    {
+      "event": "oriented",
+      "queries": 9245122,
+      "elapsed_seconds": 2038.157,
+      "layer": 4,
+      "slot": 43,
+      "ratio": 100.0000051552889
+    },
+    {
+      "event": "oriented",
+      "queries": 9245126,
+      "elapsed_seconds": 2038.304,
+      "layer": 4,
+      "slot": 44,
+      "ratio": 99.99997784539865
+    },
+    {
+      "event": "oriented",
+      "queries": 9245130,
+      "elapsed_seconds": 2038.454,
+      "layer": 4,
+      "slot": 45,
+      "ratio": 0.009999998517917141
+    },
+    {
+      "event": "oriented",
+      "queries": 9245134,
+      "elapsed_seconds": 2038.601,
+      "layer": 4,
+      "slot": 46,
+      "ratio": 100.00000688152495
+    },
+    {
+      "event": "oriented",
+      "queries": 9245138,
+      "elapsed_seconds": 2038.749,
+      "layer": 4,
+      "slot": 47,
+      "ratio": 100.00000485296358
+    },
+    {
+      "event": "oriented",
+      "queries": 9245142,
+      "elapsed_seconds": 2038.9,
+      "layer": 4,
+      "slot": 48,
+      "ratio": 0.010000002103076758
+    },
+    {
+      "event": "oriented",
+      "queries": 9245146,
+      "elapsed_seconds": 2039.052,
+      "layer": 4,
+      "slot": 49,
+      "ratio": 0.010000000690124345
+    },
+    {
+      "event": "oriented",
+      "queries": 9245150,
+      "elapsed_seconds": 2039.204,
+      "layer": 4,
+      "slot": 50,
+      "ratio": 0.010000035608467796
+    },
+    {
+      "event": "oriented",
+      "queries": 9245154,
+      "elapsed_seconds": 2039.352,
+      "layer": 4,
+      "slot": 51,
+      "ratio": 0.009999999576272
+    },
+    {
+      "event": "oriented",
+      "queries": 9245158,
+      "elapsed_seconds": 2039.505,
+      "layer": 4,
+      "slot": 52,
+      "ratio": 99.9999953701619
+    },
+    {
+      "event": "oriented",
+      "queries": 9245162,
+      "elapsed_seconds": 2039.659,
+      "layer": 4,
+      "slot": 53,
+      "ratio": 0.010000000624564666
+    },
+    {
+      "event": "oriented",
+      "queries": 9245166,
+      "elapsed_seconds": 2039.812,
+      "layer": 4,
+      "slot": 54,
+      "ratio": 100.00002478130997
+    },
+    {
+      "event": "oriented",
+      "queries": 9245170,
+      "elapsed_seconds": 2039.963,
+      "layer": 4,
+      "slot": 55,
+      "ratio": 0.010000005337008068
+    },
+    {
+      "event": "oriented",
+      "queries": 9245174,
+      "elapsed_seconds": 2040.111,
+      "layer": 4,
+      "slot": 56,
+      "ratio": 100.00000500998198
+    },
+    {
+      "event": "oriented",
+      "queries": 9245178,
+      "elapsed_seconds": 2040.26,
+      "layer": 4,
+      "slot": 57,
+      "ratio": 0.010000000217306466
+    },
+    {
+      "event": "oriented",
+      "queries": 9245182,
+      "elapsed_seconds": 2040.406,
+      "layer": 4,
+      "slot": 58,
+      "ratio": 0.010000000462645191
+    },
+    {
+      "event": "oriented",
+      "queries": 9245186,
+      "elapsed_seconds": 2040.552,
+      "layer": 4,
+      "slot": 59,
+      "ratio": 0.01000000026608922
+    },
+    {
+      "event": "oriented",
+      "queries": 9245190,
+      "elapsed_seconds": 2040.7,
+      "layer": 4,
+      "slot": 60,
+      "ratio": 100.00005693311924
+    },
+    {
+      "event": "oriented",
+      "queries": 9245194,
+      "elapsed_seconds": 2040.849,
+      "layer": 4,
+      "slot": 61,
+      "ratio": 99.99999216160714
+    },
+    {
+      "event": "oriented",
+      "queries": 9245198,
+      "elapsed_seconds": 2041.0,
+      "layer": 4,
+      "slot": 62,
+      "ratio": 100.00001031328311
+    },
+    {
+      "event": "oriented",
+      "queries": 9245202,
+      "elapsed_seconds": 2041.149,
+      "layer": 4,
+      "slot": 63,
+      "ratio": 99.99999907440706
+    },
+    {
+      "event": "oriented",
+      "queries": 9245206,
+      "elapsed_seconds": 2041.297,
+      "layer": 4,
+      "slot": 64,
+      "ratio": 0.01000000038779659
+    },
+    {
+      "event": "oriented",
+      "queries": 9245210,
+      "elapsed_seconds": 2041.446,
+      "layer": 4,
+      "slot": 65,
+      "ratio": 99.99999413256931
+    },
+    {
+      "event": "oriented",
+      "queries": 9245214,
+      "elapsed_seconds": 2041.597,
+      "layer": 4,
+      "slot": 66,
+      "ratio": 99.99994102162609
+    },
+    {
+      "event": "oriented",
+      "queries": 9245218,
+      "elapsed_seconds": 2041.746,
+      "layer": 4,
+      "slot": 67,
+      "ratio": 100.00000920063273
+    },
+    {
+      "event": "oriented",
+      "queries": 9245222,
+      "elapsed_seconds": 2041.889,
+      "layer": 4,
+      "slot": 68,
+      "ratio": 100.00002072433841
+    },
+    {
+      "event": "oriented",
+      "queries": 9245226,
+      "elapsed_seconds": 2042.033,
+      "layer": 4,
+      "slot": 69,
+      "ratio": 100.00000224224105
+    },
+    {
+      "event": "oriented",
+      "queries": 9245230,
+      "elapsed_seconds": 2042.175,
+      "layer": 4,
+      "slot": 70,
+      "ratio": 100.00000107368385
+    },
+    {
+      "event": "oriented",
+      "queries": 9245234,
+      "elapsed_seconds": 2042.315,
+      "layer": 4,
+      "slot": 71,
+      "ratio": 100.00000026523041
+    },
+    {
+      "event": "oriented",
+      "queries": 9245238,
+      "elapsed_seconds": 2042.462,
+      "layer": 4,
+      "slot": 72,
+      "ratio": 100.00000686829777
+    },
+    {
+      "event": "oriented",
+      "queries": 9245242,
+      "elapsed_seconds": 2042.605,
+      "layer": 4,
+      "slot": 73,
+      "ratio": 0.00999999958171604
+    },
+    {
+      "event": "oriented",
+      "queries": 9245246,
+      "elapsed_seconds": 2042.752,
+      "layer": 4,
+      "slot": 74,
+      "ratio": 0.00999999799380649
+    },
+    {
+      "event": "oriented",
+      "queries": 9245250,
+      "elapsed_seconds": 2042.901,
+      "layer": 4,
+      "slot": 75,
+      "ratio": 0.010000005545045113
+    },
+    {
+      "event": "oriented",
+      "queries": 9245254,
+      "elapsed_seconds": 2043.05,
+      "layer": 4,
+      "slot": 76,
+      "ratio": 0.010000001329236475
+    },
+    {
+      "event": "oriented",
+      "queries": 9245258,
+      "elapsed_seconds": 2043.195,
+      "layer": 4,
+      "slot": 77,
+      "ratio": 100.00001473976164
+    },
+    {
+      "event": "oriented",
+      "queries": 9245262,
+      "elapsed_seconds": 2043.343,
+      "layer": 4,
+      "slot": 78,
+      "ratio": 99.99999768981216
+    },
+    {
+      "event": "oriented",
+      "queries": 9245266,
+      "elapsed_seconds": 2043.495,
+      "layer": 4,
+      "slot": 79,
+      "ratio": 99.99999599629614
+    },
+    {
+      "event": "oriented",
+      "queries": 9245270,
+      "elapsed_seconds": 2043.646,
+      "layer": 4,
+      "slot": 80,
+      "ratio": 100.00000997298659
+    },
+    {
+      "event": "oriented",
+      "queries": 9245274,
+      "elapsed_seconds": 2043.791,
+      "layer": 4,
+      "slot": 81,
+      "ratio": 100.00002484576865
+    },
+    {
+      "event": "oriented",
+      "queries": 9245278,
+      "elapsed_seconds": 2043.938,
+      "layer": 4,
+      "slot": 82,
+      "ratio": 0.00999999917628769
+    },
+    {
+      "event": "oriented",
+      "queries": 9245282,
+      "elapsed_seconds": 2044.09,
+      "layer": 4,
+      "slot": 83,
+      "ratio": 0.010000003307011828
+    }
+  ]
+}

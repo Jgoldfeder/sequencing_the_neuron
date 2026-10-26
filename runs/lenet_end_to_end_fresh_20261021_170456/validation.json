@@ -1,0 +1,41 @@
+{
+  "complete": true,
+  "counts": [
+    6,
+    16,
+    120,
+    84,
+    10
+  ],
+  "output_tests": {
+    "0.25": {
+      "max_output_error": 2.504014773307972e-10,
+      "mean_output_error": 2.5370254154861013e-11
+    },
+    "0.5": {
+      "max_output_error": 4.958822241718508e-10,
+      "mean_output_error": 3.5866273252023536e-11
+    },
+    "1.0": {
+      "max_output_error": 9.295861858049648e-10,
+      "mean_output_error": 6.149300466988257e-11
+    },
+    "1.5": {
+      "max_output_error": 1.9102559534189822e-09,
+      "mean_output_error": 9.665331729269756e-11
+    },
+    "3.0": {
+      "max_output_error": 2.78631340222546e-09,
+      "mean_output_error": 1.8587579898665605e-10
+    },
+    "6.0": {
+      "max_output_error": 8.016364461127523e-09,
+      "mean_output_error": 3.808252771970308e-10
+    }
+  },
+  "max_output_error": 8.016364461127523e-09,
+  "output_tolerance": 1e-06,
+  "queries": 9255522,
+  "oracle_contract": "fp64 outputs",
+  "teacher_parameters_used": false
+}

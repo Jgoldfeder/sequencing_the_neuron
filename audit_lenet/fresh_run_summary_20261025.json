@@ -1,0 +1,152 @@
+{
+  "run": "runs/lenet_end_to_end_fresh_20261021_170456",
+  "initial_record": "/home/judah/icml/philippe/SequencingTheNeurome_Revision_extracted/code/runs/lenet_end_to_end_fresh_20261021_170456/committee_efbfdd78_it047.pt",
+  "parameter_error_definition": "mean/max absolute errors over weights and biases together, after canonicalization and channel permutation alignment; teacher weights used only for post-run scoring",
+  "phase1_handoff_coefficient_errors": {
+    "0": {
+      "rows": 6,
+      "mean_absolute_coefficient_error": 1.3661879370184858e-14,
+      "max_absolute_coefficient_error": 8.724965194772949e-14
+    },
+    "1": {
+      "rows": 16,
+      "mean_absolute_coefficient_error": 2.755396336892074e-14,
+      "max_absolute_coefficient_error": 6.048217482401697e-13
+    },
+    "2": {
+      "rows": 75,
+      "mean_absolute_coefficient_error": 7.620067451965775e-14,
+      "max_absolute_coefficient_error": 3.963315786670307e-12
+    }
+  },
+  "final_checkpoint_coefficient_errors": {
+    "0": {
+      "rows": 6,
+      "mean_absolute_coefficient_error": 1.3660436547293782e-14,
+      "max_absolute_coefficient_error": 8.724965194772949e-14
+    },
+    "1": {
+      "rows": 16,
+      "mean_absolute_coefficient_error": 2.7554016367379585e-14,
+      "max_absolute_coefficient_error": 6.048217482401697e-13
+    },
+    "2": {
+      "rows": 120,
+      "mean_absolute_coefficient_error": 9.696928169982241e-14,
+      "max_absolute_coefficient_error": 1.1146347733692608e-11
+    },
+    "3": {
+      "rows": 84,
+      "mean_absolute_coefficient_error": 1.0182392537580087e-11,
+      "max_absolute_coefficient_error": 4.3915862613097545e-10
+    },
+    "4": {
+      "rows": 10,
+      "mean_absolute_coefficient_error": 1.979087758296977e-09,
+      "max_absolute_coefficient_error": 6.598488902498367e-08
+    }
+  },
+  "committee_logged_training_queries_last_finished_iteration": 2060000,
+  "committee_handoff_snapshot_refinement_queries": 31955974,
+  "committee_refinement_log_sums_by_layer": {
+    "0": 25252,
+    "1": 2504148,
+    "2": 29426574
+  },
+  "phase2_stage_queries": {
+    "C5_discovery_signs_polish": 6250825,
+    "F6_discovery_signs": 2994457,
+    "head_fit": 4096,
+    "heldout_validation": 6144,
+    "total": 9255522
+  },
+  "phase2_markers": [
+    {
+      "event": "polished_C5",
+      "queries": 6250825,
+      "elapsed_seconds": 1678.524,
+      "count": 120
+    },
+    {
+      "event": "round",
+      "queries": 6250825,
+      "elapsed_seconds": 1678.532,
+      "layer": 4,
+      "round": 0,
+      "known": 0
+    },
+    {
+      "event": "round",
+      "queries": 7388057,
+      "elapsed_seconds": 1904.098,
+      "layer": 4,
+      "round": 1,
+      "known": 66
+    },
+    {
+      "event": "round",
+      "queries": 8635537,
+      "elapsed_seconds": 1991.179,
+      "layer": 4,
+      "round": 2,
+      "known": 79
+    },
+    {
+      "event": "oriented",
+      "queries": 9245282,
+      "elapsed_seconds": 2044.09,
+      "layer": 4,
+      "slot": 83,
+      "ratio": 0.010000003307011828
+    }
+  ],
+  "output_validation": {
+    "complete": true,
+    "counts": [
+      6,
+      16,
+      120,
+      84,
+      10
+    ],
+    "output_tests": {
+      "0.25": {
+        "max_output_error": 2.504014773307972e-10,
+        "mean_output_error": 2.5370254154861013e-11
+      },
+      "0.5": {
+        "max_output_error": 4.958822241718508e-10,
+        "mean_output_error": 3.5866273252023536e-11
+      },
+      "1.0": {
+        "max_output_error": 9.295861858049648e-10,
+        "mean_output_error": 6.149300466988257e-11
+      },
+      "1.5": {
+        "max_output_error": 1.9102559534189822e-09,
+        "mean_output_error": 9.665331729269756e-11
+      },
+      "3.0": {
+        "max_output_error": 2.78631340222546e-09,
+        "mean_output_error": 1.8587579898665605e-10
+      },
+      "6.0": {
+        "max_output_error": 8.016364461127523e-09,
+        "mean_output_error": 3.808252771970308e-10
+      }
+    },
+    "max_output_error": 8.016364461127523e-09,
+    "output_tolerance": 1e-06,
+    "queries": 9255522,
+    "oracle_contract": "fp64 outputs",
+    "teacher_parameters_used": false
+  },
+  "aggregate_output_mean_absolute_error": 1.3101398759219192e-10,
+  "committee_training_queries_by_frontier": {
+    "C1": 140000,
+    "C2": 980000,
+    "C5": 940000
+  },
+  "accounted_total_queries": 43271496,
+  "accounting_caveat": "Logged completed iterations and saved handoff record; excludes unrecorded work in interrupted committee iteration 48 and any diagnostic calls outside the counters. Query evaluations, not deduplicated unique inputs."
+}

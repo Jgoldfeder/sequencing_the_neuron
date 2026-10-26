@@ -176,11 +176,16 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
                     disagree="mean_pair", qg_dist="l1", fit_loss="l1",
                     qg_init_std=0.5, lr_sched=(0.6, 0.85), qg_sched=(0.5, 0.8),
                     query="gaussian", pool_mult=8, mutate_steps=0, text_pool=None,
-                    svd_init=False, save_path=None):
+                    svd_init=False, save_path=None, consensus=True, cons_eps=0.02, cons_quorum=0.625,
+                    student_ffn_mult=1.0, disk=None, disk_ram_gb=60.0, disk_seg_gb=2.0):
     gen = torch.Generator(device=device).manual_seed(seed)
     t0 = time.time(); d, vocab = cfg["d_model"], cfg["vocab"]
     teacher = teacher.to(device).eval()
-    students = [MicroT(cfg).to(device) for _ in range(P)]
+    scfg = dict(cfg, ffn=int(round(cfg["ffn"] * student_ffn_mult)))   # wider students: no weight scoring
+    same = scfg["ffn"] == cfg["ffn"]
+    students = [MicroT(scfg).to(device) for _ in range(P)]
+    if not same:
+        print(f"  [wide] students ffn {scfg['ffn']} vs teacher {cfg['ffn']}: weight/consensus scoring off", flush=True)
     if svd_init:                                          # honest real-token embedding init:
         from logit_steal import recover, dim_from_spectrum  # recover unembedding subspace V
         S, Vh, _ = recover(teacher, n_prompts=64, T=T, device=device, seed=seed)
@@ -197,6 +202,15 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
     decay_at = {int(s * outer) for s in lr_sched}
     lossfn = (lambda a, b: (a - b).abs().mean()) if fit_loss == "l1" else (lambda a, b: ((a - b) ** 2).mean())
     Xb = Yb = None
+    ring = None
+    if disk is not None:                                  # two-tier RAM + NVMe replay ring (../diskring.py)
+        assert query == "gaussian" and window > 0, "--disk: gaussian queries and a finite --window only"
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from diskring import DiskRing
+        dx, dy = T * d, T * vocab                         # one query = one row: (T, d) inputs, (T, vocab) logits
+        # DiskRing sizes a segment by the INPUT row only; here the logits are vocab/d times larger
+        ring = DiskRing(disk, q, window, dx, dy, ram_bytes=disk_ram_gb * 1e9,
+                        seg_bytes=disk_seg_gb * 1e9 * dx / (dx + dy))
     for t in range(outer):
         if t in decay_at:
             for o in opts:
@@ -221,44 +235,64 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
                 X = disagree_embed_queries(students, q, T, device, gen, steps=qg_steps,
                                            lr=qg_lr, std=qg_init_std, chunk=qg_chunk,
                                            mode=disagree, dist=qg_dist, sched=qg_sched)
-        with torch.no_grad():
-            Y = _run(teacher, X)
+        with torch.no_grad():                             # chunked: attention is (rows, H, T, T)
+            rows = max(1, 2 ** 26 // (X.shape[1] ** 2))   # ~64M attention entries per call
+            Y = torch.cat([_run(teacher, X[i:i + rows]).cpu() for i in range(0, len(X), rows)])
         # accumulate on CPU (the buffer grows to window*q queries -- keeping the
         # teacher logits [N,T,vocab] on GPU OOMs; move each batch to device instead)
-        X, Y = X.cpu(), Y.cpu()
-        Xb = X if Xb is None else torch.cat([Xb, X]); Yb = Y if Yb is None else torch.cat([Yb, Y])
-        if window > 0:
-            keep = window * q; Xb, Yb = Xb[-keep:], Yb[-keep:]
-        n = len(Xb)
-        for _ in range(epochs):
-            perm = torch.randperm(n, generator=gen, device=device).cpu()
-            for i in range(0, n, batch):
-                idx = perm[i:i + batch]
-                xb, yb = Xb[idx].to(device), Yb[idx].to(device)
-                for s, o in zip(students, opts):
-                    o.zero_grad(); lossfn(_run(s, xb), yb).backward(); o.step()
+        X = X.cpu()
+        if ring is not None:
+            ring.add_block(X.reshape(q, -1), Y.reshape(q, -1))
+            n = len(ring)
+            for _ in range(epochs):
+                for xb, yb in ring.epoch_batches(batch, gen, device):
+                    xb, yb = xb.view(-1, T, d), yb.view(-1, T, vocab)
+                    for s, o in zip(students, opts):
+                        o.zero_grad(); lossfn(_run(s, xb), yb).backward(); o.step()
+            # fit / member ranking on the RAM tier only (newest blocks), as in the MLP --disk path
+            Xb, Yb = ring.ram_X.view(-1, T, d), ring.ram_Y.view(-1, T, vocab)
+        else:
+            Xb = X if Xb is None else torch.cat([Xb, X]); Yb = Y if Yb is None else torch.cat([Yb, Y])
+            if window > 0:
+                keep = window * q; Xb, Yb = Xb[-keep:], Yb[-keep:]
+            n = len(Xb)
+            for _ in range(epochs):
+                perm = torch.randperm(n, generator=gen, device=device).cpu()
+                for i in range(0, n, batch):
+                    idx = perm[i:i + batch]
+                    xb, yb = Xb[idx].to(device), Yb[idx].to(device)
+                    for s, o in zip(students, opts):
+                        o.zero_grad(); lossfn(_run(s, xb), yb).backward(); o.step()
         if (t + 1) % log_every == 0 or t == outer - 1:
             with torch.no_grad():
                 fit = []
                 for s in students:
                     tot = cnt = 0
-                    for i in range(0, n, batch):
+                    for i in range(0, len(Xb), batch):
                         xb, yb = Xb[i:i + batch].to(device), Yb[i:i + batch].to(device)
                         e = (_run(s, xb) - yb).abs()
                         tot += e.sum().item(); cnt += e.numel()
                     fit.append(tot / cnt)
-            aligned = [s.clone() for s in students]
-            for c in aligned:
-                align_to_(c, teacher)
-            errs = [circuit_error(c, teacher) for c in aligned]
             bi = min(range(P), key=lambda i: fit[i])
-            print(f"  it {t+1:3d} | q {n:6d} | loss(best) {fit[bi]:.2e} | "
-                  f"circuit-eps best {min(errs):.2e} mean {sum(errs)/P:.2e} | "
+            if same:
+                aligned = [s.clone() for s in students]
+                for c in aligned:
+                    align_to_(c, teacher)
+                errs = [circuit_error(c, teacher) for c in aligned]
+                ce = f"circuit-eps best {min(errs):.2e} mean {sum(errs)/P:.2e}"
+            else:
+                ce = f"loss all {' '.join(f'{f:.2f}' for f in fit)}"
+            print(f"  it {t+1:3d} | q {n:6d} | loss(best) {fit[bi]:.2e} | {ce} | "
                   f"{round(time.time()-t0,1)}s", flush=True)
-            print("        " + format_report(circuit_report(aligned[bi], teacher)), flush=True)
+            if same:
+                print("        " + format_report(circuit_report(aligned[bi], teacher)), flush=True)
+            if consensus and same and P > 1:                       # cons / cons(masked) / iso (gpt_consensus.py)
+                from gpt_consensus import report_lines
+                for ln in report_lines(students, teacher, fit, cfg, query, cons_eps, cons_quorum):
+                    print("        " + ln, flush=True)
             if save_path:                                 # checkpoint so the run is re-scorable
                 tmp = save_path + ".tmp"                   # (no re-run) with any corrected metric
-                torch.save({"cfg": cfg, "iter": t + 1, "seed": seed, "query": query,
+                torch.save({"cfg": cfg, "student_cfg": scfg, "iter": t + 1, "seed": seed, "query": query,
                             "teacher_sd": {k: v.detach().cpu() for k, v in teacher.state_dict().items()},
                             "student_sds": [{k: v.detach().cpu() for k, v in s.state_dict().items()}
                                             for s in students],
@@ -266,11 +300,13 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
                 os.replace(tmp, save_path)
                 if t + 1 <= log_every:
                     print(f"        [ckpt] students+teacher -> {save_path} (every log-iter)", flush=True)
+    if ring is not None:
+        ring.close()
     return students
 
 
 def capacity_test(teacher, cfg, device, n=6000, T=32, epochs=1000, batch=512,
-                  lr=3e-3, seed=0, query="gaussian", fit_loss="l1", log_every=100):
+                  lr=3e-3, seed=0, query="gaussian", fit_loss="l1", log_every=100, student_ffn_mult=1.0):
     """Isolate the OPTIMIZATION floor: fixed non-adversarial dataset, ONE student
     (same arch as teacher, so fit=0 is representable), trained hard with cosine
     decay. If fit -> ~0 and circuit-eps drops, the population loop is merely
@@ -288,7 +324,10 @@ def capacity_test(teacher, cfg, device, n=6000, T=32, epochs=1000, batch=512,
         tf = lossfn(_run(teacher, X), Y).item()
     print(f"[cap] {query} n={n} T={T} | sanity teacher-as-student: "
           f"fit={tf:.1e} circuit-eps={circuit_error(teacher.clone(), teacher):.1e}", flush=True)
-    student = MicroT(cfg).to(device)
+    scfg = dict(cfg, ffn=int(round(cfg["ffn"] * student_ffn_mult))); same = scfg["ffn"] == cfg["ffn"]
+    student = MicroT(scfg).to(device)
+    if not same:
+        print(f"[cap] wide student: ffn {scfg['ffn']} vs teacher {cfg['ffn']} (fit only)", flush=True)
     opt = torch.optim.Adam(student.parameters(), lr=lr)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
     t0 = time.time()
@@ -301,8 +340,10 @@ def capacity_test(teacher, cfg, device, n=6000, T=32, epochs=1000, batch=512,
         if (ep + 1) % log_every == 0 or ep == epochs - 1:
             with torch.no_grad():
                 fit = lossfn(_run(student, X), Y).item()
-            c = student.clone(); align_to_(c, teacher)
-            print(f"[cap] ep {ep+1:4d} | loss({fit_loss}) {fit:.2e} | circuit-eps {circuit_error(c, teacher):.2e} "
+            ce = "n/a"
+            if same:
+                c = student.clone(); align_to_(c, teacher); ce = f"{circuit_error(c, teacher):.2e}"
+            print(f"[cap] ep {ep+1:4d} | loss({fit_loss}) {fit:.2e} | circuit-eps {ce} "
                   f"| lr {sched.get_last_lr()[0]:.1e} | {round(time.time()-t0,1)}s", flush=True)
     return student
 
@@ -362,6 +403,14 @@ if __name__ == "__main__":
                          "re-scorable with any corrected metric, no re-run. Defaults to an "
                          "auto path unless --no-save.")
     ap.add_argument("--no-save", action="store_true", help="disable checkpointing")
+    ap.add_argument("--no-consensus", action="store_true", help="skip the cons/cons(masked)/iso lines")
+    ap.add_argument("--disk", default=None, help="two-tier replay ring: newest --disk-ram-gb of the window in RAM, "
+                    "older blocks streamed from this directory (diskring.py; gaussian queries only)")
+    ap.add_argument("--disk-ram-gb", type=float, default=60.0)
+    ap.add_argument("--disk-seg-gb", type=float, default=2.0, help="--disk: streamed segment size (X+Y) in GB")
+    ap.add_argument("--student-ffn-mult", type=float, default=1.0,
+                    help="student MLP width = teacher ffn x this (over-parameterized students)")
+    ap.add_argument("--cons-eps", type=float, default=0.02); ap.add_argument("--cons-quorum", type=float, default=0.625)
     a = ap.parse_args()
     dev = a.device or ("cuda" if torch.cuda.is_available() else "cpu")
     if a.ckpt:
@@ -373,7 +422,8 @@ if __name__ == "__main__":
     if a.capacity_test:
         capacity_test(teacher, cfg, dev, n=a.cap_n, T=a.T, epochs=a.cap_epochs,
                       batch=a.batch, lr=a.cap_lr, seed=a.seed, query=a.query,
-                      fit_loss=a.fit_loss, log_every=max(a.cap_epochs // 20, 1))
+                      fit_loss=a.fit_loss, log_every=max(a.cap_epochs // 20, 1),
+                      student_ffn_mult=a.student_ffn_mult)
         sys.exit(0)
     text_pool = load_text_pool(a.text_file, a.T, dev) if a.text_file else None
     if text_pool is not None:
@@ -388,4 +438,7 @@ if __name__ == "__main__":
                     seed=a.seed, window=a.window, qg_steps=a.qg_steps, qg_lr=a.qg_lr,
                     qg_chunk=a.qg_chunk, disagree=a.disagree, qg_dist=a.qg_dist, fit_loss=a.fit_loss,
                     query=a.query, pool_mult=a.pool_mult, mutate_steps=a.mutate_steps,
-                    text_pool=text_pool, svd_init=a.svd_init, save_path=save_path)
+                    text_pool=text_pool, svd_init=a.svd_init, save_path=save_path,
+                    consensus=not a.no_consensus, cons_eps=a.cons_eps, cons_quorum=a.cons_quorum,
+                    student_ffn_mult=a.student_ffn_mult, disk=a.disk, disk_ram_gb=a.disk_ram_gb,
+                    disk_seg_gb=a.disk_seg_gb)

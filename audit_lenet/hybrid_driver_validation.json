@@ -1,7 +1,7 @@
 {
   "entry_point": "lenet_hybrid.py",
   "cpu_regression_tests": {
-    "passed": 5,
+    "passed": 7,
     "command": "python tests/test_lenet_hybrid.py"
   },
   "completed_model_import_and_resume": {
@@ -115,5 +115,18 @@
     "configuration_regression_test": "passed",
     "launcher_smoke_test": "passed: initialized random committee and queried teacher; intentionally insufficient one-iteration budget returned incomplete",
     "smoke_log": "/tmp/lenet_end_to_end_phase1_check_20261021/committee.log"
+  },
+  "recipe_correction_20261022": {
+    "previous_fresh_recipe": "ordinary disagreement; differed from historical 103-row source",
+    "historical_prefix_log": "pool_logs/lenetpeel_fixed.log",
+    "historical_c5_log": "pool_logs/lenet_c5_cheat.log",
+    "prefix_directional_lr": 0.03,
+    "prefix_directional_lr_decay": 0.85,
+    "historical_c5_teacher_gradient_disagreement": true,
+    "handoff_target": 103,
+    "below_target_policy": "attempt direct recovery whenever certified C1/C2 complete",
+    "below_target_regression_test": "passed with 75 C5 rows",
+    "current_fresh_run_direct_attempt": "runs/lenet_end_to_end_fresh_20261021_170456",
+    "complete_historical_replay_tested": false
   }
 }

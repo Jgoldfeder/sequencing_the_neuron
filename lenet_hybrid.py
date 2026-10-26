@@ -403,6 +403,14 @@ def committee_worker(args):
                    layer_consensus=True,layer_space_init=False,balance=1,balance_refresh=5,
                    peel_refresh=True,retry=args.committee_retries,window=60,
                    pop_save_every=1,pop_save_path=str(args.output/f'committee_{uuid.uuid4().hex[:8]}.pt'),log_every=1)
+    historical = args.committee_recipe == 'historical'
+    if historical and args.committee_stage == 'prefix':
+        # lenetpeel_fixed.log: row-normalized directional LR for C1/C2.
+        options.update(layer_space_init=True,balance_dirlr=.03,balance_dirlr_decay=.85)
+    if historical and args.committee_stage == 'c5':
+        # lenet_c5_cheat.log is the source of the 103-row record.
+        options.update(cheat=True,cheat_bb_ref=True,layer_space_init=False)
+        print('[recipe] C5: historical teacher-gradient disagreement (not output-only)',flush=True)
     cfg=Cfg(p=8,q=args.committee_q,outer=args.committee_outer,**options)
     os.environ['POP_SAVE_ALL']='1'
     resume_state=resume_record=None
@@ -416,53 +424,87 @@ def committee_worker(args):
                     resume_state=resume_state,resume_record=resume_record)
 
 
-def committee_phase(args):
-    """Own one isolated worker; never kill unrelated jobs or share snapshot tags."""
-    import signal
-    cmd=[sys.executable,'-u',str(Path(__file__).resolve()),'--committee-worker',
-         '--output',str(args.output),'--teacher',str(args.teacher),'--device',args.device,
-         '--seed',str(args.committee_seed),'--committee-retries',str(args.committee_retries),'--committee-outer',str(args.committee_outer),
-         '--committee-q',str(args.committee_q),'--committee-epochs',str(args.committee_epochs)]
-    def gate(path):
-        try: ck=torch.load(path,map_location='cpu',weights_only=False)
-        except (OSError,RuntimeError,EOFError,pickle.UnpicklingError): return False
+def committee_snapshot_counts(path):
+    try:
+        ck=torch.load(path,map_location='cpu',weights_only=False)
         masks={l:m.bool().clone() for l,(_,_,m) in (ck.get('frozen') or {}).items()}
-        for l,m in (ck.get('partial_mask') or {}).items(): masks[l]=m.bool()|masks.get(l,torch.zeros_like(m,dtype=torch.bool))
-        return (int(masks.get(0,torch.zeros(6)).sum())==6 and int(masks.get(1,torch.zeros(16)).sum())==16
-                and int(masks.get(2,torch.zeros(120)).sum())>=args.handoff_c5)
-    existing=sorted(args.output.glob('committee*_it*.pt'),key=lambda x:x.stat().st_mtime,reverse=True)
-    for path in existing:
-        if gate(path):return path
-    for path in existing:
-        try:
-            ck=torch.load(path,map_location='cpu',weights_only=False)
-            if 'state_dict' not in ck:continue
-        except (OSError,RuntimeError,EOFError,pickle.UnpicklingError):continue
-        cmd.extend(['--committee-resume',str(path)]);break
-    log=args.output/'committee.log'
-    print(f'[committee] original mergedbest, handoff C1=6 C2=16 C5>={args.handoff_c5}; log {log}',flush=True)
-    with log.open('a') as stream:
-        stream.write(f'\n[worker] {time.strftime("%Y-%m-%d %H:%M:%S")} new isolated committee segment\n');stream.flush()
-        env=os.environ.copy();env.pop('PEEL_DEBUG_NEAR_TEACHER',None)
-        proc=subprocess.Popen(cmd,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True,env=env)
-        try:
-            while True:
-                snapshots=sorted(args.output.glob('committee*_it*.pt'),key=lambda x:x.stat().st_mtime,reverse=True)
-                for path in snapshots:
-                    if gate(path):
-                        print(f'[committee] handoff {path}',flush=True)
-                        return path
-                if proc.poll() is not None: break
-                time.sleep(2)
-        finally:
-            if proc.poll() is None:
-                with contextlib.suppress(ProcessLookupError):os.killpg(proc.pid,signal.SIGTERM)
-                try: proc.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    with contextlib.suppress(ProcessLookupError):os.killpg(proc.pid,signal.SIGKILL)
-                    proc.wait()
-    raise RuntimeError(f'Committee stopped before the handoff gate (exit {proc.returncode}). '
-                       f'No direct-phase success claimed; inspect {log}. Increase --committee-outer or provide --record.')
+        for l,m in (ck.get('partial_mask') or {}).items():
+            masks[l]=m.bool()|masks.get(l,torch.zeros_like(m,dtype=torch.bool))
+        return tuple(int(masks.get(l,torch.zeros(n)).sum()) for l,n in enumerate((6,16,120)))
+    except (OSError,RuntimeError,EOFError,pickle.UnpicklingError): return None
+
+
+def best_committee_snapshot(directory):
+    candidates=[]
+    for path in directory.glob('committee*_it*.pt'):
+        counts=committee_snapshot_counts(path)
+        if counts is not None: candidates.append((counts,path.stat().st_mtime,path))
+    return max(candidates)[2] if candidates else None
+
+
+def direct_handoff(directory, reason):
+    path=best_committee_snapshot(directory)
+    counts=committee_snapshot_counts(path) if path else None
+    if counts is None or counts[:2]!=(6,16):
+        raise RuntimeError(f'{reason}: no complete certified C1/C2 prefix; latest counts {counts}.')
+    print(f'[committee] {reason}: TRYING direct phase at C5={counts[2]}/120 from {path}',flush=True)
+    atomic_json(directory/'handoff.json',dict(reason=reason,record=str(path),counts=counts))
+    return path
+
+
+def committee_phase(args):
+    """Run the recorded prefix/C5 recipes, then attempt direct recovery at any C5 count."""
+    import signal
+    existing=best_committee_snapshot(args.output)
+    counts=committee_snapshot_counts(existing) if existing else None
+    if args.handoff_now:
+        return direct_handoff(args.output,'explicit handoff now')
+    if counts and counts[:2]==(6,16) and counts[2]>=args.handoff_c5:
+        return direct_handoff(args.output,'target reached')
+    stages=['prefix','c5'] if args.committee_recipe=='historical' else ['ordinary']
+    if counts and counts[:2]==(6,16) and 'prefix' in stages: stages.remove('prefix')
+    for stage in stages:
+        existing=best_committee_snapshot(args.output)
+        budget=args.committee_c5_outer if stage=='c5' else args.committee_outer
+        cmd=[sys.executable,'-u',str(Path(__file__).resolve()),'--committee-worker',
+             '--output',str(args.output),'--teacher',str(args.teacher),'--device',args.device,
+             '--seed',str(args.committee_seed),'--committee-retries',str(args.committee_retries),
+             '--committee-outer',str(budget),'--committee-q',str(args.committee_q),
+             '--committee-epochs',str(args.committee_epochs),'--committee-recipe',args.committee_recipe,
+             '--committee-stage',stage]
+        if existing: cmd.extend(['--committee-resume',str(existing)])
+        log=args.output/'committee.log'
+        print(f'[committee] recipe={args.committee_recipe} stage={stage} budget={budget}; log {log}',flush=True)
+        atomic_json(args.output/'phase1_recipe.json',dict(recipe=args.committee_recipe,stage=stage,
+                    seed=args.committee_seed,budget=budget,q=args.committee_q,retries=args.committee_retries,
+                    resumed_record=str(existing) if existing else None,
+                    teacher_gradient_disagreement=args.committee_recipe=='historical' and stage=='c5'))
+        reached=False
+        with log.open('a') as stream:
+            stream.write(f'\n[worker] {time.strftime("%Y-%m-%d %H:%M:%S")} isolated {stage} segment\n');stream.flush()
+            env=os.environ.copy();env.pop('PEEL_DEBUG_NEAR_TEACHER',None)
+            proc=subprocess.Popen(cmd,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True,env=env)
+            try:
+                while True:
+                    best=best_committee_snapshot(args.output)
+                    current=committee_snapshot_counts(best) if best else None
+                    prefix_done=current is not None and current[:2]==(6,16)
+                    if prefix_done and (stage=='prefix' or current[2]>=args.handoff_c5):
+                        reached=True;break
+                    if proc.poll() is not None: break
+                    time.sleep(2)
+            finally:
+                if proc.poll() is None:
+                    with contextlib.suppress(ProcessLookupError):os.killpg(proc.pid,signal.SIGTERM)
+                    try: proc.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        with contextlib.suppress(ProcessLookupError):os.killpg(proc.pid,signal.SIGKILL)
+                        proc.wait()
+        if stage=='prefix' and reached:
+            continue
+        # A target is an early handoff trigger, never a minimum number of C5 rows.
+        return direct_handoff(args.output,'target reached' if reached else f'committee ended (exit {proc.returncode}), below target allowed')
+    return direct_handoff(args.output,'committee stages ended')
 
 
 def parser():
@@ -475,8 +517,12 @@ def parser():
     p.add_argument('--device',default='cuda:0'); p.add_argument('--seed',type=int,default=22502)
     p.add_argument('--lines',type=int,default=32); p.add_argument('--grid',type=int,default=32001)
     p.add_argument('--max-rounds',type=int,default=12)
-    p.add_argument('--handoff-c5',type=int,default=100)
-    p.add_argument('--committee-outer',type=int,default=80); p.add_argument('--committee-q',type=int,default=20000)
+    p.add_argument('--handoff-c5',type=int,default=103,help='Early handoff target, not a required minimum.')
+    p.add_argument('--handoff-now',action='store_true',help='On committee resume, try direct recovery immediately with the best saved prefix.')
+    p.add_argument('--committee-recipe',choices=('historical','ordinary'),default='historical',help='Historical uses teacher-gradient disagreement for C5, as in the 103-row source run.')
+    p.add_argument('--committee-c5-outer',type=int,default=40)
+    p.add_argument('--committee-stage',choices=('prefix','c5','ordinary'),default='prefix',help=argparse.SUPPRESS)
+    p.add_argument('--committee-outer',type=int,default=60); p.add_argument('--committee-q',type=int,default=20000)
     p.add_argument('--committee-epochs',type=int,default=10)
     p.add_argument('--committee-seed',type=int,default=0,help='First-phase committee seed; direct recovery uses --seed.')
     p.add_argument('--committee-retries',type=int,default=5,help='First-phase retries with solved rows retained.')
@@ -493,6 +539,7 @@ def main(argv=None):
     p=parser(); args=p.parse_args(argv)
     if not 1<=args.lines<=256 or args.grid<101 or not 0<=args.handoff_c5<=120:
         p.error('Require 1<=lines<=256, grid>=101, 0<=handoff-c5<=120.')
+    if args.committee_c5_outer<1: p.error('--committee-c5-outer must be positive.')
     if args.committee_retries<0: p.error('--committee-retries must be nonnegative.')
     if args.threads<1 or args.output_tolerance<=0 or args.max_rounds<1 or args.validation_size<1 or args.committee_outer<1 or args.committee_q<1 or args.committee_epochs<0:
         p.error('Budgets and validation size must be positive (epochs may be zero for a smoke test).')
@@ -506,7 +553,8 @@ def main(argv=None):
             stages=['committee handoff (fresh only)','C5 residual discovery/refinement','C5 output-only signs',
                     'C5 precision polish with preserved gauges','F6 residual discovery/refinement + last-unit affine fallback',
                     'F6 output-only signs','linear head fit','independent output validation'],
-            fresh_committee_convergence='budget limited; not guaranteed',oracle='fp64 outputs'),indent=2)); return 0
+            committee_recipe=args.committee_recipe,below_target='attempt direct recovery if C1/C2 complete',
+            fresh_committee_convergence='budget limited; not guaranteed',oracle='direct: fp64 outputs; historical C5 committee: teacher gradients'),indent=2)); return 0
     load_dependencies(); torch.set_num_threads(args.threads); torch.manual_seed(args.seed)
     if not args.teacher.is_file(): p.error(f'Teacher does not exist: {args.teacher}')
     args.teacher_sha256=hashlib.sha256(args.teacher.read_bytes()).hexdigest()

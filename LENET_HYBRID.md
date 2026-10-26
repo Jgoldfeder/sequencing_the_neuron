@@ -12,9 +12,16 @@ Run from this code directory using the existing Python environment (PyTorch, Sci
 
 This starts from randomly initialized students: **C1/C2/partial-C5 committee recovery → automatic handoff → remaining C5 → F6 → head → validation**, with no recovered record supplied. The launcher runs `lenet_hybrid.py`, whose default also starts with the first recovery phase.
 
-The first phase uses the existing eight-member `mergedbest` committee, batch 128, seed 0, a 60-iteration sample window, layer-completion buffer/clock refresh, and up to five retries that retain solved rows. Use `--committee-seed` and `--committee-retries` to change those settings. It monitors its recorded rows and automatically hands off when C1=6/6, C2=16/16, and C5>=100/120. Change the committee budget with `--committee-outer`, `--committee-q`, and `--committee-epochs`; the defaults are 80, 20000, and 10. `--handoff-c5` changes the handoff threshold.
+The default `--committee-recipe historical` follows the two recorded first-phase stages:
 
-**Fresh committee convergence is not guaranteed.** The demonstrated reconstruction originally started from an existing 103-row C5 record. The new driver connects fresh-start training to the same recovery phase, but an insufficient committee budget or a conv2 stall is reported as incomplete, never as a successful reconstruction.
+1. C1/C2: eight-member `mergedbest`, seed 0, q=20000, batch 128, row balancing, directional LR 0.03 with decay 0.85, kink refinement and partial pinning, layer refresh, and five retries. Default budget: 60 iterations per attempt. The directional settings are recorded in `pool_logs/lenetpeel_fixed.log`.
+2. C5: restart from the C1/C2 record produced by this run, using eight-member **teacher-gradient disagreement** (`cheat=True`, `cheat_bb_ref=True`) and epsilon 0.02, as in `pool_logs/lenet_c5_cheat.log`, which produced the 103-row source record. Default budget: 40 iterations per attempt. This stage uses teacher gradients; it must not be described as an output-only first phase. No historical recovered prefix is loaded by default.
+
+These settings restore the documented method and the logged directional settings; the original snapshots do not contain full configuration or optimizer/RNG states, so this is not a claim of bit-for-bit historical replay. `--committee-recipe ordinary` explicitly selects the previous ordinary-disagreement variant.
+
+`--handoff-c5` defaults to 103 and is an **early handoff target, not an eligibility gate**. If the committee ends below it, the driver still attempts direct C5 recovery with the best saved record, provided C1/C2 are complete. It only reports incomplete after that attempt fails its actual numerical checks or budget. An incomplete C1/C2 prefix remains unsupported by the direct C5 engine.
+
+Use `--committee-outer`, `--committee-c5-outer`, `--committee-q`, `--committee-epochs`, `--committee-retries`, and `--committee-seed` to change budgets. The budget-limited first phase and direct phase can still fail; completion is reported only after independent output validation.
 
 ## Use the recovered prefix we already have
 
@@ -32,7 +39,15 @@ Despite the filename, this input contains 103 C5 rows. This command does **not**
 python -u lenet_hybrid.py --continue-run runs/lenet_from_record --device cuda:0
 ```
 
-Interrupt with Ctrl-C. The direct stage writes an atomic `state.pt` containing masks, unsigned-row state, anchors, pending candidates, random-generator state, and query counts. Interrupted committee runs retain their iteration snapshots; the same `--continue-run` resumes committee training if handoff has not occurred. Each committee segment uses a distinct snapshot prefix, and the driver terminates only its own worker/process group at handoff.
+Interrupt with Ctrl-C. The direct stage writes an atomic `state.pt` containing masks, unsigned-row state, anchors, pending candidates, random-generator state, and query counts. Interrupted committee runs retain their iteration snapshots; the same `--continue-run` resumes committee training if handoff has not occurred. Each committee segment uses a distinct snapshot prefix, and the driver terminates only its own worker/process group at handoff. Native iteration numbers can restart during refresh/retry, so their iteration-named files can be overwritten within the same segment; logs remain the full run history. The handoff chooses the best readable certified prefix, not merely the most recent file.
+
+To try direct recovery immediately from a committee run below its target:
+
+```bash
+python -u lenet_hybrid.py --continue-run runs/lenet_fresh --handoff-now --device cuda:0
+```
+
+Stop the active driver first with Ctrl-C; do not run two writers against one output directory.
 
 Use a **new** output directory for a new run; existing directories are rejected. Resume checks teacher identity. `--max-rounds` (default 12 per direct frontier) and `--lines` (default 32 per round) bound direct discovery. An exhausted budget leaves a resume checkpoint. You can increase `--max-rounds` when continuing.
 
@@ -46,7 +61,7 @@ Use a **new** output directory for a new run; existing directories are rejected.
 
 The head uses 4096 fit labels. Validation uses **new** samples at scales 0.25, 0.5, 1, 1.5, 3, and 6 (1024 inputs each by default). `--output-tolerance` defaults to `1e-6`. Passing output validation is a functional check; it is not a claim of bit-exact parameter equality. The oracle contract is fp64 forward outputs, as in the existing kink solver.
 
-The direct engine receives only an output-query adapter. Unknown teacher weights are not used for direct search, fitting, acceptance, or signs. The original committee retains its existing parameter-error diagnostics. No diagnostic teacher coefficients are used as direct-phase guesses or pins.
+The direct engine receives only an output-query adapter. Unknown teacher weights are not used for direct search, fitting, acceptance, or signs. The historical C5 committee recipe uses teacher gradients for query selection, as explicitly recorded in `phase1_recipe.json`; `ordinary` does not. Both recipes retain existing parameter-error diagnostics. No diagnostic teacher coefficients are used as direct-phase guesses or pins.
 
 ```python
 import torch
