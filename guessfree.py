@@ -31,7 +31,7 @@ def _extreme_base(net, K, d_in, x0_std, gen, device, steps=40, lr=0.1, box=3.0):
 
 def recover_frontier_rows(teacher, prefix_net, K, known_channels, lines=10, N=40001, T=3.0, x0_std=0.5,
                           max_kinks=400, device="cuda", seed=0, verbose=True, min_cluster=1, stop_at=None,
-                          verify_tests=8, verify_min=0.85, extreme=False):
+                          verify_tests=8, verify_min=0.85, extreme=False, base_points=None, archive=None):
     t64 = teacher.clone().double()
     for p in t64.parameters():
         p.requires_grad_(False)
@@ -52,7 +52,9 @@ def recover_frontier_rows(teacher, prefix_net, K, known_channels, lines=10, N=40
     Wk = Wk / Wk.norm(dim=1, keepdim=True).clamp_min(1e-30)
     known_rows = Wk[list(known_channels)] if len(known_channels) else None
     for li in range(lines):
-        if extreme:
+        if base_points is not None:
+            x0 = base_points[li % len(base_points)].to(device=device, dtype=torch.double)
+        elif extreme:
             x0 = _extreme_base(net, K, d_in, x0_std, gen, device)
         else:
             x0 = torch.randn(d_in, device=device, dtype=torch.double, generator=gen) * x0_std
@@ -72,6 +74,8 @@ def recover_frontier_rows(teacher, prefix_net, K, known_channels, lines=10, N=40
             if known_rows is not None and bool(((known_rows @ row).abs() > 0.999).any()):
                 continue                                   # a known channel's kink that slipped the exclusion
             found.append(row); n_ok += 1
+            if archive is not None:
+                archive.setdefault("candidates", []).append(dict(row=row.cpu(), point=x_star.cpu(), relative_residual=rel, jump_ratio=ratio))
         clusters = _cluster(found)
         if verbose:
             print(f"    [guess-free] L{K + 1} line {li + 1}/{lines}: {ncand} kinks, {len(t_unk)} unexplained, {n_ok} mapped back; "
@@ -104,6 +108,8 @@ def recover_frontier_rows(teacher, prefix_net, K, known_channels, lines=10, N=40
     if verbose:
         print(f"    [guess-free] L{K + 1}: {n_cand} candidate rows (clusters >= {min_cluster}), {n_rej} rejected by the global "
               f"kink test, {len(rows)} accepted | queries {G.QUERIES[0] - q0:,}", flush=True)
+    if archive is not None:
+        archive.update(info=info, queries=G.QUERIES[0] - q0)
     return rows, G.QUERIES[0] - q0, info
 
 

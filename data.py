@@ -121,25 +121,30 @@ def load_data(dims, device):
     return load_mnist(device)
 
 
-def teacher_path(dims, epochs, seed, act="leaky_relu", l1=0.0, l1_prox=False):
+def teacher_path(dims, epochs, seed, act="leaky_relu", l1=0.0, l1_prox=False, l2=0.0):
     os.makedirs(TEACHER_DIR, exist_ok=True)
     tag = "x".join(map(str, dims))
     suffix = "" if act == "leaky_relu" else f"_{act}"
     if l1 > 0:
-        suffix += f"_l1{'p' if l1_prox else ''}{l1:g}"
+        suffix += f"_l1{'p' if l1_prox else ''}wb{l1:g}"   # weights AND biases (weights-only _l1 caches are stale)
+    if l2 > 0:
+        suffix += f"_l2wb{l2:g}"                       # weights AND biases (a weights-only _l2 cache is stale)
     return os.path.join(TEACHER_DIR,
                         f"teacher_{tag}_e{epochs}_s{seed}{suffix}.pt")
 
 
 def make_teacher(dims, epochs=25, seed=0, lr=1e-3, batch=256, device="cpu",
-                 verbose=True, act="leaky_relu", l1=0.0, l1_prox=False):
+                 verbose=True, act="leaky_relu", l1=0.0, l1_prox=False, l2=0.0):
     """Train (or load from cache) the blackbox network. l1 > 0 adds
-    l1 * sum_l sum|W_l| (weights only, not biases) to the training loss, i.e.
+    l1 * sum_l (sum|W_l| + sum|b_l|) (weights AND biases) to the training loss, i.e.
     a per-weight pull of l1 toward zero. Adam then chatters around zero instead of
     landing on it, so l1_prox=True instead applies the L1 as a proximal step after
     every Adam step: w <- sign(w) max(|w| - lr*l1, 0) (exact zeros). An Adam step is
-    at most ~lr, so l1 >~ 1 keeps noise-driven weights pinned at exactly 0."""
-    path = teacher_path(dims, epochs, seed, act, l1, l1_prox)
+    at most ~lr, so l1 >~ 1 keeps noise-driven weights pinned at exactly 0.
+    l2 > 0 adds l2 * sum_l (sum W_l^2 + sum b_l^2) to the training loss. Biases are included in both penalties on
+    purpose: a weights-only penalty shrinks |w| but not |b|, pushing every kink (at distance |b|/|w|) out of the query range
+    (3072x256x100, l2 3e-3 weights-only: 52/256 units one-sided on N(0, 0.5) queries vs 0 unpenalized)."""
+    path = teacher_path(dims, epochs, seed, act, l1, l1_prox, l2)
     if os.path.exists(path):
         net = MLP(dims, act=act)
         net.load_state_dict(torch.load(path, map_location=device))
@@ -158,14 +163,16 @@ def make_teacher(dims, epochs=25, seed=0, lr=1e-3, batch=256, device="cpu",
             opt.zero_grad()
             loss = lossf(net(xb), yb)
             if l1 > 0 and not l1_prox:
-                loss = loss + l1 * sum(L.weight.abs().sum() for L in net.layers)
+                loss = loss + l1 * sum(L.weight.abs().sum() + L.bias.abs().sum() for L in net.layers)
+            if l2 > 0:
+                loss = loss + l2 * sum(L.weight.square().sum() + L.bias.square().sum() for L in net.layers)
             loss.backward()
             opt.step()
             if l1 > 0 and l1_prox:
                 with torch.no_grad():
                     for L in net.layers:
-                        w = L.weight
-                        w.copy_(w.sign() * (w.abs() - lr * l1).clamp_min(0))
+                        for w in (L.weight, L.bias):
+                            w.copy_(w.sign() * (w.abs() - lr * l1).clamp_min(0))
         if verbose:
             net.eval()
             with torch.no_grad():

@@ -682,12 +682,24 @@ def main():
     ap.add_argument("--teacher-epochs", type=int, default=25)
     ap.add_argument("--teacher-l1", type=float, default=0.0,
                     help="(MLP) train the blackbox with an L1 weight penalty: loss += "
-                         "teacher_l1 * sum_l sum|W_l| (weights only). Cached as its own "
-                         "teacher file (_l1<val>) and appended to --tag.")
+                         "teacher_l1 * sum_l (sum|W_l| + sum|b_l|), weights AND biases. Cached as its "
+                         "own teacher file (_l1wb<val>) and appended to --tag.")
+    ap.add_argument("--uniform-teacher", action="store_true",
+                    help="(MLP) blackbox = an UNTRAINED net: every weight and bias drawn i.i.d. from "
+                         "U(-1/sqrt(fan_in), 1/sqrt(fan_in)) (seed --teacher-seed), no training. "
+                         "Appends 'unif' to --tag.")
+    ap.add_argument("--uniform-range", type=float, default=None,
+                    help="with --uniform-teacher: draw every weight and bias from U(-A, A) in ALL layers "
+                         "(default: per-layer A = 1/sqrt(fan_in)). Tag suffix unif<A>.")
+    ap.add_argument("--teacher-l2", type=float, default=0.0,
+                    help="(MLP) train the blackbox with an L2 weight penalty: loss += "
+                         "teacher_l2 * sum_l (sum W_l^2 + sum b_l^2), weights AND biases. Affects the blackbox "
+                         "only, not the recovery training. Cached as its own teacher file "
+                         "(_l2wb<val>) and appended to --tag.")
     ap.add_argument("--teacher-l1-prox", action="store_true",
                     help="apply --teacher-l1 as a proximal soft-threshold after every Adam "
-                         "step (w <- sign(w) max(|w| - lr*l1, 0)) -> EXACT zeros. l1 >~ 1 "
-                         "needed (an Adam step is ~lr). Teacher/tag suffix l1p<val>.")
+                         "step (w <- sign(w) max(|w| - lr*l1, 0), weights and biases) -> EXACT zeros. "
+                         "l1 >~ 1 needed (an Adam step is ~lr). Teacher/tag suffix l1pwb<val>.")
     ap.add_argument("--device", default="mps" if torch.backends.mps.is_available() else "cpu")
     ap.add_argument("--outer", type=int, default=40)
     ap.add_argument("--q", type=int, default=1500)
@@ -869,6 +881,9 @@ def main():
     ap.add_argument("--qg_lr", type=float, default=None,
                     help="override the query-generator Adam lr on top of the "
                          "variant (Cfg.qg_lr, e.g. 0.1)")
+    ap.add_argument("--head-lsq", action="store_true",
+                    help="--fast: solve the output layer in closed form (least squares on the stored queries' "
+                         "hidden activations, no new queries) after the MSE->MAE stage, before --gn-polish")
     ap.add_argument("--gn-polish", type=int, nargs="?", const=10, default=0, metavar="ITERS",
                     help="--fast: after the MSE->MAE polish, damped Gauss-Newton least squares in fp64 on the SAME stored queries "
                          "(no new black-box queries), up to ITERS steps (default 10)")
@@ -1465,7 +1480,15 @@ def main():
     device = args.device
     torch.manual_seed(args.teacher_seed)
     if args.teacher_l1 > 0:
-        args.tag = "_".join(t for t in (args.tag, f"l1{'p' if args.teacher_l1_prox else ''}{args.teacher_l1:g}") if t)
+        args.tag = "_".join(t for t in (args.tag, f"l1{'p' if args.teacher_l1_prox else ''}wb{args.teacher_l1:g}") if t)
+    if args.teacher_l2 > 0:
+        args.tag = "_".join(t for t in (args.tag, f"l2wb{args.teacher_l2:g}") if t)
+    if args.uniform_teacher:
+        if args.teacher_l1 > 0 or args.teacher_l2 > 0 or args.teacher_full:
+            ap.error("--uniform-teacher is untrained: omit --teacher-l1 / --teacher-l2 / --teacher-full")
+        args.tag = "_".join(t for t in (args.tag, "unif" if args.uniform_range is None else f"unif{args.uniform_range:g}") if t)
+    elif args.uniform_range is not None:
+        ap.error("--uniform-range needs --uniform-teacher")
 
     act = ("sigmoid" if args.sigmoid else "tanh" if args.tanh
            else "square" if args.square else args.act if args.act else "leaky_relu")
@@ -1482,7 +1505,8 @@ def main():
               f"removed -> sub-net {sub_dims}; act={act} device={device}", flush=True)
         full_teacher = make_teacher(full_dims, epochs=args.teacher_epochs,
                                     seed=args.teacher_seed, device=device,
-                                    verbose=smooth or args.teacher_l1 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox)
+                                    verbose=smooth or args.teacher_l1 > 0 or args.teacher_l2 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox,
+                               l2=args.teacher_l2)
         teacher = MLP(sub_dims, act=act).to(device)
         with torch.no_grad():
             for j in range(len(sub_dims) - 1):
@@ -1498,9 +1522,23 @@ def main():
     else:
         print(f"[setup] teacher {dims} epochs={args.teacher_epochs} "
               f"act={act} device={device}", flush=True)
-        teacher = make_teacher(dims, epochs=args.teacher_epochs,
-                               seed=args.teacher_seed, device=device,
-                               verbose=smooth or args.teacher_l1 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox)
+        if args.uniform_teacher:
+            # untrained blackbox: i.i.d. uniform weights and biases at the nn.Linear init scale
+            torch.manual_seed(args.teacher_seed)
+            teacher = MLP(dims, act=act).to(device)
+            with torch.no_grad():
+                for L_ in teacher.layers:
+                    a_ = 1.0 / L_.weight.shape[1] ** 0.5 if args.uniform_range is None else args.uniform_range
+                    L_.weight.uniform_(-a_, a_); L_.bias.uniform_(-a_, a_)
+            _rng = ("1/sqrt(fan_in) per layer: " + ", ".join(f"{1 / L_.weight.shape[1] ** 0.5:.4f}" for L_ in teacher.layers)
+                    if args.uniform_range is None else f"{args.uniform_range:g} (all layers)")
+            print(f"[setup] --uniform-teacher: untrained, weights/biases ~ U(-A, A), A = {_rng}, "
+                  f"seed {args.teacher_seed}", flush=True)
+        else:
+            teacher = make_teacher(dims, epochs=args.teacher_epochs,
+                                   seed=args.teacher_seed, device=device,
+                                   verbose=smooth or args.teacher_l1 > 0 or args.teacher_l2 > 0, act=act, l1=args.teacher_l1, l1_prox=args.teacher_l1_prox,
+                                   l2=args.teacher_l2)
         (_, _), (xte, _) = load_data(dims, device)
         if xte.shape[1] != dims[0]:
             # no dataset matches this input width (e.g. a truncated network queried at an inner
@@ -1989,6 +2027,25 @@ def main():
                 solver_polish_(cons, Xf, Yf, mse_steps=40, mae_steps=40,
                                verbose=False, tag=" fast")
                 _phase("MSE->MAE polish", cons)
+                if args.head_lsq:
+                    # output layer in closed form: given the hidden layers it is linear, so least squares on the
+                    # stored queries' hidden activations solves it exactly (no new black-box queries). Large-scale
+                    # teachers leave the head as the dominant error, which GN alone conditions badly on.
+                    with torch.no_grad():
+                        cons = cons.double()
+                        _A = []
+                        for _i in range(0, len(Xf), 50000):
+                            _H = Xf[_i:_i + 50000].to(device).double()
+                            for L_ in cons.layers[:-1]:
+                                _H = cons.act(L_(_H))
+                            _A.append(torch.cat([_H, torch.ones(len(_H), 1, device=device, dtype=_H.dtype)], 1))
+                        _A = torch.cat(_A)
+                        _sol = torch.linalg.lstsq(_A, Yf.to(device).double()).solution
+                        cons.layers[-1].weight.copy_(_sol[:-1].T); cons.layers[-1].bias.copy_(_sol[-1])
+                        del _A
+                    _phase("head LSQ (stored queries)", cons)
+                    print(f"[head-lsq] output layer solved on {len(Xf):,} stored queries: max_eps {phases[-1][2]:.3e} "
+                          f"mean {phases[-1][1]:.3e}", flush=True)
                 if args.gn_polish:
                     # Gauss-Newton least squares on the SAME stored queries (no new black-box queries)
                     from gn_polish import gn_polish as _gnp
@@ -2089,6 +2146,9 @@ def main():
         "seed": args.seed,
         "teacher_seed": args.teacher_seed,
         "teacher_l1": args.teacher_l1,
+        "teacher_l2": args.teacher_l2,
+        "uniform_teacher": args.uniform_teacher,
+        "uniform_range": args.uniform_range,
         "device": device,
         "log": log,
         "phases": [{"phase": n, "mean_eps": me, "max_eps": mx, "wall_s": ws}

@@ -61,7 +61,12 @@ def recover_first(teacher,cons,device,only_channels=None,gen=None,diagnostics=No
                 foot=(-bias*w)[None]
                 xf,found=K.locate(oracle,foot,w[None],torch.tensor([.01],device=device,dtype=torch.float64),gen,model,0,w,K=49,tol=1e-11)
                 rec["bias_foot_found"]=bool(found[0])
-                if bool(found[0]):bias=-w@xf[0]
+                # Both regions share (almost) the same foot, so a FOREIGN kink within the +-0.01 bracket there is
+                # captured identically twice and passes the agreement check (9-layer run: three L1 biases 1e-3..3e-3
+                # off with exact weights).  Keep the foot value only if it agrees with this anchor's own estimate.
+                if bool(found[0]):
+                    bf=-w@xf[0];rec["bias_foot_shift"]=float((bf-bias).abs())
+                    if float((bf-bias).abs())<1e-6*(1+float(bias.abs())):bias=bf
                 v=torch.cat([w,bias[None]]);estimates.append(v)
                 if len(estimates)>=2:
                     diff=float((v-estimates[-2]).abs().max());rec['independent_difference']=diff

@@ -7,11 +7,12 @@ Per module:  func = rel. error of the module's output (teacher input mapped in, 
 MLP neurons: matched by pre-activation |corr| > 0.99; copies merged scale-weighted; flipped neurons use
 GELU(-z) = GELU(z) - z (row sign flipped, the linear term is part of the module output, not of the neuron).
 Dead teacher neurons (fc1 row norm < 1% of median) are excluded."""
+import os
 import sys
 import torch
 import torch.nn.functional as F
 
-sys.path.insert(0, "/tmp/claude-1001/-home-judah/d2136c58-1893-4037-b72c-aee248efb5e0/scratchpad")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from neuron_census import zcorr, build, dev  # noqa: E402
 from gpt_consensus import canon_  # noqa: E402
 from microt import rope_cos_sin  # noqa: E402

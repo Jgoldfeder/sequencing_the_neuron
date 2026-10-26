@@ -79,7 +79,7 @@ def _locate(bb, x, d, t_guess, half, iters=40):
 
 
 @torch.no_grad()
-def refine_unit(bb, net, l, w, b, gen, x_std=0.5, gate_deg=10.0, eps_side=1e-5, h=1e-7, tries=4, why=None, pick=16):
+def refine_unit(bb, net, l, w, b, gen, x_std=0.5, gate_deg=10.0, eps_side=1e-5, h=1e-7, tries=4, why=None, pick=16, tiers=(10.0, 100.0, 1000.0, 1e4, 1e5)):
     """returns (unit row w (din), bias b, info) in the unit-normalised gauge, or None."""
     dev, D = w.device, w.dtype
     din = w.shape[0]; d_x = net.layers[0].weight.shape[1]
@@ -130,7 +130,19 @@ def refine_unit(bb, net, l, w, b, gen, x_std=0.5, gate_deg=10.0, eps_side=1e-5, 
                     hs = torch.where(bad, hs / 4, hs)
             E = hs[:, None] * Dk.T                                               # (din, d_x)
             Y0 = bb(xs[None]); Yp = bb(xs[None] + E)
-            side.append(((Yp - Y0) / hs[:, None]).T)                             # (out, din) Jacobian wrt h
+            Jc = ((Yp - Y0) / hs[:, None])                                       # (din, out): smallest-step estimate
+            if l == 0 and tiers:
+                # step-size ladder: larger one-sided steps cut the fp64 roundoff ~ eps*|f|/h; a step that crosses
+                # another kink disagrees with the smaller-step estimate beyond its noise -> keep the smaller one
+                fs = float(Y0.abs().max()) + 1.0
+                cur_h = hs.clone()
+                for fac in tiers:
+                    hb = hs * fac
+                    Jb = (bb(xs[None] + hb[:, None] * Dk.T) - Y0) / hb[:, None]
+                    tol = 50 * 2.2e-16 * fs / cur_h[:, None] + 1e-12
+                    good = ((Jb - Jc).abs() <= tol).all(1)
+                    Jc = torch.where(good[:, None], Jb, Jc); cur_h = torch.where(good, hb, cur_h)
+            side.append(Jc.T)                                                    # (out, din) Jacobian wrt h
         dJ = side[1] - side[0]
         U, S, Vh = torch.linalg.svd(dJ, full_matrices=False)
         if float(S[0]) < 1e-9 or float(S[1] / S[0]) > 1e-4:
@@ -145,6 +157,12 @@ def refine_unit(bb, net, l, w, b, gen, x_std=0.5, gate_deg=10.0, eps_side=1e-5, 
             continue
         hk = prefix(net, xk[None], l)[0]
         rb = -float(r @ hk)
+        if l == 0:
+            # offset from the ORIGIN line (kink-refine precision fix): on x = s r the pre-activation is s + b, so the
+            # kink sits at s* = -b; reading b there avoids multiplying the normal's error by ||x_k|| (~30 here)
+            s_k = _locate(bb, torch.zeros_like(r), r, -rb, half=1e-4 * (1 + abs(rb)))
+            if s_k is not None and abs(-float(s_k) - rb) < 1e-5 * (1 + abs(rb)):   # same kink (else another unit's): keep it
+                rb = -float(s_k)
         # orientation: the active side (slope 1) is where r.h + b > 0; check the jump sign agrees with the guess side
         v = U[:, 0] * S[0]
         Jp = side[1] @ r; Jm = side[0] @ r                                       # slopes along r on each side

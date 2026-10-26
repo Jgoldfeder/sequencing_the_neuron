@@ -775,7 +775,7 @@ def stage1_parallel(teacher, cons, frontier, act, channels, angle_gate=12.0, n_w
 
 @torch.no_grad()
 def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=None,
-                verbose=False, par=4):
+                verbose=False, par=4, walk="branch", archive=None):
     """From >= 1 exact kink point per channel, collect `need` points per channel
     by TRACKING the kink surface: step along a random tangent (model), project
     onto the model's surface SHIFTED by the last known model-vs-true offset,
@@ -796,14 +796,28 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
     for i, c in enumerate(chans):
         Xa, Ua = anchors[c]
         k = min(len(Xa), need); P[i, :k] = Xa[:k]; PU[i, :k] = Ua[:k]; got[i] = k
+    if walk not in {'branch','chain'}:raise ValueError('Unknown tracking walk')
+    if walk=='chain':
+        walkX=torch.empty(len(chans),par,d,device=dev,dtype=torch.float64)
+        walkU=torch.empty(len(chans),par,device=dev,dtype=torch.long)
+        for i,c in enumerate(chans):
+            ids=torch.arange(par,device=dev)%int(got[i])
+            walkX[i]=P[i,ids];walkU[i]=PU[i,ids]
     for it in range(max_steps):
         act = (got < need).nonzero()[:, 0]
         if len(act) == 0:
             break
         act = act.repeat_interleave(par)                    # `par` walks per channel per step
         r = (torch.rand(len(act), device=dev, generator=gen) * got[act]).long()
-        X = P[act, r]; u = PU[act, r]
+        if walk=='chain':
+            lane=torch.arange(len(act),device=dev)%par
+            X=walkX[act,lane];u=walkU[act,lane]
+        else:X = P[act, r]; u = PU[act, r]
         wg, bg = _sampling_rows(M, u)
+        # The relocation radius below assumes a unit augmented row and an
+        # O(1e-2) directional error. Positive row gauge must not change it.
+        norm = (wg.square().sum(-1) + bg.square()).sqrt().clamp_min(1e-30)
+        wg, bg = wg / norm[:, None], bg / norm
         g0, n0 = _g_and_normal(M, X, l, wg, bg, u)          # model offset at a TRUE kink point
         nh = n0 / n0.norm(dim=1, keepdim=True).clamp_min(1e-30)
         V = torch.randn(X.shape, device=dev, dtype=X.dtype, generator=gen)
@@ -826,6 +840,8 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
             hit = hit[room]
             P[hit, got[hit]] = Xs[sel][room]; PU[hit, got[hit]] = u[sel][room]
             got[hit] += 1
+            if walk=='chain':
+                walkX[hit,i]=Xs[sel][room];walkU[hit,i]=u[sel][room]
         if verbose and (it % 20 == 0):
             print(f"    [track] step {it}: {len(act) // par} channels, {int(ok.sum())}/{len(act)} located, "
                   f"{int((got >= need).sum())}/{len(chans)} done", flush=True)
@@ -834,6 +850,7 @@ def track_layer(oracle, guess, l, anchors, gen, need=None, step=0.5, max_steps=N
         k = int(got[i])
         if k >= Din + 8:
             out[c] = M.feat(P[i, :k], PU[i, :k])
+            if archive is not None:archive[c]=P[i,:k].detach().cpu()
     return out
 
 
@@ -1013,9 +1030,12 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
                 # tracking step: 0.5 for MLP layers (validated); conv inputs are larger
                 # (|x| ~ sqrt(d)) and patch features decorrelate only over bigger
                 # moves, so step ~0.3 sqrt(d) (10x better conditioning at conv3)
-                Hs = track_layer(orc, M, frontier, anchors, gen, need=Din + (80 if is_conv else 40),
+                # track_need / track_step (MLP): more / farther-spread surface points -> better-conditioned fit
+                Hs = track_layer(orc, M, frontier, anchors, gen,
+                                 need=_ignored.get("track_need") or Din + (80 if is_conv else 40),
+                                 walk=_ignored.get("track_walk","branch"),archive=_ignored.get("track_archive"),
                                  verbose=verbose > 1,
-                                 step=0.15 * (M.d ** 0.5) if is_conv else 0.5)
+                                 step=0.15 * (M.d ** 0.5) if is_conv else _ignored.get("track_step", 0.5))
                 out = {}
                 for c, H in Hs.items():
                     if is_conv:

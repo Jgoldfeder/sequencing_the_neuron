@@ -235,13 +235,15 @@ def recover_layer(teacher, cons, frontier, device, only_channels=None, gen=None,
               and angle <= angle_gate and gap < 1e-4 and uncertainty < 1e-5)
         if diagnostics is not None:
             diagnostics[c] = dict(points=len(H), round_budget=max_rounds, cond=cond, gap=gap,
-                                  uncertainty=uncertainty, validation_fraction=valid_fraction,
+                                  uncertainty=uncertainty, validation_fraction=valid_fraction, angle=angle,
                                   residual=r.median().item(), accepted=ok)
+        if kwargs.get('candidate_rows') is not None:
+            kwargs['candidate_rows'][c]=(w.detach().cpu(),bias.detach().cpu())
         if ok:
             W[c] = w; b[c] = bias; refined[c] = True
         elif verbose:
             print(f'[design] reject c={c} gap={gap:.2e} cond={cond:.2e} '
-                  f'uncertainty={uncertainty:.2e} validation={valid_fraction:.2f}', flush=True)
+                  f'uncertainty={uncertainty:.2e} validation={valid_fraction:.2f} angle={angle:.2f}', flush=True)
     if diagnostics is not None:
         for c in channels:
             diagnostics[c]["sampling_rounds"] = history_rounds[c]

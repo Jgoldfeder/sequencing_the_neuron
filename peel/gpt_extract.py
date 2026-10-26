@@ -204,10 +204,11 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
     Xb = Yb = None
     ring = None
     if disk is not None:                                  # two-tier RAM + NVMe replay ring (../diskring.py)
-        assert query == "gaussian" and window > 0, "--disk: gaussian queries and a finite --window only"
+        assert window > 0, "--disk needs a finite --window"
         sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from diskring import DiskRing
-        dx, dy = T * d, T * vocab                         # one query = one row: (T, d) inputs, (T, vocab) logits
+        tok = query != "gaussian"                         # token ids (< vocab) are exact in float32
+        dx, dy = (T if tok else T * d), T * vocab         # one query = one row: inputs, (T, vocab) logits
         # DiskRing sizes a segment by the INPUT row only; here the logits are vocab/d times larger
         ring = DiskRing(disk, q, window, dx, dy, ram_bytes=disk_ram_gb * 1e9,
                         seg_bytes=disk_seg_gb * 1e9 * dx / (dx + dy))
@@ -242,15 +243,17 @@ def reconstruct_gpt(teacher, cfg, P=8, outer=40, q=1500, T=32, warm=0, epochs=10
         # teacher logits [N,T,vocab] on GPU OOMs; move each batch to device instead)
         X = X.cpu()
         if ring is not None:
-            ring.add_block(X.reshape(q, -1), Y.reshape(q, -1))
+            ring.add_block(X.reshape(q, -1).float(), Y.reshape(q, -1))
             n = len(ring)
             for _ in range(epochs):
                 for xb, yb in ring.epoch_batches(batch, gen, device):
-                    xb, yb = xb.view(-1, T, d), yb.view(-1, T, vocab)
+                    xb = xb.view(-1, T).long() if tok else xb.view(-1, T, d)
+                    yb = yb.view(-1, T, vocab)
                     for s, o in zip(students, opts):
                         o.zero_grad(); lossfn(_run(s, xb), yb).backward(); o.step()
             # fit / member ranking on the RAM tier only (newest blocks), as in the MLP --disk path
-            Xb, Yb = ring.ram_X.view(-1, T, d), ring.ram_Y.view(-1, T, vocab)
+            Xb = ring.ram_X.view(-1, T).long() if tok else ring.ram_X.view(-1, T, d)
+            Yb = ring.ram_Y.view(-1, T, vocab)
         else:
             Xb = X if Xb is None else torch.cat([Xb, X]); Yb = Y if Yb is None else torch.cat([Yb, Y])
             if window > 0:
@@ -405,7 +408,7 @@ if __name__ == "__main__":
     ap.add_argument("--no-save", action="store_true", help="disable checkpointing")
     ap.add_argument("--no-consensus", action="store_true", help="skip the cons/cons(masked)/iso lines")
     ap.add_argument("--disk", default=None, help="two-tier replay ring: newest --disk-ram-gb of the window in RAM, "
-                    "older blocks streamed from this directory (diskring.py; gaussian queries only)")
+                    "older blocks streamed from this directory (diskring.py)")
     ap.add_argument("--disk-ram-gb", type=float, default=60.0)
     ap.add_argument("--disk-seg-gb", type=float, default=2.0, help="--disk: streamed segment size (X+Y) in GB")
     ap.add_argument("--student-ffn-mult", type=float, default=1.0,

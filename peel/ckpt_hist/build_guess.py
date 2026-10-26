@@ -132,7 +132,8 @@ if __name__ == "__main__":
     Xh = torch.randn(max(1, 32768 // T), T, cfg["d_model"], generator=g, device=dev) * 0.5     # held-out black-box probe
     print(f"{ckpt.split('/')[-1]}: iter {ck['iter']}, members by fit {order}, quorum {quorum}/{P}", flush=True)
     results = []
-    for mi in order[:3]:
+    pick = sys.argv[4] if len(sys.argv) > 4 else "finetuned"   # "widebest": keep the lowest-fit WIDE member (teacher-free too)
+    for mi in (order[:1] if pick == "widebest" else order[:3]):
         nar, log = compress(members, mi, Xc, cfg["ffn"], quorum)
         f0 = bb_fit(members[mi], oracle, Xh); f1 = bb_fit(nar, oracle, Xh)
         ft = finetune(nar, oracle, cfg, T=T); f2 = bb_fit(ft, oracle, Xh)
