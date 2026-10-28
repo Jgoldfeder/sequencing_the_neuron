@@ -375,6 +375,41 @@ def run_cnn(args):
         (_xtr_d, _), (_xte_d, _) = load_data(_dd, device)
         overrides["qg_init"] = "data"; overrides["query_data"] = torch.cat([_xtr_d, _xte_d]).to(device); overrides["query_data_jitter"] = args.qg_data_jitter; overrides["query_data_pool"] = args.qg_data_pool
         print(f"[setup] --qg-init-data: {overrides['query_data'].shape[0]} natural inputs as mining base points (jitter {args.qg_data_jitter:g})", flush=True)
+    if getattr(args, "random_queries", None):
+        overrides["random_queries"] = args.random_queries
+        overrides["oneshot"] = bool(getattr(args, "oneshot", False))
+        if args.random_scale is not None:
+            overrides["qg_range" if args.random_queries == "uniform" else "qg_init_std"] = args.random_scale
+        if args.random_queries != "datacov":           # datacov: mean/cov set below (shared with --qg-init datacov)
+            _S = args.random_scale if args.random_scale is not None else (1.0 if args.random_queries == "uniform" else 0.5)
+            print(f"[setup] --random-queries {args.random_queries}: "
+                  f"{'U[-%g, %g]' % (_S, _S) if args.random_queries == 'uniform' else 'N(0, %g^2)' % _S} every iteration, "
+                  f"no disagreement search", flush=True)
+    if getattr(args, "save_queries", ""):
+        overrides["save_queries"] = args.save_queries
+    if getattr(args, "query_design", None):
+        overrides["query_design"] = args.query_design; overrides["qd_radius"] = args.qd_radius
+        overrides["qd_members"] = args.qd_members; overrides["qd_seq"] = args.qd_seq; overrides["qd_chunk"] = args.qd_chunk
+        overrides["qd_skip_input"] = args.qd_skip_input; overrides["qd_topk"] = args.qd_topk
+        overrides["qd_resid_frac"] = args.qd_resid_frac; overrides["qd_seed_noise"] = args.qd_seed_noise
+        overrides["qd_wradius"] = args.qd_wradius; overrides["qd_tau"] = args.qd_tau; overrides["qd_lr"] = args.qd_lr
+        overrides["qd_mix"] = args.qd_mix
+    if getattr(args, "qg_init", None):
+        overrides["qg_init"] = args.qg_init
+        print(f"[setup] --qg-init {args.qg_init}: disagreement search starts from "
+              f"{ {'uniform': 'U[-1, 1]', 'gauss': 'N(0, 0.5^2)', 'datacov': 'N(mean, cov) of the training inputs'}[args.qg_init] }",
+              flush=True)
+    if getattr(args, "random_queries", None) == "datacov" or getattr(args, "qg_init", None) == "datacov" \
+            or getattr(args, "query_design", None) == "kink":
+        (_xtr_c, _), _ = load_data(dims, device)
+        _xc = _xtr_c.double().reshape(len(_xtr_c), -1)
+        _mu = _xc.mean(0); _cov = torch.cov(_xc.T)
+        _ev, _evec = torch.linalg.eigh(_cov)
+        overrides["query_mean"] = _mu.float().to(device)
+        overrides["query_cov_sqrt"] = (_evec * _ev.clamp_min(0).sqrt()).float().to(device)   # S S^T = cov
+        overrides["query_wsqrt"] = (_evec * (_ev.clamp_min(0) + 1e-3 * _ev.max()).sqrt()).float().to(device)   # cov + ridge
+        print(f"[setup] datacov: N(mean, cov) of {len(_xc):,} training inputs ({_xc.shape[1]} dims; "
+              f"input std {float(_xc.std()):.3f}, cov rank {int((_ev > 1e-8 * _ev.max()).sum())})", flush=True)
     if getattr(args, "query_map_abs", False):
         overrides["query_map"] = (lambda raw: raw.abs()); overrides["query_raw_dim"] = dims[0]
     if getattr(args, "h_push", 0):
@@ -881,6 +916,41 @@ def main():
     ap.add_argument("--qg_lr", type=float, default=None,
                     help="override the query-generator Adam lr on top of the "
                          "variant (Cfg.qg_lr, e.g. 0.1)")
+    ap.add_argument("--random-queries", choices=["uniform", "gauss", "datacov", "kinkcross"], default=None,
+                    help="ablation: replace the disagreement sampler with random queries every iteration. "
+                         "uniform: U[-S, S] (S default 1); gauss: N(0, S^2) (S default 0.5); datacov: Gaussian with "
+                         "the mean and covariance of the training inputs (MNIST for 784 inputs, CIFAR-100 for 3072). "
+                         "kinkcross (ReLU nets): model-free kink sampler -- queries on random lines, and pairs of queries "
+                         "straddling every black-box kink found on them; later lines start from found kink points. "
+                         "Appends rq<kind> to --tag.")
+    ap.add_argument("--qg-init", choices=["uniform", "gauss", "datacov"], default=None,
+                    help="start of the disagreement search (overrides the variant): uniform U[-1,1] (mergedbest512's "
+                         "default), gauss N(0,0.5^2), datacov Gaussian with the training inputs' mean and covariance. "
+                         "The search itself is unchanged. Appends qi<kind> to --tag.")
+    ap.add_argument("--query-design", choices=["leverage", "kink"], default=None,
+                    help="replace the disagreement search with an informed design from the best member alone: maximise "
+                         "every layer's input leverage w.r.t. the queries collected so far (K-FAC input factor; "
+                         "query_design.py). Same init / steps / lr as the disagreement search. Appends qd<kind> to --tag.")
+    ap.add_argument("--qd-radius", type=float, default=0.0, help="--query-design: ball radius for queries (0 = 1.4 x 0.5 sqrt(d))")
+    ap.add_argument("--qd-members", type=int, default=1, help="--query-design: average the score over the K best members")
+    ap.add_argument("--qd-seq", action="store_true", help="--query-design: batch design (each chunk sees the earlier chunks)")
+    ap.add_argument("--qd-chunk", type=int, default=8192, help="--query-design: chunk size (batch-design granularity)")
+    ap.add_argument("--qd-skip-input", action="store_true", help="--query-design: drop the raw-input (layer-1) term")
+    ap.add_argument("--qd-topk", type=int, default=0, help="--query-design: per layer, score the k largest whitened components (0 = full norm)")
+    ap.add_argument("--qd-wradius", type=float, default=25.0, help="--query-design kink: ball radius in the data's whitened coordinates")
+    ap.add_argument("--qd-tau", type=float, default=0.05, help="--query-design kink: kink band as a fraction of each unit's spread")
+    ap.add_argument("--qd-lr", type=float, default=0.0, help="--query-design kink: search learning rate (0 = the variant's qg_lr)")
+    ap.add_argument("--qd-mix", type=float, default=0.0, help="--query-design kink: fraction of plain data-covariance draws")
+    ap.add_argument("--qd-resid-frac", type=float, default=0.0, help="--query-design: fraction of searches started from the stored queries the best member fits worst")
+    ap.add_argument("--qd-seed-noise", type=float, default=0.1, help="--query-design: noise std added to those seeds")
+    ap.add_argument("--save-queries", default="", metavar="DIR",
+                    help="write each iteration's new queries (fp16) to DIR/it<NNN>.pt for offline analysis")
+    ap.add_argument("--oneshot", action="store_true",
+                    help="with --random-queries: draw all q*outer queries in iteration 1 and none afterwards; the "
+                         "members train on that fixed set for the same iterations x epochs (non-adaptive baseline). "
+                         "Disables the replay window. Appends 'oneshot' to --tag.")
+    ap.add_argument("--random-scale", type=float, default=None,
+                    help="with --random-queries uniform/gauss: S (uniform half-range / gaussian std)")
     ap.add_argument("--head-lsq", action="store_true",
                     help="--fast: solve the output layer in closed form (least squares on the stored queries' "
                          "hidden activations, no new queries) after the MSE->MAE stage, before --gn-polish")
@@ -1483,6 +1553,31 @@ def main():
         args.tag = "_".join(t for t in (args.tag, f"l1{'p' if args.teacher_l1_prox else ''}wb{args.teacher_l1:g}") if t)
     if args.teacher_l2 > 0:
         args.tag = "_".join(t for t in (args.tag, f"l2wb{args.teacher_l2:g}") if t)
+    if args.random_queries:
+        args.tag = "_".join(t for t in (args.tag, f"rq{args.random_queries}"
+                                        + (f"{args.random_scale:g}" if args.random_scale is not None else "")) if t)
+    elif args.random_scale is not None:
+        ap.error("--random-scale needs --random-queries")
+    if args.random_queries == "kinkcross" and (args.tanh or args.sigmoid or args.square or (args.act or "leaky_relu") not in ("relu", "leaky_relu")):
+        ap.error("--random-queries kinkcross needs a piecewise-linear (ReLU / leaky-ReLU) black box")
+    if args.oneshot:
+        if not args.random_queries:
+            ap.error("--oneshot needs --random-queries (a disagreement search has nothing to adapt to up front)")
+        args.window = 0                                 # keep every query: nothing may age out of the buffer
+        args.tag = "_".join(t for t in (args.tag, "oneshot") if t)
+    if args.query_design:
+        if args.random_queries:
+            ap.error("--query-design and --random-queries are alternatives")
+        args.tag = "_".join(t for t in (args.tag, f"qd{args.query_design}" + (f"m{args.qd_members}" if args.qd_members > 1 else "")
+                                        + ("seq" if args.qd_seq else "") + ("nox" if args.qd_skip_input else "")
+                                        + (f"top{args.qd_topk}" if args.qd_topk else "")
+                                        + (f"res{args.qd_resid_frac:g}" if args.qd_resid_frac else "")
+                                        + (f"t{args.qd_tau:g}l{args.qd_lr:g}" if args.query_design == "kink" else "")
+                                        + (f"mix{args.qd_mix:g}" if args.qd_mix else "")) if t)
+    if args.qg_init:
+        if args.random_queries:
+            ap.error("--qg-init sets the disagreement search's start; --random-queries has no search")
+        args.tag = "_".join(t for t in (args.tag, f"qi{args.qg_init}") if t)
     if args.uniform_teacher:
         if args.teacher_l1 > 0 or args.teacher_l2 > 0 or args.teacher_full:
             ap.error("--uniform-teacher is untrained: omit --teacher-l1 / --teacher-l2 / --teacher-full")
@@ -1675,6 +1770,41 @@ def main():
         (_xtr_d, _), (_xte_d, _) = load_data(_dd, device)
         overrides["qg_init"] = "data"; overrides["query_data"] = torch.cat([_xtr_d, _xte_d]).to(device); overrides["query_data_jitter"] = args.qg_data_jitter; overrides["query_data_pool"] = args.qg_data_pool
         print(f"[setup] --qg-init-data: {overrides['query_data'].shape[0]} natural inputs as mining base points (jitter {args.qg_data_jitter:g})", flush=True)
+    if getattr(args, "random_queries", None):
+        overrides["random_queries"] = args.random_queries
+        overrides["oneshot"] = bool(getattr(args, "oneshot", False))
+        if args.random_scale is not None:
+            overrides["qg_range" if args.random_queries == "uniform" else "qg_init_std"] = args.random_scale
+        if args.random_queries != "datacov":           # datacov: mean/cov set below (shared with --qg-init datacov)
+            _S = args.random_scale if args.random_scale is not None else (1.0 if args.random_queries == "uniform" else 0.5)
+            print(f"[setup] --random-queries {args.random_queries}: "
+                  f"{'U[-%g, %g]' % (_S, _S) if args.random_queries == 'uniform' else 'N(0, %g^2)' % _S} every iteration, "
+                  f"no disagreement search", flush=True)
+    if getattr(args, "save_queries", ""):
+        overrides["save_queries"] = args.save_queries
+    if getattr(args, "query_design", None):
+        overrides["query_design"] = args.query_design; overrides["qd_radius"] = args.qd_radius
+        overrides["qd_members"] = args.qd_members; overrides["qd_seq"] = args.qd_seq; overrides["qd_chunk"] = args.qd_chunk
+        overrides["qd_skip_input"] = args.qd_skip_input; overrides["qd_topk"] = args.qd_topk
+        overrides["qd_resid_frac"] = args.qd_resid_frac; overrides["qd_seed_noise"] = args.qd_seed_noise
+        overrides["qd_wradius"] = args.qd_wradius; overrides["qd_tau"] = args.qd_tau; overrides["qd_lr"] = args.qd_lr
+        overrides["qd_mix"] = args.qd_mix
+    if getattr(args, "qg_init", None):
+        overrides["qg_init"] = args.qg_init
+        print(f"[setup] --qg-init {args.qg_init}: disagreement search starts from "
+              f"{ {'uniform': 'U[-1, 1]', 'gauss': 'N(0, 0.5^2)', 'datacov': 'N(mean, cov) of the training inputs'}[args.qg_init] }",
+              flush=True)
+    if getattr(args, "random_queries", None) == "datacov" or getattr(args, "qg_init", None) == "datacov" \
+            or getattr(args, "query_design", None) == "kink":
+        (_xtr_c, _), _ = load_data(dims, device)
+        _xc = _xtr_c.double().reshape(len(_xtr_c), -1)
+        _mu = _xc.mean(0); _cov = torch.cov(_xc.T)
+        _ev, _evec = torch.linalg.eigh(_cov)
+        overrides["query_mean"] = _mu.float().to(device)
+        overrides["query_cov_sqrt"] = (_evec * _ev.clamp_min(0).sqrt()).float().to(device)   # S S^T = cov
+        overrides["query_wsqrt"] = (_evec * (_ev.clamp_min(0) + 1e-3 * _ev.max()).sqrt()).float().to(device)   # cov + ridge
+        print(f"[setup] datacov: N(mean, cov) of {len(_xc):,} training inputs ({_xc.shape[1]} dims; "
+              f"input std {float(_xc.std()):.3f}, cov rank {int((_ev > 1e-8 * _ev.max()).sum())})", flush=True)
     if getattr(args, "query_map_abs", False):
         overrides["query_map"] = (lambda raw: raw.abs()); overrides["query_raw_dim"] = dims[0]
     if getattr(args, "h_push", 0):
@@ -2139,7 +2269,7 @@ def main():
     print(f"[save] {model_path}", flush=True)
     out = {
         "variant": args.variant,
-        "cfg": {k: (list(v) if isinstance(v, tuple) else (None if callable(v) else v))
+        "cfg": {k: (list(v) if isinstance(v, tuple) else (None if callable(v) or torch.is_tensor(v) else v))
                 for k, v in cfg.__dict__.items()},
         "arch": dims,
         "n_params": count_params(teacher),

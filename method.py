@@ -215,6 +215,29 @@ class Cfg:
     polish_f64: bool = False
     polish_epochs: int = 3
     warmstart_iters: int = 0   # first k iters use random Gaussian queries
+    random_queries: str = ""   # ablation: EVERY iteration's queries are random, no disagreement search:
+                               # 'uniform' U[-qg_range, qg_range] | 'gauss' N(0, qg_init_std^2) |
+                               # 'datacov' N(mean, cov) of the training inputs (query_mean / query_cov_sqrt) |
+                               # 'kinkcross' grid points on lines + pairs straddling each black-box kink (kinkcross.py)
+    save_queries: str = ""     # directory: write each iteration's NEW queries (fp16) as it<NNN>.pt (offline analysis)
+    query_design: str = ""     # 'leverage': informed queries from the best member, no disagreement (query_design.py)
+    qd_radius: float = 0.0     # leverage search: ball radius for the queries (0 = 1.4 x 0.5 sqrt(d))
+    qd_members: int = 1        # leverage: average the score over the qd_members best members (1 = best only)
+    qd_seq: bool = False       # leverage: batch design -- fold each optimised chunk into the moments before the next
+    qd_chunk: int = 8192       # leverage: queries optimised together (the batch-design granularity with qd_seq)
+    qd_skip_input: bool = False  # leverage: drop the raw-input (layer-1) term from the score
+    qd_topk: int = 0           # leverage: score = mean of the k largest whitened components per layer (0 = full norm)
+    qd_resid_frac: float = 0.0 # leverage: fraction of the searches started from the worst-fit stored queries
+    qd_wradius: float = 25.0   # kink design: ball radius in the data's whitened coordinates
+    qd_tau: float = 0.05       # kink design: kink band, as a fraction of each unit's pre-activation spread
+    qd_lr: float = 0.0         # kink design: search learning rate (0 = qg_lr)
+    qd_mix: float = 0.0        # kink design: fraction of plain data-covariance draws (no search)
+    query_wsqrt: object = None # kink design: S with S S^T = data cov + ridge (whitened search coordinates)
+    qd_seed_noise: float = 0.1 # leverage: Gaussian noise added to those seeds
+    oneshot: bool = False      # with random_queries: draw ALL q*outer queries in iteration 1, none afterwards
+                               # (non-adaptive design; the members keep training on the fixed set)
+    query_mean: object = None
+    query_cov_sqrt: object = None
     fit_delta: float = 0.0     # >0: stop inner epochs early when batch L1 < delta
     stop_loss: float = 0.0     # >0: early-stop outer when best_loss < stop_loss
     stop_agree: float = 0.0    # >0: ...AND population weight dispersion < this
@@ -817,6 +840,11 @@ def _per_sample_hidden(net, fn, x):
     return int(acc[0])
 
 
+def _qcount(cfg, t):
+    """black-box queries spent by the end of iteration t (0-based); --oneshot spends the whole budget in iteration 1"""
+    return cfg.q * cfg.outer if getattr(cfg, "oneshot", False) else (t + 1) * cfg.q
+
+
 def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=None,
                 ref_last=False, feats=None, extra=None):
     """Paper Algorithm 2 (+ box / diversity / fit-gating variants).
@@ -891,6 +919,9 @@ def gen_queries(pop, cfg, input_dim, device, gen, losses=None, init_override=Non
     elif cfg.qg_init == "uniform":
         leaf = (torch.rand(q, input_dim, generator=gen, device=device)
                 * 2 - 1) * cfg.qg_range
+        T = lambda x: x                         # noqa: E731
+    elif cfg.qg_init == "datacov":              # Gaussian with the training inputs' mean and covariance
+        leaf = torch.randn(q, input_dim, generator=gen, device=device) @ cfg.query_cov_sqrt.T + cfg.query_mean
         T = lambda x: x                         # noqa: E731
     else:
         leaf = torch.randn(q, input_dim, generator=gen,
@@ -2993,6 +3024,31 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             I = torch.cat(chunks)
             if (t+1) % cfg.log_every == 0:
                 print(f"[normalized-peel] disagreement {before/count:.3g}->{after/count:.3g}; normalized movement {movement/count:.3g}",flush=True)
+        elif cfg.random_queries:
+            # --random-queries ablation: no disagreement search at all, fresh random queries every iteration
+            _nq = (cfg.q * cfg.outer if t == 0 else 0) if cfg.oneshot else cfg.q    # --oneshot: everything up front
+            _host = _nq * _qdim * 4 > cfg.qg_host_gb * 1e9
+            if cfg.random_queries == "kinkcross":
+                # model-free: grid points on random lines + pairs straddling every black-box kink found on them;
+                # lines also start from previously found kink points (kinkcross.py). Every point counts once.
+                import kinkcross
+                if t == 0:
+                    kinkcross.reset()
+                I = kinkcross.kinkcross_queries(teacher, _nq, _qdim, device, gen, base_std=cfg.qg_init_std,
+                                                out_device="cpu" if _host else device)
+            else:
+                I = torch.empty(_nq, _qdim, device="cpu" if _host else device)
+            for _b0 in (range(0, _nq, 16384) if cfg.random_queries != "kinkcross" else ()):
+                _n = min(16384, _nq - _b0)
+                if cfg.random_queries == "uniform":
+                    _x = (torch.rand(_n, _qdim, generator=gen, device=device) * 2 - 1) * cfg.qg_range
+                elif cfg.random_queries == "gauss":
+                    _x = torch.randn(_n, _qdim, generator=gen, device=device) * cfg.qg_init_std
+                elif cfg.random_queries == "datacov":
+                    _x = torch.randn(_n, _qdim, generator=gen, device=device) @ cfg.query_cov_sqrt.T + cfg.query_mean
+                else:
+                    raise ValueError(f"unknown random_queries {cfg.random_queries!r}")
+                I[_b0:_b0 + _n].copy_(_x)
         elif t < cfg.warmstart_iters:
             if cfg.q * _qdim * 4 > cfg.qg_host_gb * 1e9:
                 # block too big for the GPU (randn + the scaled copy = 2 x q x d): fill a host tensor in chunks
@@ -3067,6 +3123,54 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 if (t + 1) % cfg.log_every == 0:
                     print(f"  [targetdeep] queries maximise disagreement on all {len(dims) - 2} hidden layers' activations "
                           f"(aligned to m{_dref}) + output", flush=True)
+            elif cfg.query_design == "kink" and not cfg.cheat and len(X) > 0:
+                # --query-design kink: kink-coverage design from the best member, no disagreement (query_design.py)
+                import query_design
+                _ix = torch.randperm(len(X), generator=torch.Generator().manual_seed(t))[:8192]
+                _ls = loss_on(qg_members, X[_ix], Y[_ix])
+                _ok = sorted(range(len(_ls)), key=lambda i: _ls[i])
+                _bk = [qg_members[i] for i in _ok[:max(1, cfg.qd_members)]]
+                _kseeds = None
+                if cfg.qd_resid_frac > 0:            # worst-fit stored queries (black-box answers already known)
+                    _ic = torch.randperm(len(X), generator=torch.Generator().manual_seed(10_000 + t))[:min(len(X), 4 * cfg.q)]
+                    with torch.no_grad():
+                        _res = torch.cat([(_bk[0](X[_ic[j:j + 8192]].to(device).float())
+                                           - Y[_ic[j:j + 8192]].to(device).float()).abs().mean(1)
+                                          for j in range(0, len(_ic), 8192)])
+                    _kseeds = X[_ic[_res.topk(min(int(cfg.qd_resid_frac * cfg.q), len(_res))).indices.cpu()]]
+                    # spread the seeds across the batch's chunks instead of front-loading them
+                    _kseeds = _kseeds[torch.randperm(len(_kseeds))]
+                I = query_design.kink_queries(_bk, X, cfg.q, _qdim, device, gen, cfg.query_mean, cfg.query_wsqrt, mix=cfg.qd_mix,
+                                              seeds=_kseeds, seed_noise=cfg.qd_seed_noise,
+                                              wradius=cfg.qd_wradius, tau=cfg.qd_tau, steps=cfg.qg_steps,
+                                              lr=cfg.qd_lr if cfg.qd_lr > 0 else cfg.qg_lr,
+                                              chunk=cfg.qd_chunk, verbose=(t + 1) % cfg.log_every == 0)
+            elif cfg.query_design == "leverage" and not cfg.cheat and len(X) > 0:
+                # --query-design leverage: informed design with ONE model (the best member), no disagreement --
+                # maximise every layer's input leverage w.r.t. the buffer (query_design.py)
+                import query_design
+                _ix = torch.randperm(len(X), generator=torch.Generator().manual_seed(t))[:8192]
+                _ls = loss_on(qg_members, X[_ix], Y[_ix])
+                _order = sorted(range(len(_ls)), key=lambda i: _ls[i])
+                _best = [qg_members[i] for i in _order[:max(1, cfg.qd_members)]]
+                _seeds = None
+                if cfg.qd_resid_frac > 0:
+                    # residual seeds: the stored queries the best member fits worst (black-box outputs already known;
+                    # no new queries, no disagreement) -> point part of the design at wherever the model is wrong
+                    _ns = int(cfg.qd_resid_frac * cfg.q)
+                    _ic = torch.randperm(len(X), generator=torch.Generator().manual_seed(10_000 + t))[:min(len(X), 4 * cfg.q)]
+                    with torch.no_grad():
+                        _res = torch.cat([(_best[0](X[_ic[j:j + 8192]].to(device).float())
+                                           - Y[_ic[j:j + 8192]].to(device).float()).abs().mean(1)
+                                          for j in range(0, len(_ic), 8192)])
+                    _seeds = X[_ic[_res.topk(min(_ns, len(_res))).indices.cpu()]]
+                I = query_design.leverage_queries(_best, X, cfg.q, _qdim, device, gen, init=cfg.qg_init, seq=cfg.qd_seq,
+                                                  seeds=_seeds, seed_noise=cfg.qd_seed_noise,
+                                                  chunk=cfg.qd_chunk, skip_input=cfg.qd_skip_input, topk=cfg.qd_topk,
+                                                  init_mean=cfg.query_mean, init_cov_sqrt=cfg.query_cov_sqrt,
+                                                  init_scale=cfg.qg_range if cfg.qg_init == "uniform" else cfg.qg_init_std,
+                                                  steps=cfg.qg_steps, lr=cfg.qg_lr, radius=cfg.qd_radius or None,
+                                                  verbose=(t + 1) % cfg.log_every == 0)
             else:
                 I = gen_queries(qg_pop, cfg, _qdim, device, gen,
                                 losses=losses_qg,
@@ -3080,7 +3184,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
             if input_transform is not None:
                 I = input_transform(I)      # squash into the sealed activation domain
             with torch.no_grad():           # label in chunks: the teacher's activations for q inputs at once scale with q
-                if I.device.type == "cpu":  # host-assembled block (qg_host_gb): stream chunks through the GPU teacher
+                if I.device.type == "cpu" and len(I) > 0:  # host-assembled block (qg_host_gb): stream chunks through the GPU teacher
                     T = torch.cat([teacher(I[i0:i0 + 65536].to(device)).cpu() for i0 in range(0, len(I), 65536)])
                 else:
                     T = torch.cat([teacher(I[i0:i0 + 65536]) for i0 in range(0, len(I), 65536)]) if len(I) > 65536 else teacher(I)
@@ -3122,6 +3226,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 X, Y = X[-keep:], Y[-keep:]
                 if cfg.ensemble_boost:
                     boost_P = boost_P[-keep:]
+        if cfg.save_queries and len(I):            # --save-queries: this iteration's new queries, for offline analysis
+            os.makedirs(cfg.save_queries, exist_ok=True)
+            torch.save(I.detach().to("cpu", torch.float16), os.path.join(cfg.save_queries, f"it{t + 1:03d}.pt"))
         # the q x d query block (7.4 GB at q=600k) is now in the host buffer: free it BEFORE the next
         # iteration allocates its own, otherwise two blocks coexist on the GPU (OOM at it 3 of the
         # 600k run inside the warm-start randn); also return the freed blocks to the driver.
@@ -3749,10 +3856,10 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                   # the cascade is scored via base_loss below
                 wall = round(time.time() - t0, 1)
                 med = sorted(losses)[cfg.p // 2]
-                log.append({"iter": t + 1, "queries": (t + 1) * cfg.q,
+                log.append({"iter": t + 1, "queries": _qcount(cfg, t),
                             "best_loss": losses[bi], "med_loss": med,
                             "worst_loss": max(losses), "wall_s": wall})
-                print(f"  it {t + 1:3d} | q {(t + 1) * cfg.q:7d} | loss best "
+                print(f"  it {t + 1:3d} | q {_qcount(cfg, t):7d} | loss best "
                       f"{losses[bi]:.3e} med {med:.3e} worst {max(losses):.3e} | "
                       f"{wall}s  [EXPAND x{cfg.expand}]", flush=True)
                 continue
@@ -3820,7 +3927,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                                                for i in range(len(dims) - 1)] if errs_chained else None),
                 "eps_per_layer_mean_chained": ([errs_chained["mean_eps_per_matrix"][2 * i]
                                                 for i in range(len(dims) - 1)] if errs_chained else None),
-                "queries": (t + 1) * cfg.q,
+                "queries": _qcount(cfg, t),
                 "peel_refinement_queries": peel_refinement_queries,
                 "best_loss": base_loss if base_loss is not None else losses[bi],
                 **({"stage_best_loss": losses[bi] * boost_scale}
@@ -3883,7 +3990,7 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
                 cons_str = f"0/{dims[1]}"
             _ls = (f"{base_loss:.2e} (stage {losses[bi] * boost_scale:.2e})"
                    if base_loss is not None else f"{losses[bi]:.2e}")
-            _qtot = (t + 1) * cfg.q
+            _qtot = _qcount(cfg, t)
             _qs = f"{_qtot / 1e6:.2f}M" if _qtot >= 1e6 else f"{_qtot / 1e3:.0f}k" if _qtot >= 1e4 else str(_qtot)
             if it_disp == 1:
                 print("  legend: it | q | loss | max_eps | mean_eps  //  cons certified/total [per hidden layer] cons-eps | agree | wall\n"
@@ -5201,7 +5308,9 @@ def reconstruct(teacher, dims, cfg: Cfg, device, teacher_eval_pts, seed=0,
     if best is None:
         losses = loss_on(pop, X, Y)
         best = pop[min(range(cfg.p), key=lambda i: losses[i])]
-    queries_used = (t + 1) * cfg.q
+    # the loop exits at the top of iteration t == budget_end (before drawing any queries), so the last iteration
+    # that drew queries is t - 1 there; reporting (t + 1) * q counted one block that was never queried
+    queries_used = _qcount(cfg, min(t, budget_end - 1))
     extra = {}
 
     # --- checkpoint the raw reconstruction BEFORE the endgame solvers, so the
